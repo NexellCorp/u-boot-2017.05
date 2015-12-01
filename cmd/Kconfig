@@ -655,6 +655,13 @@ config CMD_FDC
 	help
 	  The 'fdtboot' command allows booting an image from a floppy disk.
 
+config CMD_FACTORY_INFO
+	bool "factory_info"
+	help
+	  Enable the 'factory_info' command to read and write factory
+	  information such as board serial number in specific offset of the
+	  mmc partition.
+
 config CMD_FLASH
 	bool "flinfo, erase, protect"
 	default y
