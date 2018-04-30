@@ -667,6 +667,9 @@ config ARCH_QEMU
 	select OF_CONTROL
 	select PL01X_SERIAL
 
+config ARCH_NEXELL
+	bool "Nexell SoCs"
+
 config ARCH_RMOBILE
 	bool "Renesas ARM SoCs"
 	select DM
@@ -1270,6 +1273,8 @@ source "arch/arm/mach-imx/mxs/Kconfig"
 source "arch/arm/mach-omap2/Kconfig"
 
 source "arch/arm/cpu/armv8/fsl-layerscape/Kconfig"
+
+source "arch/arm/mach-nexell/Kconfig"
 
 source "arch/arm/mach-orion5x/Kconfig"
 
