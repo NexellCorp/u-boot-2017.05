@@ -35,3 +35,4 @@ obj-$(CONFIG_RMOBILE) += rmobile/
 obj-$(if $(filter stv0991,$(SOC)),y) += stv0991/
 obj-$(CONFIG_ARCH_SUNXI) += sunxi/
 obj-$(CONFIG_VF610) += vf610/
+obj-$(if $(filter nxp3220,$(SOC)),y) += nxp3220/
