@@ -1,0 +1,6 @@
+if TARGET_ARTIK310S_TRIKE
+
+config SYS_BOARD
+	default "artik310s_trike"
+
+endif

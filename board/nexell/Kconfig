@@ -1,7 +1,13 @@
 if ARCH_NEXELL
 
 choice
-	prompt "Board Select"
+	prompt "Board select"
+
+config TARGET_ARTIK310S_TRIKE
+	bool "ARTIK310S_TRIKE"
+	depends on ARCH_SIP_S31NX
+	help
+	  Support for artik310s trike board.
 
 endchoice
 
@@ -11,5 +17,7 @@ config SYS_CONFIG_NAME
           This option should contain the base name of board header file.
           The header file include/configs/<CONFIG_SYS_CONFIG_NAME>.h
           should be included from include/config.h.
+
+source "board/nexell/artik310s_trike/Kconfig"
 
 endif
