@@ -2,7 +2,6 @@ if ARCH_NEXELL
 
 choice
         prompt "Nexell SoCs select"
-        optional
 
 config ARCH_NXP3220
 	bool "NXP3220"
@@ -18,13 +17,11 @@ endchoice
 
 config SYS_SOC
 	default "nxp3220"
-	depends on ARCH_NXP3220 || ARCH_SIP_S31NX 
+	depends on ARCH_NXP3220 || ARCH_SIP_S31NX
 
 config SYS_VENDOR
         default "nexell"
 
-menu "Board for Nexell"
 source "board/nexell/Kconfig"
-endmenu
 
 endif
