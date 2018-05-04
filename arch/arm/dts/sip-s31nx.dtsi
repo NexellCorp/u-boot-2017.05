@@ -1,0 +1,12 @@
+/*
+ * (C) Copyright 2018 Nexell
+ * Jongkeun, Choi <jkchoi@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:      GPL-2.0+
+ */
+
+#include "nxp3220.dtsi"
+
+/ {
+
+};
