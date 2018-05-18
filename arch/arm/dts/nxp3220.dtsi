@@ -6,8 +6,10 @@
  */
 
 #include "skeleton.dtsi"
+#include <dt-bindings/clock/nxp3220-clk.h>
 
 / {
+	#include "nxp3220-clk.dtsi"
 	pinctrl: pinctrl@20180000 {
 		compatible = "nexell,nxp3220-pinctrl";
 		reg = <0x20180000 0x1000>,
