@@ -25,3 +25,4 @@ obj-$(CONFIG_MACH_PIC32) += clk_pic32.o
 obj-$(CONFIG_SANDBOX) += clk_sandbox.o
 obj-$(CONFIG_SANDBOX) += clk_sandbox_test.o
 obj-$(CONFIG_STM32H7) += clk_stm32h7.o
+obj-$(CONFIG_ARCH_NEXELL) += nexell/
