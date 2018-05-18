@@ -1,0 +1,59 @@
+/*
+ * (C) Copyright 2018 Nexell
+ * Author: Youngbok, Park <ybpark@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:      GPL-2.0+
+ */
+
+	fin_pll: xxti {
+		compatible = "fixed-clock";
+		clock-output-names = "fin_pll";
+		clock-frequency = <24000000>;
+		u-boot,dm-pre-reloc;
+		#clock-cells = <0>;
+	};
+
+	clock_pll: clock-src@27020000 {
+		compatible = "nexell,nxp3220-clock-pll";
+		reg = <0x27020000 0x10000>;
+		u-boot,dm-pre-reloc;
+		#clock-cells = <1>;
+		clocks = <&fin_pll>;
+		clock-names = "xxti";
+	};
+
+	clock_src: clock-src@27000000 {
+		compatible = "nexell,nxp3220-cmu-src";
+		reg = <0x27000000 0x10000>;
+		u-boot,dm-pre-reloc;
+		#clock-cells = <1>;
+		clocks = <&clock_pll 0>;
+		clock-names = "pll";
+	};
+
+	clock_sys: clock-sys@27010000 {
+		compatible = "nexell,nxp3220-cmu-sys";
+		reg = <0x27010000 0x10000>;
+		u-boot,dm-pre-reloc;
+		#clock-cells = <1>;
+		clocks = <&clock_src 0> ;
+		clock-names = "cmu-src";
+	};
+
+	clock_mm: clock-mm@25000000 {
+		compatible = "nexell,nxp3220-cmu-mm";
+		reg = <0x25000000 0x10000>;
+		u-boot,dm-pre-reloc;
+		#clock-cells = <1>;
+		clocks = <&clock_src 0> ;
+		clock-names = "cmu-src";
+	};
+
+	clock_usb: clock-usb@24000000 {
+		compatible = "nexell,nxp3220-cmu-usb";
+		reg = <0x24000000 0x10000>;
+		u-boot,dm-pre-reloc;
+		#clock-cells = <1>;
+		clocks = <&clock_src 0> ;
+		clock-names = "cmu-src";
+	};
