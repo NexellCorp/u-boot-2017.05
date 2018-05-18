@@ -1,0 +1,17 @@
+config CLK_NEXELL
+	bool "Nexell Clock interface"
+	depends on CLK
+	help
+	  This enables support for common clock driver API on Nexell SoCs.
+
+menu "Clock drivers for Nexell SoCs"
+	depends on CLK_NEXELL
+
+config CLK_NXP3220
+	bool "Clock driver for Nexell nxp3220 SoC"
+	default y
+	help
+	  This enables common clock driver support for platforms based
+	  on Nexell nxp3220.
+
+endmenu

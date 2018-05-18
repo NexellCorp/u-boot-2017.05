@@ -20,3 +20,4 @@ obj-$(CONFIG_CLK_AT91) += at91/
 obj-$(CONFIG_CLK_BOSTON) += clk_boston.o
 obj-$(CONFIG_ARCH_ASPEED) += aspeed/
 obj-$(CONFIG_STM32F7) += clk_stm32f7.o
+obj-$(CONFIG_ARCH_NEXELL) += nexell/
