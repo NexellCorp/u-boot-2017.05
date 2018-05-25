@@ -12,3 +12,4 @@ obj-$(CONFIG_OMAP_TIMER)	+= omap-timer.o
 obj-$(CONFIG_AST_TIMER)	+= ast_timer.o
 obj-$(CONFIG_STI_TIMER)		+= sti-timer.o
 obj-$(CONFIG_ARC_TIMER)	+= arc_timer.o
+obj-$(CONFIG_NXP3220_TIMER)     += nxp3220-timer.o

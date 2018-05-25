@@ -74,4 +74,10 @@ config ARC_TIMER
 	  usually at least one of them exists. Either of them is supported
 	  in U-Boot.
 
+config NXP3220_TIMER
+	bool "Nexell NXP3220 timer support"
+	  depends on TIMER
+	  help
+	  Select this to enable an timer for Nexell NXP3220 Device.
+
 endmenu
