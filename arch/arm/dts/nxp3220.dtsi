@@ -75,6 +75,25 @@
 		gpio-bank-name = "gpio_alv";
 		gpio-controller;
 		#gpio-cells = <2>;
+
+	sys_reg_sys:syscon@20030000 {
+		compatible = "nexell,system-reg","syscon", "simple-mfd";
+		reg = <0x20030000 0x42c>;
+	};
+
+	sys_reg_usb:syscon@24030000 {
+		compatible = "nexell,system-reg","syscon", "simple-mfd";
+		reg = <0x24030000 0x110>;
+	};
+
+	sys_reg_hsifys:syscon@26030000 {
+		compatible = "nexell,system-reg","syscon", "simple-mfd";
+		reg = <0x26030000 0x30>;
+	};
+
+	sys_reg_mm:syscon@25030000 {
+		compatible = "nexell,system-reg","syscon", "simple-mfd";
+		reg = <0x25030000 0x60>;
 	};
 };
 
