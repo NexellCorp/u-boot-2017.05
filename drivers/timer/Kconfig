@@ -126,4 +126,10 @@ config STM32_TIMER
 	  Select this to enable support for the timer found on
 	  STM32 devices.
 
+config NXP3220_TIMER
+	bool "Nexell NXP3220 timer support"
+	  depends on TIMER
+	  help
+	  Select this to enable an timer for Nexell NXP3220 Device.
+
 endmenu

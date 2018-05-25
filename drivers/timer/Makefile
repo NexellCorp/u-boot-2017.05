@@ -15,3 +15,4 @@ obj-$(CONFIG_ATCPIT100_TIMER) += atcpit100_timer.o
 obj-$(CONFIG_ROCKCHIP_TIMER) += rockchip_timer.o
 obj-$(CONFIG_ATMEL_PIT_TIMER) += atmel_pit_timer.o
 obj-$(CONFIG_STM32_TIMER)	+= stm32_timer.o
+obj-$(CONFIG_NXP3220_TIMER)     += nxp3220-timer.o
