@@ -20,3 +20,4 @@ obj-$(CONFIG_PINCTRL_MVEBU)	+= mvebu/
 obj-$(CONFIG_PINCTRL_SINGLE)	+= pinctrl-single.o
 obj-$(CONFIG_PINCTRL_STI)	+= pinctrl-sti.o
 obj-$(CONFIG_PINCTRL_STM32)	+= pinctrl_stm32.o
+obj-$(CONFIG_PINCTRL_NEXELL)	+= nexell/
