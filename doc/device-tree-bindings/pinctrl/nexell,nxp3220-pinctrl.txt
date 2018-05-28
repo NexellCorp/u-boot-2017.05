@@ -1,0 +1,69 @@
+Nexell nxp3320 pin mux/config controller
+========================================
+
+Nexell's nxp3220 SoC provides pin mux/config hardware controller.
+It controls the input/output settings on the available pads/pins and also
+provides ability to multiplex and configure the output of various on-chip
+controllers onto these pads.
+
+Please refer to pinctrl-bindings.txt in this directory for details of the
+common pinctrl bindings used by client devices, including the meaning of the
+phrase "pin configuration node".
+
+Required properties:
+  - compatible: may be "nexell,nxp3220-pinctrl"
+  - reg: Address and length of the register set for the device. It contains
+  the information of registers in the same order as described by reg-names
+  - reg-names: Should contain the reg names
+
+Example:
+	pinctrl@20180000 {
+		compatible = "nexell,nxp3220-pinctrl";
+		reg = <0x20180000 0x1000>,
+		      <0x20190000 0x1000>,
+		      <0x201a0000 0x1000>,
+		      <0x201b0000 0x1000>,
+		      <0x201c0000 0x1000>,
+		      <0x2008d000 0x1000>;
+		reg-names = "gpioa", "gpiob", "gpioc", "gpiod", "gpioe",
+		            "alive";
+		u-boot,dm-pre-reloc;
+	};
+
+  Child nodes must be set at least one of the following settings:
+  - nexell,pins = Select pins for using this function.
+  - nexell,pin-function = Select the function for use in a selected pin.
+  - nexell,pin-pull = Pull up/down configuration.
+  - nexell,pin-strength = Drive strength configuration.
+
+  Valid values for nexell,pins are:
+     "gpioX-N"		: X in {A,B,C,D,E}, N in {0-31}
+  Valid values for nexell,pin-function are:
+     "NX_PIN_FUNC0", "NX_PIN_FUNC1", "NX_PIN_FUNC2", "NX_PIN_FUNC3"
+                 This setting means that the value is different for each pin.
+                 Please refer to datasheet.
+  Valid values for nexell,pin-pull are:
+     "NX_PIN_PULL_DOWN", "NX_PIN_PULL_UP", "NX_PIN_PULL_NONE"
+  Valid values for nexell,pin-strength are:
+     "NX_PIN_STR0", "NX_PIN_STR1", "NX_PIN_STR2", "NX_PIN_STR3"
+
+
+Example:
+  - pin settings
+	nand_pin:nandpin {
+		nexell,pins = "gpiob-9", "gpiob-10", "gpiob-11", "gpiob-12",
+			      "gpiob-13", "gpiob-14", "gpiob-15", "gpiob-16",
+			      "gpiob-17", "gpiob-18", "gpiob-19", "gpiob-20",
+			      "gpiob-21", "gpiob-22", "gpiob-23", "gpiob-24";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <0>;
+	};
+
+
+  - used by client devices
+	nand:nand-controller@... {
+		pinctrl-names = "default";
+		pinctrl-0 = <&nand_pin>;
+		...
+	};

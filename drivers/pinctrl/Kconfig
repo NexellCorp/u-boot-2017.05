@@ -307,5 +307,6 @@ source "drivers/pinctrl/uniphier/Kconfig"
 source "drivers/pinctrl/exynos/Kconfig"
 source "drivers/pinctrl/mvebu/Kconfig"
 source "drivers/pinctrl/broadcom/Kconfig"
+source "drivers/pinctrl/nexell/Kconfig"
 
 endmenu

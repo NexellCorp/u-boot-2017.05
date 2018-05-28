@@ -1,0 +1,8 @@
+config PINCTRL_NEXELL
+	bool
+
+config PINCTRL_NEXELL_NXP3220
+	bool "Nexell nxp3220 SoC pinctrl driver"
+	default y
+	depends on ARCH_NEXELL && PINCTRL_FULL
+	select PINCTRL_NEXELL
