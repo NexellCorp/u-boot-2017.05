@@ -308,4 +308,13 @@ config MPC8XXX_GPIO
 	  Aside from the standard functions of input/output mode, and output
 	  value setting, the open-drain feature, which can configure individual
 	  GPIOs to work as open-drain outputs, is supported.
+
+config NEXELL_GPIO
+	bool "Nexell GPIO driver"
+	depends on DM_GPIO
+	help
+	  Support GPIO access on Nexell SoCs. The GPIOs are arranged into
+	  a number of banks (different for each SoC type) each with 32 GPIOs.
+	  The GPIOs for a device are defined in the device tree with one node
+	  for each bank.
 endmenu
