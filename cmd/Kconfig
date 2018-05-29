@@ -523,6 +523,13 @@ config CMD_USB_MASS_STORAGE
 	help
 	  USB mass storage support
 
+config CMD_NX_USB_DOWNLOADER
+	bool "USB downloader for Nexell SoCs"
+	depends on ARCH_NEXELL
+	select CMD_USB
+	help
+	  USB downloader support for Nexell SoCs
+
 config CMD_FPGA
 	bool "fpga"
 	default y
