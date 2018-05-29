@@ -67,6 +67,12 @@ config USB_GADGET_DWC2_OTG_PHY_BUS_WIDTH_8
 
 endif # USB_GADGET_DWC2_OTG
 
+config USB_NXP3220_OTG_PHY
+	bool "NXP3220 USB2 OTG Phy"
+	depends on ARCH_NXP3220 || ARCH_SIP_S31NX
+	help
+	  Enable NXP3220 USB2.0 OTG Phy driver
+
 config CI_UDC
 	bool "ChipIdea device controller"
 	select USB_GADGET_DUALSPEED
