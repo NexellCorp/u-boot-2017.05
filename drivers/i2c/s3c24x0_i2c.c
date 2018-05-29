@@ -13,7 +13,11 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/pinmux.h>
 #else
+#if !defined(CONFIG_ARCH_NEXELL)
 #include <asm/arch/s3c24x0_cpu.h>
+#else
+#include <clk.h>
+#endif
 #endif
 #include <asm/io.h>
 #include <i2c.h>
@@ -24,6 +28,8 @@
 #else
 #define SYS_I2C_S3C24X0_SLAVE_ADDR	CONFIG_SYS_I2C_S3C24X0_SLAVE
 #endif
+
+#define I2CCON_IRENB	0x20
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -54,14 +60,35 @@ static void read_write_byte(struct s3c24x0_i2c *i2c)
 	clrbits_le32(&i2c->iiccon, I2CCON_IRPND);
 }
 
-static void i2c_ch_init(struct s3c24x0_i2c *i2c, int speed, int slaveadd)
+static ulong get_freq(struct udevice *dev)
 {
-	ulong freq, pres = 16, div;
-#if (defined CONFIG_EXYNOS4 || defined CONFIG_EXYNOS5)
-	freq = get_i2c_clk();
+#if defined(CONFIG_ARCH_NEXELL)
+	struct clk clk;
+	ulong freq;
+	int ret;
+
+	ret = clk_get_by_index(dev, 0, &clk);
+	if (ret < 0) {
+		printf("%s faile to get clock index[%d]\n", __func__, ret);
+		return 0;
+	}
+
+	freq = clk_get_rate(&clk);
+	clk_free(&clk);
+
+	return freq;
+#elif (defined CONFIG_EXYNOS4 || defined CONFIG_EXYNOS5)
+	return get_i2c_clk();
 #else
-	freq = get_PCLK();
+	return get_PCLK();
 #endif
+}
+
+static void i2c_ch_init(struct s3c24x0_i2c *i2c, ulong freq,
+				int speed, int slaveadd)
+{
+	ulong pres = 16, div;
+
 	/* calculate prescaler and divisor values */
 	if ((freq / pres / (16 + 1)) > speed)
 		/* set prescaler to 512 */
@@ -84,10 +111,11 @@ static void i2c_ch_init(struct s3c24x0_i2c *i2c, int speed, int slaveadd)
 static int s3c24x0_i2c_set_bus_speed(struct udevice *dev, unsigned int speed)
 {
 	struct s3c24x0_i2c_bus *i2c_bus = dev_get_priv(dev);
+	ulong freq = get_freq(dev);
 
 	i2c_bus->clock_frequency = speed;
 
-	i2c_ch_init(i2c_bus->regs, i2c_bus->clock_frequency,
+	i2c_ch_init(i2c_bus->regs, freq, i2c_bus->clock_frequency,
 		    SYS_I2C_S3C24X0_SLAVE_ADDR);
 
 	return 0;
@@ -123,7 +151,6 @@ static int i2c_transfer(struct s3c24x0_i2c *i2c,
 	}
 
 	writel(readl(&i2c->iiccon) | I2CCON_ACKGEN, &i2c->iiccon);
-
 	/* Get the slave chip address going */
 	writel(chip, &i2c->iicds);
 	if ((cmd_type == I2C_WRITE) || (addr && addr_len))
@@ -270,7 +297,6 @@ static int s3c24x0_do_msg(struct s3c24x0_i2c_bus *i2c_bus, struct i2c_msg *msg,
 			ret = WaitForXfer(i2c);
 		}
 	}
-
 err:
 	return ret;
 }
@@ -311,14 +337,17 @@ static int s3c_i2c_ofdata_to_platdata(struct udevice *dev)
 
 	i2c_bus->regs = (struct s3c24x0_i2c *)devfdt_get_addr(dev);
 
+#if !defined(CONFIG_ARCH_NEXELL)
 	i2c_bus->id = pinmux_decode_periph_id(blob, node);
-
+#endif
 	i2c_bus->clock_frequency = fdtdec_get_int(blob, node,
 						  "clock-frequency", 100000);
 	i2c_bus->node = node;
 	i2c_bus->bus_num = dev->seq;
 
+#if !defined(CONFIG_ARCH_NEXELL)
 	exynos_pinmux_config(i2c_bus->id, 0);
+#endif
 
 	i2c_bus->active = true;
 
@@ -333,6 +362,7 @@ static const struct dm_i2c_ops s3c_i2c_ops = {
 
 static const struct udevice_id s3c_i2c_ids[] = {
 	{ .compatible = "samsung,s3c2440-i2c" },
+	{ .compatible = "nexell,nx-i2c" },
 	{ }
 };
 
