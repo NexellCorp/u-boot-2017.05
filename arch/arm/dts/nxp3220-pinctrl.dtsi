@@ -1,0 +1,13 @@
+/*
+ * Pinctrl node for Nexell nxp3220 SoCs
+ * (C) Copyright 2018 Nexell
+ * Bongyu, KOO <freestyle@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
+
+#include <dt-bindings/pinctrl/nexell.h>
+
+&pinctrl {
+
+};
