@@ -8,5 +8,18 @@
 #include "skeleton.dtsi"
 
 / {
-
+	pinctrl: pinctrl@20180000 {
+		compatible = "nexell,nxp3220-pinctrl";
+		reg = <0x20180000 0x1000>,
+		      <0x20190000 0x1000>,
+		      <0x201a0000 0x1000>,
+		      <0x201b0000 0x1000>,
+		      <0x201c0000 0x1000>,
+		      <0x2008d000 0x1000>;
+		reg-names = "gpioa", "gpiob", "gpioc", "gpiod", "gpioe",
+		            "alive";
+		u-boot,dm-pre-reloc;
+	};
 };
+
+#include "nxp3220-pinctrl.dtsi"
