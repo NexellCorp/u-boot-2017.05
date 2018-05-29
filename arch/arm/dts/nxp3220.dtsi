@@ -20,6 +20,60 @@
 		            "alive";
 		u-boot,dm-pre-reloc;
 	};
+
+	gpio_a: gpio@20180000 {
+		compatible = "nexell,nxp3220-gpio";
+		reg = <0x20180000 0x100>;
+		nexell,gpio-bank-width = <32>;
+		gpio-bank-name = "gpio_a";
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	gpio_b: gpio@20190000 {
+		compatible = "nexell,nxp3220-gpio";
+		reg = <0x20190000 0x100>;
+		nexell,gpio-bank-width = <32>;
+		gpio-bank-name = "gpio_b";
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	gpio_c: gpio@201a0000 {
+		compatible = "nexell,nxp3220-gpio";
+		reg = <0x201a0000 0x100>;
+		nexell,gpio-bank-width = <32>;
+		gpio-bank-name = "gpio_c";
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	gpio_d: gpio@201b0000 {
+		compatible = "nexell,nxp3220-gpio";
+		reg = <0x201b0000 0x100>;
+		nexell,gpio-bank-width = <32>;
+		gpio-bank-name = "gpio_d";
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	gpio_e: gpio@201c0000 {
+		compatible = "nexell,nxp3220-gpio";
+		reg = <0x201c0000 0x100>;
+		nexell,gpio-bank-width = <32>;
+		gpio-bank-name = "gpio_e";
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
+
+	gpio_alv: gpio@2008d000 {
+		compatible = "nexell,nxp3220-gpio";
+		reg = <0x2008d000 0x1000>;
+		nexell,gpio-bank-width = <32>;
+		gpio-bank-name = "gpio_alv";
+		gpio-controller;
+		#gpio-cells = <2>;
+	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
