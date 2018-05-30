@@ -91,6 +91,13 @@ config USB_GADGET_DWC2_OTG_PHY_BUS_WIDTH_8
 
 endif # USB_GADGET_DWC2_OTG
 
+config USB_GADGET_DWC2_NEXELL_DOWNLOADER
+	bool "Nexell USB Downloader"
+	depends on ARCH_NEXELL
+	select DM_USB
+	help
+	  Enable Nexell Designware USB2.0 high-speed USB Downloader driver
+
 config USB_NXP3220_OTG_PHY
 	bool "NXP3220 USB2 OTG Phy"
 	depends on ARCH_NXP3220 || ARCH_SIP_S31NX
