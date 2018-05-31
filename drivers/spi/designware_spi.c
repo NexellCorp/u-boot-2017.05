@@ -18,7 +18,7 @@
 #include <fdtdec.h>
 #include <linux/compat.h>
 #include <asm/io.h>
-#include <asm/arch/clock_manager.h>
+#include <clk.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -361,6 +361,9 @@ static int dw_spi_set_speed(struct udevice *bus, uint speed)
 	struct dw_spi_platdata *plat = bus->platdata;
 	struct dw_spi_priv *priv = dev_get_priv(bus);
 	u16 clk_div;
+	struct clk clk;
+	ulong freq;
+	int ret;
 
 	if (speed > plat->frequency)
 		speed = plat->frequency;
@@ -368,9 +371,29 @@ static int dw_spi_set_speed(struct udevice *bus, uint speed)
 	/* Disable controller before writing control registers */
 	spi_enable_chip(priv, 0);
 
-	/* clk_div doesn't support odd number */
-	clk_div = cm_get_spi_controller_clk_hz() / speed;
-	clk_div = (clk_div + 1) & 0xfffe;
+	ret = clk_get_by_index(bus, 0, &clk);
+	if (ret < 0) {
+		printf("%s failed to get clock index[%d]\n", __func__, ret);
+		return 0;
+	}
+
+	freq = clk_get_rate(&clk);
+	clk_free(&clk);
+
+	/*
+		where clk_dev is any enen value between 2 and 65534.
+	*/
+	clk_div = freq / speed;
+	if (clk_div < 2) {
+		clk_div = 2;
+		printf("%s clk_dev can not be less than 2.\n", __func__);
+		printf("Therefore, it is set to 2.\n");
+	} else if (clk_div > 65534) {
+		clk_div = 65534;
+		printf("%s clk_dev can not be greater than 65534.\n",
+				__func__);
+		printf("Therefore, it is set to 65534.\n");
+	}
 	dw_writel(priv, DW_SPI_BAUDR, clk_div);
 
 	/* Enable controller after writing control registers */
