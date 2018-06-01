@@ -1,0 +1,6 @@
+if TARGET_NXP3220_VTK
+
+config SYS_BOARD
+	default "nxp3220_vtk"
+
+endif

@@ -9,6 +9,12 @@ config TARGET_ARTIK310S_TRIKE
 	help
 	  Support for artik310s trike board.
 
+config TARGET_NXP3220_VTK
+	bool "NXP3220_VTK"
+	depends on ARCH_NXP3220
+	help
+	  Support for nxp3220 validation test board.
+
 endchoice
 
 config SYS_CONFIG_NAME
@@ -19,5 +25,6 @@ config SYS_CONFIG_NAME
           should be included from include/config.h.
 
 source "board/nexell/artik310s_trike/Kconfig"
+source "board/nexell/nxp3220_vtk/Kconfig"
 
 endif
