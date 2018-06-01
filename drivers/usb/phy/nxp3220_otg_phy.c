@@ -8,6 +8,7 @@
 #include <common.h>
 #include <linux/io.h>
 #include <mach/usb.h>
+#include "../gadget/dwc2_udc_otg_priv.h"
 
 void nx_otg_phy_init(struct nx_otg_phy *phy)
 {
@@ -74,4 +75,24 @@ void nx_otg_phy_off(struct nx_otg_phy *phy)
 	 * Don't disable 'adb400 blk usb cfg' and 'data adb'
 	 * 'adb400 blk usb cfg' and 'data adb' is shared EHCI
 	 */
+}
+
+void otg_phy_init(struct dwc2_udc *dev)
+{
+	struct dwc2_plat_otg_data *pdata = dev->pdata;
+
+	if (!pdata->priv)
+		return;
+
+	nx_otg_phy_init(pdata->priv);
+}
+
+void otg_phy_off(struct dwc2_udc *dev)
+{
+	struct dwc2_plat_otg_data *pdata = dev->pdata;
+
+	if (!pdata->priv)
+		return;
+
+	nx_otg_phy_off(pdata->priv);
 }
