@@ -75,6 +75,7 @@
 		gpio-bank-name = "gpio_alv";
 		gpio-controller;
 		#gpio-cells = <2>;
+	};
 
 	sys_reg_sys:syscon@20030000 {
 		compatible = "nexell,system-reg","syscon", "simple-mfd";
