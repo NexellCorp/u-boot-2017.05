@@ -1,6 +1,6 @@
 /*
  * Pinctrl node for Nexell nxp3220 SoCs
- * (C) Copyright 2018 Nexell
+ 	* (C) Copyright 2018 Nexell
  * Bongyu, KOO <freestyle@nexell.co.kr>
  *
  * SPDX-License-Identifier:	GPL-2.0+
@@ -9,5 +9,73 @@
 #include <dt-bindings/pinctrl/nexell.h>
 
 &pinctrl {
+	uart0_bus:uart0 {
+		nexell,pins = "gpiod-10", "gpiob-11";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
 
+	uart1_bus:uart1 {
+		nexell,pins = "gpiod-12", "gpiob-13";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart2_bus:uart2 {
+		nexell,pins = "gpiod-14", "gpiob-15";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart3_bus:uart3 {
+		nexell,pins = "gpiod-16", "gpiob-17";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart4_bus:uart4 {
+		nexell,pins = "gpiod-18", "gpiob-19";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart4_hflow:uart4_hflow {
+		nexell,pins = "gpiod-20", "gpiob-21";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart5_bus:uart5 {
+		nexell,pins = "gpiod-22", "gpiob-23";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart5_hflow:uart5_hflow {
+		nexell,pins = "gpiod-24", "gpiob-25";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart6_bus:uart6 {
+		nexell,pins = "gpiod-26", "gpiob-27";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
+
+	uart6_hflow:uart6_hflow {
+		nexell,pins = "gpiod-28", "gpiob-29";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <2>;
+		nexell,pin-strength = <0>;
+	};
 };
