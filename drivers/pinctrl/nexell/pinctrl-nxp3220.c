@@ -139,9 +139,9 @@ static int nxp3220_pinctrl_set_state(struct udevice *dev,
 {
 	const void *fdt = gd->fdt_blob;
 	int node = dev_of_offset(config);
-	unsigned int count, idx, pin;
+	unsigned int count, idx, pin = -1;
 	unsigned int pinfunc, pinpud, pindrv;
-	void __iomem *reg;
+	void __iomem *reg = NULL;
 	const char *name;
 
 	/*
@@ -175,6 +175,10 @@ static int nxp3220_pinctrl_set_state(struct udevice *dev,
 		}
 
 		reg = pin_to_bank_base(dev, name, &pin);
+		if (!reg || pin == -1) {
+			printf("invalid pin configurations of pin %s\n", name);
+			continue;
+		}
 
 		/* pin function */
 		if (pinfunc != -1)
