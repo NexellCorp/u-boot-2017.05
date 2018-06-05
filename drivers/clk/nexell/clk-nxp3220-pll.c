@@ -180,6 +180,9 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 		pms = pll_2651_pms;
 		len = ARRAY_SIZE(pll_2651_pms);
 		break;
+	default:
+		printf("invalid pll number:%d\n", pllno);
+		return 0;
 	}
 
 	for (l = 0; l < len; l++) {
@@ -317,6 +320,12 @@ static ulong nx_pll_set_rate(int pllno, ulong freq)
 	int p = 0, m = 0, s = 0, k = 0;
 	ulong rate = 0;
 
+	/* sanity check of pll number */
+	if (pllno < PLL0 || pllno > DDR4) {
+		printf("invalid pll number: %d\n", pllno);
+		return -1;
+	}
+
 	if (pllno == CPU_PLL) {
 		printf(" This channel(%d) is in used for CPU\n", pllno);
 		return -1;
@@ -345,7 +354,7 @@ int nx_pll_parse_dt(struct udevice *dev)
 	int node = dev_of_offset(dev);
 	int length, i;
 	const fdt32_t *list;
-	unsigned int init[5][2];
+	unsigned int init[5][2] = { 0, };
 
 	list = fdt_getprop(blob, node, "frequency", &length);
 	if (!list)
