@@ -179,7 +179,6 @@ static int nx_timer_probe(struct udevice *dev)
 	}
 
 	tcnt = tclk;/* Timer Count := 1 Mhz counting */
-	tcnt = TIMER_COUNT + 1 == 0xFFFFFFFF ? TIMER_COUNT + 1 : tcnt;
 
 	debug(" tmux:%d, tscl:%d, tcnt:%d, tclk:%ld\n", tmux, tscl, tcnt, tclk);
 
