@@ -1,0 +1,17 @@
+Nexell nxp3220 ADC controller
+========================================
+
+Required properties:
+  - compatible: may be "nexell,nxp3220-adc"
+  - reg: Address and length of the register set for the device.
+  - sample_rate: adc sampling rate (MAX 1MSPS)
+
+Example:
+	adc: adc {
+		compatible = "nexell,sip_s31nx-adc";
+		reg = <0x20600000 0x100>;
+		clocks = <&clock_sys ADC_0_APB_CLK>;
+		clock-names = "adc";
+		sample_rate = <200000>;
+	};
+
