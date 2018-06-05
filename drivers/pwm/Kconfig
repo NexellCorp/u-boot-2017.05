@@ -18,6 +18,14 @@ config PWM_EXYNOS
 	  used. It provides 5 channels which can be independently
 	  programmed. Channel 4 (the last) is normally used as a timer.
 
+config PWM_NEXELL
+	bool "Enable support for the Nexell PWM"
+	depends on DM_PWM
+	help
+	  This PWM is found on Nexell's nxp3220 SoC. It supports a
+	  programmable period and duty cycle. A 32-bit counter is used.
+	  It provides 4 channels which can be independently programmed.
+
 config PWM_ROCKCHIP
 	bool "Enable support for the Rockchip PWM"
 	depends on DM_PWM
