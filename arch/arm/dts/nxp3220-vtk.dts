@@ -18,7 +18,8 @@
 	};
 
 	clock_sys: clock-sys@27010000 {
-		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>;
+		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>,
+			<PWM_0_APB_CLK 100000000 1>;
 	};
 
 	uart2: serial@20420000 {
@@ -29,4 +30,8 @@
 	udown: usbdown@240C0000 {
 		status = "okay";
 	};
+};
+
+&pwm {
+	status = "okay";
 };
