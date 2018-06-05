@@ -40,3 +40,7 @@
 	clock-frequency = <100000000>;
 	status = "okay";
 };
+
+&pwm {
+	status = "okay";
+};
