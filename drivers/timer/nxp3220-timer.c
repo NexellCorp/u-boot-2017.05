@@ -59,6 +59,7 @@ static inline void timer_start(void __iomem *base)
 {
 	writel(1 , base + REG_CSTAT);
 	writel(TCON_BIT_UP, base + REG_TCON);
+	writel(TCON_BIT_AUTO | TCON_BIT_RUN, base + REG_TCON);
 
 	dmb();
 }
