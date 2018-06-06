@@ -22,6 +22,7 @@
 	};
 
 	uart2: serial@20420000 {
+		clock-frequency = <100000000>;
 		status = "okay";
 	};
 };
