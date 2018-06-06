@@ -47,7 +47,7 @@ static int nx_get_min_pll(void)
 	int i;
 	int min = 0;
 
-	for (i = 1; i < PLL_NUM; i++) {
+	for (i = 0; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
 		if (plls[i] < plls[min])
@@ -62,7 +62,7 @@ static  int get_max_pll(void)
 	int i;
 	int max = 0;
 
-	for (i = 1; i < PLL_NUM; i++) {
+	for (i = 0; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
 		if (plls[i] > plls[max])
@@ -80,7 +80,7 @@ static int nx_calc_divisor(unsigned long req, struct nx_clk_div *cdiv)
 	int div0 = 0, div1 = 0;
 	int v, m, i, d;
 
-	for (i = 0; i < PLL_NUM; i++) {
+	for (i = 1; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
 		v = plls[i] / req;
