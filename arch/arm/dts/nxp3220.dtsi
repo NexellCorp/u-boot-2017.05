@@ -15,6 +15,11 @@
 		serial2 = &uart2;
 	};
 
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "smc";
+	};
+
 	pinctrl: pinctrl@20180000 {
 		compatible = "nexell,nxp3220-pinctrl";
 		reg = <0x20180000 0x1000>,
