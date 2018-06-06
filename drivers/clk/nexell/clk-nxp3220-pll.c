@@ -164,7 +164,6 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 {
 	struct pll_pms *pms = NULL;
 	int len = 0, l = 0;
-	long freq = 0;
 
 	rate /= 1000;
 
@@ -183,7 +182,7 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 	}
 
 	for (l = 0; l < len; l++) {
-		if (freq >= PMS_RATE(pms, l))
+		if (rate >= PMS_RATE(pms, l))
 			break;
 	}
 
