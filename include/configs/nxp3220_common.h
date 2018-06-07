@@ -27,6 +27,8 @@
 /* For SD/MMC */
 #define CONFIG_BOUNCE_BUFFER
 
+/* decrementer freq: 1ms ticks */
+#define CONFIG_SYS_HZ		1000
 /*
  * Default environment organization
  */
