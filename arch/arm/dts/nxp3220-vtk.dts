@@ -11,7 +11,7 @@
 / {
 	model = "Nexell nxp3220 validation test board";
 	compatible = "nexell,nxp3220";
-	
+
 	chosen {
 		stdout-path = "serial2:115200n8";
 		tick-timer = &timer0;
@@ -23,6 +23,10 @@
 
 	uart2: serial@20420000 {
 		clock-frequency = <100000000>;
+		status = "okay";
+	};
+
+	udown: usbdown@240C0000 {
 		status = "okay";
 	};
 };
