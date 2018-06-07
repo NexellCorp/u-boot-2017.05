@@ -329,6 +329,15 @@
 		pinctrl-0 = <&i2c4_bus>;
 		status = "disabled";
 	};
+
+	adc: adc@20600000 {
+		compatible = "nexell,nxp3220-adc";
+		reg = <0x20600000 0x100>;
+		clocks = <&clock_sys ADC_0_APB_CLK>;
+		clock-names = "adc";
+		sample_rate = <200000>;
+		status = "disabled";
+	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
