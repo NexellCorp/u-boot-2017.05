@@ -6,3 +6,4 @@
 #
 
 obj-y 	+= cpu.o
+obj-y += ecid.o cmd_ecid.o
