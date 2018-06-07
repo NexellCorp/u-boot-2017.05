@@ -37,6 +37,7 @@
 
 #define CMU_INIT_SRC(clk_num, pset, t, addr, bitidx, pid, grp, notc)	\
 {								\
+	.reg		= (void *)addr,				\
 	.p_set		= pset,					\
 	.clkenbit	= bitidx,				\
 	.type		= t,					\
