@@ -151,7 +151,7 @@ static struct clk_cmu_dev *nx_get_clk_priv(struct nx_cmu_priv *priv, int id)
 {
 	int i;
 
-	for (i = 0; priv->size; i++) {
+	for (i = 0; i < priv->size; i++) {
 		if (priv->cmus[i].id == id)
 			return (struct clk_cmu_dev *)&priv->cmus[i].reg;
 	}
@@ -162,7 +162,7 @@ static struct clk_cmu_dev *nx_get_clk_src_priv(struct nx_cmu_priv *priv, int id)
 {
 	int i;
 
-	for (i = 0; priv->p_size; i++) {
+	for (i = 0; i < priv->p_size; i++) {
 		if (priv->src_cmu[i].id == id)
 			return (struct clk_cmu_dev *)&priv->src_cmu[i].reg;
 	}
