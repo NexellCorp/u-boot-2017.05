@@ -251,10 +251,10 @@ static int clock_is_stable(int pll_num)
 
 	while (check_pll_lock(pll_num) == false) {
 		if (timeout-- <= 0)
-			return false;
+			return -ETIMEDOUT;
 	}
 
-	return true;
+	return 0;
 }
 
 static int set_pll_rate(int pllno, int p, int m, int s, int k)
