@@ -66,7 +66,6 @@ static inline void timer_start(void __iomem *base)
 
 static inline void timer_stop(void __iomem *base)
 {
-	writel(0, base + REG_CSTAT);
 	writel(0, base + REG_TCON);
 }
 
@@ -180,7 +179,7 @@ static int nx_timer_probe(struct udevice *dev)
 	}
 
 	tcnt = tclk;/* Timer Count := 1 Mhz counting */
-	tcnt = TIMER_COUNT + 1 == 0xFFFFFFFF ? TIMER_COUNT + 1 : tcnt;
+	tcnt = TIMER_COUNT  == 0xFFFFFFFF ? TIMER_COUNT + 1 : tcnt;
 
 	debug(" tmux:%d, tscl:%d, tcnt:%d, tclk:%ld\n", tmux, tscl, tcnt, tclk);
 
