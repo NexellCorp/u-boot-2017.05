@@ -12,8 +12,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static const struct dm_usb_ops dwc2_udc_ops = {                             
-}; 
+static const struct dm_usb_ops dwc2_udc_ops = {
+};
 
 static int dwc2_udc_ofdata_to_platdata(struct udevice *dev)
 {
@@ -27,17 +27,17 @@ static int dwc2_udc_ofdata_to_platdata(struct udevice *dev)
 		error("'phy' resoure not found");
 		return -EINVAL;
 	}
-	pdata->regs_phy = (unsigned int)devm_ioremap(dev, base, SZ_32);
+	pdata->regs_otg = (unsigned int)devm_ioremap(dev, base, SZ_32);
 
 	base = dev_get_addr_index(dev, 1);
 	if (base == FDT_ADDR_T_NONE) {
 		error("'otg' resoure not found");
 		return -EINVAL;
 	}
-	pdata->regs_otg = (unsigned int)devm_ioremap(dev, base, SZ_32);
+	pdata->regs_phy = (unsigned int)devm_ioremap(dev, base, SZ_32);
 
-	debug("%s: phy 0x%x otg 0x%x\n", __func__,
-	      pdata->regs_phy, pdata->regs_otg);
+	debug("%s: otg 0x%x phy 0x%x\n",
+	      __func__, pdata->regs_otg, pdata->regs_phy);
 
 	return 0;
 }
