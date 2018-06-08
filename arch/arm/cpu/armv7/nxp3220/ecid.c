@@ -25,7 +25,7 @@ struct nx_ecid_regs {
 	u32 ecid[4]; /* 0x100 */
 };
 
-struct nx_ecid_regs *reg = (struct nx_ecid_regs *)PHY_BASEADDR_ECID;
+static struct nx_ecid_regs *reg = (struct nx_ecid_regs *)PHY_BASEADDR_ECID;
 
 int nx_ecid_get_key_ready(void)
 {
