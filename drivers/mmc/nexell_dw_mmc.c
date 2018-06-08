@@ -97,7 +97,6 @@ static unsigned long nx_dw_mmc_set_clk(struct dwmci_host *host,
 	struct clk *ahbclk;
 	unsigned int freq = rate;
 
-	printk("%s %d\n", __func__, __LINE__);
 	ahbclk = &priv->ahbclk;
 	if (ahbclk->dev) {
 		clk_disable(ahbclk);
@@ -105,16 +104,13 @@ static unsigned long nx_dw_mmc_set_clk(struct dwmci_host *host,
 		clk_enable(ahbclk);
 	}
 
-	printk("%s %d\n", __func__, __LINE__);
 	clk = &priv->clk;
 	if (clk->dev) {
 		clk_disable(clk);
-		printf(" set rate mmc : %ld \n", freq );
 		rate = clk_set_rate(clk, freq );
 		clk_enable(clk);
 	}
 
-	printk("%s %d\n", __func__, __LINE__);
 	return rate;
 }
 
@@ -124,7 +120,6 @@ static void nx_dw_mmc_set_mode(struct dwmci_host *host)
 	struct nx_dwmci_dat *priv = host->priv;
 	int mode = 0;
 
-	printf("%s , %d \n",__func__,  priv->buswidth);
 	switch (priv->buswidth)	{
 	case 1:
 		mode = 0;
@@ -212,7 +207,6 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 	priv->s_shift = fdtdec_get_int(blob, node, "nexell,sample_shift", 0);
 	priv->frequency = fdtdec_get_int(blob, node, "frequency", 0);
 
-	printf("parse : %ld ",priv->frequency );
 	priv->buswidth = bus_w;
 	priv->ddr = ddr;
 
