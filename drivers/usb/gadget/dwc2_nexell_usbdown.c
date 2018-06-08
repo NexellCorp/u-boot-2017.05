@@ -34,10 +34,12 @@ DECLARE_GLOBAL_DATA_PTR;
 #define	DEVICE_DESCRIPTOR_SIZE		(18)
 #define	CONFIG_DESCRIPTOR_SIZE		(9 + 9 + 7 + 7)
 
-#define VENDORID			0x04e8	/* Samsung Vendor ID */
-#define PRODUCTID			0x1234	/* Nexell Product ID */
-#define NXP4330_USBD_VID		0x2375
-#define NXP4330_USBD_PID		0x4330
+/*
+ * NXP3220: 0x2375, S5PXX18: 0x04e8, Samsung Vendor ID : 0x04e8
+ * NXP3220: 0x3220, S5PXX18: 0x1234, Nexell Product ID : 0x1234
+ */
+#define VENDORID			0x2375
+#define PRODUCTID			0x3220
 
 /* SPEC1.1 */
 
@@ -553,15 +555,43 @@ static const u8	gs_config_descriptor_hs[CONFIG_DESCRIPTOR_SIZE]
 };
 
 /* @brief ECID Module's Register List */
-struct  nx_ecid_reg {
-	u32 ecid[4];           /* 0x00 ~ 0x0C	: 128bit ECID Register */
-	u8  chipname[48];      /* 0x10 ~ 0x3C	: Chip Name Register */
-	u32 reserved;          /* 0x40		: Reserved Region */
-	u32 guid0;             /* 0x44		: GUID 0 Register */
-	u16 guid1;             /* 0x48		: GUID 1 Register */
-	u16 guid2;             /* 0x4A		: GUID 2 Register */
-	u8  guid3[8];          /* 0x4C ~ x50    : GUID 3-0 ~ 3-7 Register */
-	u32 ec[3];             /* 0x54 ~ 0x5C	: EC 0 ~ 3 Register */
+struct nx_ecid_reg {
+	u32 chipname[12];    /* 0x000 */
+	u32 _rev0;            /* 0x030 */
+	u32 guid[4];          /* 0x034 */
+	u32 ec0;              /* 0x044 */
+	u32 _rev1;            /* 0x048 */
+	u32 ec2;              /* 0x04C */
+	u32 blow[3];          /* 0x050 */
+	u32 _rev2;            /* 0x05C */
+	u32 blowd[4];         /* 0x060 */
+	u32 _rev3[36];        /* 0x070 */
+	u32 ecid[4];          /* 0x100 */
+	u32 sbootkey0[4];     /* 0x110 */
+	u32 sbootkey1[4];     /* 0x120 */
+	u32 _rev4[8];         /* 0x130 */
+	u32 sboothash0[8];    /* 0x150 */
+	u32 _rev5[8];         /* 0x170 */
+	u32 sboothash1[8];    /* 0x190 */
+	u32 sboothash2[8];    /* 0x1B0 */
+	u32 sjtag[4];         /* 0x1D0 */
+	u32 anti_rb[4];       /* 0x1E0 */
+	u32 efuse_cfg;        /* 0x1F0 */
+	u32 efuse_prot;       /* 0x1F4 */
+	u32 _rev6[2];         /* 0x1F8 */
+	u32 boot_cfg;         /* 0x200 */
+	u32 _rev7[3];         /* 0x204 */
+	u32 back_enc_ek[8];   /* 0x210 */
+	u32 root_enc_key[8];  /* 0x230 */
+	u32 cm0_sboot_key[16];/* 0x250 */
+	u32 root_priv_key[17];/* 0x290 */
+	u32 _rev8[11];        /* 0x2D4 */
+	u32 puf[136];         /* 0x300 */
+	u32 puf_cfg;          /* 0x520 */
+	u32 cm0_anti_rb;      /* 0x524 */
+	u32 cm0_anti_rb_cfg;  /* 0x528 */
+	u32 _rev9;            /* 0x52C */
+	u32 hpm_ids[4];       /* 0x530 */
 };
 
 struct nx_usbdown_priv {
@@ -575,35 +605,16 @@ struct nx_usbdown_priv {
 static void nx_usb_get_usbid(void __iomem *ecid, u16 *vid, u16 *pid)
 {
 	struct nx_ecid_reg *reg = ecid;
-	char *cmp = "NEXELL-NXP4330-R0-LF3000";
-	char name[49];
-	u32 id;
-	int i;
+	u32 id = readl(&reg->ecid[3]);
 
-	for (i = 0 ; i < 48 ; i++)
-		name[i] = readb(&reg->chipname[i]);
-
-	for (i = 0; i < 48; i++) {
-		if ((name[i] == '-') && (name[i+1] == '-')) {
-			name[i] = 0;
-			name[i+1] = 0;
-		}
-	}
-
-	if (!strcmp(name, cmp)) {
-		*vid = NXP4330_USBD_VID;
-		*pid = NXP4330_USBD_PID;
+	if (!id) {   /* ecid is not burned */
+		*vid = VENDORID;
+		*pid = PRODUCTID;
+		debug("\nECID Null!!\nVID %x, PID %x\n", *vid, *pid);
 	} else {
-		id = readl(&reg->ecid[3]);
-		if (id == 0) {   /* ecid is not burned */
-			*vid = VENDORID;
-			*pid = PRODUCTID;
-			debug("\nECID Null!!\nVID %x, PID %x\n", *vid, *pid);
-		} else {
-			*vid = (id >> 16)&0xFFFF;
-			*pid = (id >> 0)&0xFFFF;
-			debug("VID %x, PID %x\n", *vid, *pid);
-		}
+		*vid = (id >> 16)&0xFFFF;
+		*pid = (id >> 0)&0xFFFF;
+		debug("VID %x, PID %x\n", *vid, *pid);
 	}
 }
 
@@ -911,6 +922,8 @@ static void nx_usb_int_bulkout(struct nx_usbdown_priv *priv,
 	struct nx_usbboot_status *ustatus = &priv->ustatus;
 	struct nx_usb_otg_reg *reg_otg = priv->reg_otg;
 
+	debug("Bulk Out Function\n");
+
 	nx_usb_read_out_fifo(priv->reg_otg,
 			     BULK_OUT_EP, (u8 *)ustatus->rx_buf_addr,
 			     fifo_cnt_byte);
@@ -1060,11 +1073,11 @@ static bool nx_usb_set_init(struct nx_usbdown_priv *priv)
 
 	writel((1<<19)|(0<<0), &reg_otg->dcsr.depor[BULK_IN_EP].doeptsiz);
 
-	/*bulk out ep enable, clear nak, bulk, usb active, next ep2, max pkt */
+	/* bulk out ep enable, clear nak, bulk, usb active, next ep2, max pkt */
 	writel(1u<<31|1<<26|2<<18|1<<15|ustatus->bulkout_max_pktsize<<0,
 	       &reg_otg->dcsr.depor[BULK_OUT_EP].doepctl);
 
-	/*bulk in ep enable, clear nak, bulk, usb active, next ep1, max pkt */
+	/* bulk in ep enable, clear nak, bulk, usb active, next ep1, max pkt */
 	writel(0u<<31|1<<26|2<<18|1<<15|ustatus->bulkin_max_pktsize<<0,
 	       &reg_otg->dcsr.depir[BULK_IN_EP].diepctl);
 
@@ -1175,9 +1188,8 @@ static void nx_udc_int_hndlr(struct nx_usbdown_priv *priv)
 	u32 int_status;
 	bool tmp;
 
-	int_status = readl(&reg_otg->gcsr.gintsts); /* Core Interrupt Register
-							*/
-
+	/* Core Interrupt Register */
+	int_status = readl(&reg_otg->gcsr.gintsts);
 	if (int_status & INT_RESET) {
 		debug("INT_RESET\n");
 		nx_usb_reset(priv);
@@ -1218,6 +1230,7 @@ static void nx_udc_int_hndlr(struct nx_usbdown_priv *priv)
 		/* Read only register field */
 		nx_usb_transfer(priv);
 	}
+
 	writel(int_status, &reg_otg->gcsr.gintsts); /* Interrupt Clear */
 	debug("[GINTSTS:0x%08x:0x%08x]\n", int_status,
 	      (WKUP_INT|OEP_INT|IEP_INT|ENUM_DONE|USB_RST|USB_SUSP|RXF_LVL));
@@ -1269,7 +1282,7 @@ static void nx_udc_int_hndlr(struct nx_usbdown_priv *priv)
 					NX_OTG_CON3_VDATDETENB | \
 					NX_OTG_CON3_CHRGSEL)
 
-static bool nx_usb_download(struct udevice *dev, ulong buffer)
+static bool nx_usb_down(struct udevice *dev, ulong buffer)
 {
 	struct nx_usbdown_priv *priv = dev_get_priv(dev);
 	struct nx_usbboot_status *ustatus = &priv->ustatus;
@@ -1346,17 +1359,16 @@ static bool nx_usb_download(struct udevice *dev, ulong buffer)
 		    (WKUP_INT|OEP_INT|IEP_INT|ENUM_DONE|USB_RST|USB_SUSP|
 		     RXF_LVL)) {
 			nx_udc_int_hndlr(priv);
-			writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts);
+		     /*	writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts); */
 			mdelay(3);
 		}
 	}
 
 	ustatus->rx_buf_addr -= 512;
-
 	ustatus->rx_size = nsih[17];
+
 	ustatus->downloading = true;
-	printf(" Size  %d(hex : %x)\n", ustatus->rx_size,
-	       ustatus->rx_size);
+	printf(" Size  %d(hex : %x)\n", ustatus->rx_size, ustatus->rx_size);
 	dmb();
 
 	while (ustatus->downloading) {
@@ -1364,10 +1376,10 @@ static bool nx_usb_download(struct udevice *dev, ulong buffer)
 			goto _exit;
 
 		if (readl(&reg_otg->gcsr.gintsts) &
-		    (WKUP_INT|OEP_INT|IEP_INT|ENUM_DONE|USB_RST|USB_SUSP|
-		     RXF_LVL)) {
+		   (WKUP_INT | OEP_INT | IEP_INT | ENUM_DONE |
+		    USB_RST | USB_SUSP | RXF_LVL)) {
 			nx_udc_int_hndlr(priv);
-			writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts);
+		    /*	writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts); */
 		}
 	}
 
@@ -1385,7 +1397,7 @@ _exit:
 	return true;
 }
 
-static int nx_usbdown_probe(struct udevice *dev)
+static int nx_usb_probe(struct udevice *dev)
 {
 	struct nx_usbdown_priv *priv = dev_get_priv(dev);
 	fdt_addr_t base;
@@ -1394,13 +1406,13 @@ static int nx_usbdown_probe(struct udevice *dev)
 	if (base == FDT_ADDR_T_NONE)
 		return -EINVAL;
 
-	priv->reg_phy = devm_ioremap(dev, base, SZ_32);
+	priv->reg_otg = devm_ioremap(dev, base, SZ_32);
 
 	base = dev_get_addr_index(dev, 1);
 	if (base == FDT_ADDR_T_NONE)
 		return -EINVAL;
 
-	priv->reg_otg = devm_ioremap(dev, base, SZ_32);
+	priv->reg_phy = devm_ioremap(dev, base, SZ_32);
 
 	base = dev_get_addr_index(dev, 2);
 	if (base == FDT_ADDR_T_NONE)
@@ -1408,9 +1420,9 @@ static int nx_usbdown_probe(struct udevice *dev)
 
 	priv->reg_ecid = devm_ioremap(dev, base, SZ_32);
 
-	priv->phy.addr = priv->reg_otg;
+	priv->phy.addr = priv->reg_phy;
 
-	debug("%s: phy %p otg %p\n", __func__, priv->reg_phy, priv->reg_otg);
+	debug("%s: otg %p phy %p\n", __func__, priv->reg_otg, priv->reg_phy);
 
 	return 0;
 }
@@ -1427,12 +1439,12 @@ U_BOOT_DRIVER(nx_usbdown) = {
 	.name = "nexell,usb-downloader",
 	.id = UCLASS_USB,
 	.of_match = nx_usbdown_ids,
-	.probe = nx_usbdown_probe,
+	.probe = nx_usb_probe,
 	.ops = &nx_usbdown_ops,
 	.priv_auto_alloc_size = sizeof(struct nx_usbdown_priv),
 };
 
-int usb_download(ulong buffer)
+int nx_usb_download(ulong buffer)
 {
 	struct udevice *dev, *devp;
 	int ret = -EINVAL;
@@ -1450,7 +1462,7 @@ int usb_download(ulong buffer)
 
 		ret = uclass_get_device_tail(dev, 0, &devp);
 		if (!ret)
-			nx_usb_download(dev, buffer);
+			nx_usb_down(dev, buffer);
 	}
 
 	return ret;
