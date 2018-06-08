@@ -135,7 +135,7 @@
 		      <&clock_sys UART_0_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart0_bus>;
+		pinctrl-0 = <&uart0_bus>;
 		status = "disabled";
 	};
 
@@ -148,7 +148,7 @@
 		      <&clock_sys UART_1_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart1_bus>;
+		pinctrl-0 = <&uart1_bus>;
 
 		status = "disabled";
 	};
@@ -162,7 +162,7 @@
 		      <&clock_sys UART_2_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart2_bus>;
+		pinctrl-0 = <&uart2_bus>;
 		status = "disabled";
 	};
 
@@ -175,7 +175,7 @@
 		      <&clock_sys UART_3_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart3_bus>;
+		pinctrl-0 = <&uart3_bus>;
 		status = "disabled";
 	};
 
@@ -188,7 +188,7 @@
 		      <&clock_sys UART_4_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart4_bus>;
+		pinctrl-0 = <&uart4_bus>;
 		status = "disabled";
 	};
 
@@ -201,7 +201,7 @@
 		      <&clock_sys UART_5_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart5_bus>;
+		pinctrl-0 = <&uart5_bus>;
 		status = "disabled";
 	};
 
@@ -214,7 +214,7 @@
 		      <&clock_sys UART_6_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl = <&uart6_bus>;
+		pinctrl-0 = <&uart6_bus>;
 		status = "disabled";
 	};
 
