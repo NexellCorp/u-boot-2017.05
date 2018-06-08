@@ -26,6 +26,7 @@
 
 /* For SD/MMC */
 #define CONFIG_BOUNCE_BUFFER
+#define CONFIG_SUPPORT_EMMC_BOOT
 
 /* decrementer freq: 1ms ticks */
 #define CONFIG_SYS_HZ		1000
