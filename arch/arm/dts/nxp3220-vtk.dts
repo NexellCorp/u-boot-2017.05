@@ -32,6 +32,27 @@
 	};
 };
 
+&mmc0 {
+	nexell,sample_shift = <0x03>;
+	nexell,drive_shift = <0x01>;
+	frequency = <25000000>;
+	status = "okay";
+};
+
+&mmc1 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x02>;
+	frequency = <25000000>;
+	status = "okay";
+};
+
+&mmc2 {
+	nexell,sample_shift = <0x03>;
+	nexell,drive_shift = <0x01>;
+	frequency = <25000000>;
+	status = "okay";
+};
+
 &pwm {
 	status = "okay";
 };
