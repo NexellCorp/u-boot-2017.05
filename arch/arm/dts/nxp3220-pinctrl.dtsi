@@ -131,5 +131,39 @@
 		nexell,pin-function = <NX_PIN_FUNC2>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
+
+	i2c0_bus:i2c0 {
+		nexell,pins = "gpiob-27", "gpiob-28";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <1>;
+		nexell,pin-strength = <0>;
+	};
+
+	i2c1_bus:i2c1 {
+		nexell,pins = "gpiob-29", "gpiob-30";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <1>;
+		nexell,pin-strength = <0>;
+	};
+
+	i2c2_bus:i2c2 {
+		nexell,pins = "gpioa-0", "gpioa-1";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <1>;
+		nexell,pin-strength = <0>;
+	};
+
+	i2c3_bus:i2c3 {
+		nexell,pins = "gpioa-2", "gpioa-3";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <1>;
+		nexell,pin-strength = <0>;
+	};
+
+	i2c4_bus:i2c4 {
+		nexell,pins = "gpioa-4", "gpioa-5";
+		nexell,pin-function = <1>;
+		nexell,pin-pull = <1>;
+		nexell,pin-strength = <0>;
 	};
 };
