@@ -218,6 +218,14 @@
 		status = "disabled";
 	};
 
+	udown: usbdown@240C0000 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "nexell,dwc2-usb-downloader";
+		reg = <0x240C0000 0x11000>, <0x24030000 0x200>, <0x20060000 0x100>; /* OTG, PHY (0x24040000), ECID */
+		status = "disabled";
+	};
+
 	sys_reg_sys:syscon@20030000 {
 		compatible = "nexell,system-reg","syscon", "simple-mfd";
 		reg = <0x20030000 0x42c>;
