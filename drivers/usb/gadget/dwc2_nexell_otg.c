@@ -38,7 +38,6 @@ int board_usb_init(int index, enum usb_init_type init)
 		if (!pdata)
 			continue;
 
-		phy->addr = (void __iomem *)pdata->regs_otg;
 		phy->dev = dev;
 		pdata->priv = phy;
 
