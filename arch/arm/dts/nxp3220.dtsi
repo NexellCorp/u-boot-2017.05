@@ -1,5 +1,4 @@
-/*
- * (C) Copyright 2018 Nexell
+/* (C) Copyright 2018 Nexell
  * Jongkeun, Choi <jkchoi@nexell.co.kr>
  *
  * SPDX-License-Identifier:      GPL-2.0+
@@ -13,11 +12,6 @@
 
 	aliases {
 		serial2 = &uart2;
-	};
-
-	psci {
-		compatible = "arm,psci-0.2";
-		method = "smc";
 	};
 
 	pinctrl: pinctrl@20180000 {
@@ -87,6 +81,50 @@
 		#gpio-cells = <2>;
 	};
 
+
+	mmc0:mmc@26080000 {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                compatible = "nexell,nexell-dwmmc";
+                reg = <0x26080000 0x1000>;
+                nexell,bus-width = <8>;
+                index = <0>;
+                clocks = <&clock_sys SDMMC_0_CORE_CLK>,
+                        <&clock_sys SDMMC_0_AHB_CLK>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc0_pin>;
+
+                status = "disabled";
+        };
+
+        mmc1:mmc@26090000 {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                compatible = "nexell,nexell-dwmmc";
+                reg = <0x26090000 0x1000>;
+                nexell,bus-width = <4>;
+                clocks = <&clock_sys SDMMC_1_CORE_CLK>,
+                        <&clock_sys SDMMC_1_AHB_CLK>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc1_pin>;
+                index = <1>;
+                status = "disabled";
+        };
+
+        mmc2:mmc@260a0000 {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                compatible = "nexell,nexell-dwmmc";
+                reg = <0x260a0000 0x1000>;
+                nexell,bus-width = <4>;
+                clocks = <&clock_sys SDMMC_2_CORE_CLK>,
+                        <&clock_sys SDMMC_2_AHB_CLK>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc2_pin>;
+                index = <2>;
+                status = "disabled";                                            
+        };
+
 	uart0: serial@20400000 {
 		compatible = "snps,dw-apb-uart";
 		reg = <0x20400000 0x1000>;
@@ -96,7 +134,7 @@
 		      <&clock_sys UART_0_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart0_bus>;
+		pinctrl = <&uart0_bus>;
 		status = "disabled";
 	};
 
@@ -109,7 +147,8 @@
 		      <&clock_sys UART_1_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart1_bus>;
+		pinctrl = <&uart1_bus>;
+
 		status = "disabled";
 	};
 
@@ -122,7 +161,7 @@
 		      <&clock_sys UART_2_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart2_bus>;
+		pinctrl = <&uart2_bus>;
 		status = "disabled";
 	};
 
@@ -135,7 +174,7 @@
 		      <&clock_sys UART_3_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart3_bus>;
+		pinctrl = <&uart3_bus>;
 		status = "disabled";
 	};
 
@@ -148,7 +187,7 @@
 		      <&clock_sys UART_4_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart4_bus>;
+		pinctrl = <&uart4_bus>;
 		status = "disabled";
 	};
 
@@ -161,7 +200,7 @@
 		      <&clock_sys UART_5_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart5_bus>;
+		pinctrl = <&uart5_bus>;
 		status = "disabled";
 	};
 
@@ -174,15 +213,7 @@
 		      <&clock_sys UART_6_APB_CLK >;
 		clock-names = "baudclk", "apb_pclk";
 		pinctrl-names = "default";
-		pinctrl-0 = <&uart6_bus>;
-		status = "disabled";
-	};
-
-	udown: usbdown@240C0000 {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		compatible = "nexell,dwc2-usb-downloader";
-		reg = <0x240C0000 0x11000>, <0x24030000 0x200>, <0x20060000 0x100>; /* OTG, PHY, ECID */
+		pinctrl = <&uart6_bus>;
 		status = "disabled";
 	};
 
@@ -214,22 +245,6 @@
 		clock_frequency = <100000000>;
 	};
 
-	pwm: pwm@20880000 {
-		compatible = "nexell,nxp3220-pwm";
-		reg = <0x20880000 0x400>;
-		#pwm-cells = <2>;
-		clocks = <&clock_sys PWM_0_APB_CLK>,
-			 <&clock_sys PWM_0_TCLK0_CLK>,
-			 <&clock_sys PWM_0_TCLK1_CLK>,
-			 <&clock_sys PWM_0_TCLK2_CLK>,
-			 <&clock_sys PWM_0_TCLK3_CLK>;
-		clock-names = "pwm_apb", "pwm_tclk0", "pwm_tclk1", "pwm_tclk2",
-			      "pwm_tclk3";
-		tclk_freq = <100000000>, <100000000>, <100000000>, <100000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pwm0_pin &pwm1_pin &pwm2_pin &pwm3_pin>;
-		status = "disabled";
-	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
