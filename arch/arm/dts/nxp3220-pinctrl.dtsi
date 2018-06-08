@@ -131,6 +131,7 @@
 		nexell,pin-function = <NX_PIN_FUNC2>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
+	};
 
 	i2c0_bus:i2c0 {
 		nexell,pins = "gpiob-27", "gpiob-28";
