@@ -19,7 +19,7 @@ int do_usbdown(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	printf("Download Address %lx", addr);
 
-	usb_download(addr);
+	nx_usb_download(addr);
 
 	flush_dcache_all();
 	printf("Download complete\n");
