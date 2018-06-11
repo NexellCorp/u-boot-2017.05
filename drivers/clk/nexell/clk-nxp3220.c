@@ -34,6 +34,7 @@ struct nx_cmu_priv {
 	struct clk_cmu_dev *src_cmu;
 	int size;
 	int p_size;
+	int init;
 };
 
 static unsigned long plls[] = { 400000000,
@@ -47,7 +48,7 @@ static int nx_get_min_pll(void)
 	int i;
 	int min = 0;
 
-	for (i = 1; i < PLL_NUM; i++) {
+	for (i = 0; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
 		if (plls[i] < plls[min])
@@ -62,7 +63,7 @@ static int get_max_pll(void)
 	int i;
 	int max = 0;
 
-	for (i = 1; i < PLL_NUM; i++) {
+	for (i = 0; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
 		if (plls[i] > plls[max])
@@ -150,7 +151,7 @@ static struct clk_cmu_dev *nx_get_clk_priv(struct nx_cmu_priv *priv, int id)
 {
 	int i;
 
-	for (i = 0; priv->size; i++) {
+	for (i = 0; i < priv->size; i++) {
 		if (priv->cmus[i].id == id)
 			return (struct clk_cmu_dev *)&priv->cmus[i].reg;
 	}
@@ -161,7 +162,7 @@ static struct clk_cmu_dev *nx_get_clk_src_priv(struct nx_cmu_priv *priv, int id)
 {
 	int i;
 
-	for (i = 0; priv->p_size; i++) {
+	for (i = 0; i < priv->p_size; i++) {
 		if (priv->src_cmu[i].id == id)
 			return (struct clk_cmu_dev *)&priv->src_cmu[i].reg;
 	}
@@ -171,14 +172,14 @@ static struct clk_cmu_dev *nx_get_clk_src_priv(struct nx_cmu_priv *priv, int id)
 static int clk_grp_enable(struct nx_cmu_priv *priv, unsigned int id)
 {
 	struct clk_cmu_dev *sys = nx_get_clk_priv(priv, id);
-	struct clk_cmu_dev *src = nx_get_clk_priv(priv, sys->p_id);
+	struct clk_cmu_dev *src = nx_get_clk_src_priv(priv, sys->p_id);
 	unsigned int reg_idx = sys->clkenbit / 32;
 	unsigned int reg_bit = sys->clkenbit % 32;
 	unsigned int src_reg_idx = src->clkenbit / 32;
 	unsigned int src_bit = src->clkenbit % 32;
 
 	if (sys->nc) {
-		printf("CMU %d is not en/disable\n", id);
+		printf("CMU %d  is not en/disable\n", id);
 		return -EINVAL;
 	}
 	writel(1 << reg_bit, &sys->reg->grp_clkenb[reg_idx]);
@@ -199,7 +200,7 @@ static int nx_clk_disable(struct clk *clk)
 {
 	struct nx_cmu_priv *priv = dev_get_priv(clk->dev);
 	struct clk_cmu_dev *sys = nx_get_clk_priv(priv, clk->id);
-	struct clk_cmu_dev *src = nx_get_clk_priv(priv, sys->p_id);
+	struct clk_cmu_dev *src = nx_get_clk_src_priv(priv, sys->p_id);
 	unsigned int reg_idx = sys->clkenbit / 32;
 	unsigned int reg_bit = sys->clkenbit % 32;
 	unsigned int src_reg_idx = src->clkenbit / 32;
@@ -223,7 +224,7 @@ static ulong set_rate(struct clk_cmu_dev *sys, struct clk_cmu_dev *src,
 
 	nx_calc_divisor(freq, &cdiv);
 
-	writel((cdiv.mux - 1) & 0xFFFF, &src->reg->grp_clk_src);
+	writel((cdiv.mux) & 0xFFFF, &src->reg->grp_clk_src);
 	writel((cdiv.div_s - 1) & 0xFFFF, &src->reg->divider[0]);
 	writel((cdiv.div_o - 1) & 0xFFFF, &sys->reg->divider[0]);
 
@@ -311,6 +312,7 @@ static ulong nx_cmu_get_rate(struct clk *clk)
 		rate = sys->c_freq;
 		break;
 	}
+
 	return rate;
 }
 
@@ -388,17 +390,20 @@ static int clk_cmu_mm_probe(struct udevice *dev)
 	struct clk src;
 	int i;
 
-	mm_priv->cmus = (struct clk_cmu_dev *)&cmu_mm;
-	mm_priv->size = ARRAY_SIZE(cmu_mm);
-	mm_priv->src_cmu = (struct clk_cmu_dev *)&cmu_src;
-	mm_priv->p_size = ARRAY_SIZE(cmu_src);
+	if (!mm_priv->init) {
+		mm_priv->cmus = (struct clk_cmu_dev *)&cmu_mm;
+		mm_priv->size = ARRAY_SIZE(cmu_mm);
+		mm_priv->src_cmu = (struct clk_cmu_dev *)&cmu_src;
+		mm_priv->p_size = ARRAY_SIZE(cmu_src);
 
-	for (i = 0; i < mm_priv->size; i++)
-		mm_priv->cmus[i].reg = (void *)mm_priv->cmus[i].reg + reg;
+		for (i = 0; i < mm_priv->size; i++)
+			mm_priv->cmus[i].reg =
+				(void *)mm_priv->cmus[i].reg + reg;
 
-	clk_get_by_index(dev, 0, &src);
-	nx_parse_cmu_dt(dev);
-
+		clk_get_by_index(dev, 0, &src);
+		nx_parse_cmu_dt(dev);
+		mm_priv->init = 1;
+	}
 	return 0;
 }
 
@@ -409,17 +414,20 @@ static int clk_cmu_usb_probe(struct udevice *dev)
 	struct clk src;
 	int i;
 
-	usb_priv->cmus = (struct clk_cmu_dev *)&cmu_usb;
-	usb_priv->size = ARRAY_SIZE(cmu_usb);
-	usb_priv->src_cmu = (struct clk_cmu_dev *)&cmu_src;
-	usb_priv->p_size = ARRAY_SIZE(cmu_src);
+	if (!usb_priv->init) {
+		usb_priv->cmus = (struct clk_cmu_dev *)&cmu_usb;
+		usb_priv->size = ARRAY_SIZE(cmu_usb);
+		usb_priv->src_cmu = (struct clk_cmu_dev *)&cmu_src;
+		usb_priv->p_size = ARRAY_SIZE(cmu_src);
 
-	for (i = 0; i < usb_priv->size; i++)
-		usb_priv->cmus[i].reg =
-			(void *)usb_priv->cmus[i].reg + reg;
+		for (i = 0; i < usb_priv->size; i++)
+			usb_priv->cmus[i].reg =
+				(void *)usb_priv->cmus[i].reg + reg;
 
-	clk_get_by_index(dev, 0, &src);
-	nx_parse_cmu_dt(dev);
+		clk_get_by_index(dev, 0, &src);
+		nx_parse_cmu_dt(dev);
+		usb_priv->init = 1;
+	}
 
 	return 0;
 }
@@ -431,17 +439,21 @@ static int clk_cmu_sys_probe(struct udevice *dev)
 	struct clk src;
 	int i;
 
-	sys_priv->cmus = (struct clk_cmu_dev *)&cmu_sys;
-	sys_priv->size = ARRAY_SIZE(cmu_sys);
-	sys_priv->src_cmu = (struct clk_cmu_dev *)&cmu_src;
-	sys_priv->p_size = ARRAY_SIZE(cmu_src);
+	if (!sys_priv->init) {
+		sys_priv->cmus = (struct clk_cmu_dev *)&cmu_sys;
+		sys_priv->size = ARRAY_SIZE(cmu_sys);
+		sys_priv->src_cmu = (struct clk_cmu_dev *)&cmu_src;
+		sys_priv->p_size = ARRAY_SIZE(cmu_src);
 
-	for (i = 0; i < sys_priv->size; i++)
-		sys_priv->cmus[i].reg =	(void *)sys_priv->cmus[i].reg + reg;
+		for (i = 0; i < sys_priv->size; i++)
+			sys_priv->cmus[i].reg =
+				(void *)sys_priv->cmus[i].reg + reg;
 
-	clk_get_by_index(dev, 0, &src);
-	nx_parse_cmu_dt(dev);
+		clk_get_by_index(dev, 0, &src);
+		nx_parse_cmu_dt(dev);
 
+		sys_priv->init = 1;
+	}
 	return 0;
 }
 
@@ -451,14 +463,17 @@ static int nx_clk_src_probe(struct udevice *dev)
 	unsigned int reg = devfdt_get_addr(dev);
 	int i;
 
-	src_priv->cmus = (struct clk_cmu_dev *)&cmu_src;
-	src_priv->size = ARRAY_SIZE(cmu_src);
+	if (!src_priv->init) {
+		src_priv->cmus = (struct clk_cmu_dev *)&cmu_src;
+		src_priv->size = ARRAY_SIZE(cmu_src);
 
-	for (i = 0; i < src_priv->size; i++)
-		src_priv->cmus[i].reg = (void *)src_priv->cmus[i].reg + reg;
+		for (i = 0; i < src_priv->size; i++)
+			src_priv->cmus[i].reg =
+				(void *)src_priv->cmus[i].reg + reg;
 
-	nx_get_pll_rate(dev);
-
+		nx_get_pll_rate(dev);
+		src_priv->init = 1;
+	}
 	return 0;
 }
 
@@ -480,7 +495,6 @@ U_BOOT_DRIVER(nx_cmu_src) = {
 	.of_match = nx_cmu_src_compat,
 	.probe = nx_clk_src_probe,
 	.ops = &nx_cmu_src_ops,
-	.flags = DM_FLAG_PRE_RELOC,
 	.priv_auto_alloc_size = sizeof(struct nx_cmu_priv),
 };
 
@@ -502,7 +516,6 @@ U_BOOT_DRIVER(nx_cmu_sys) = {
 	.of_match = nx_cmu_sys_compat,
 	.probe = clk_cmu_sys_probe,
 	.ops = &nx_cmu_sys_ops,
-	.flags = DM_FLAG_PRE_RELOC,
 	.priv_auto_alloc_size = sizeof(struct nx_cmu_priv),
 };
 
@@ -524,7 +537,6 @@ U_BOOT_DRIVER(nx_cmu_mm) = {
 	.of_match = nx_cmu_mm_compat,
 	.probe = clk_cmu_mm_probe,
 	.ops = &nx_cmu_mm_ops,
-	.flags = DM_FLAG_PRE_RELOC,
 	.priv_auto_alloc_size = sizeof(struct nx_cmu_priv),
 };
 
@@ -546,6 +558,5 @@ U_BOOT_DRIVER(nx_cmu_usb) = {
 	.of_match = nx_cmu_usb_compat,
 	.probe = clk_cmu_usb_probe,
 	.ops = &nx_cmu_usb_ops,
-	.flags = DM_FLAG_PRE_RELOC,
 	.priv_auto_alloc_size = sizeof(struct nx_cmu_priv),
 };

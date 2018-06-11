@@ -164,7 +164,6 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 {
 	struct pll_pms *pms = NULL;
 	int len = 0, l = 0;
-	long freq = 0;
 
 	rate /= 1000;
 
@@ -186,7 +185,7 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 	}
 
 	for (l = 0; l < len; l++) {
-		if (freq >= PMS_RATE(pms, l))
+		if (rate >= PMS_RATE(pms, l))
 			break;
 	}
 
@@ -199,8 +198,8 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 	if (k)
 		*k = PMS_K(pms, l);
 
-	printf("real %ld Khz, P=%d ,M=%3d, S=%d K=%d\n", PMS_RATE(pms, l),
-	       PMS_P(pms, l), PMS_M(pms, l), PMS_S(pms, l), PMS_K(pms, l));
+	debug("real %ld Khz, P=%d ,M=%3d, S=%d K=%d\n", PMS_RATE(pms, l),
+	      PMS_P(pms, l), PMS_M(pms, l), PMS_S(pms, l), PMS_K(pms, l));
 
 	return PMS_RATE(pms, l) * 1000;
 }
@@ -255,10 +254,10 @@ static int clock_is_stable(int pll_num)
 
 	while (check_pll_lock(pll_num) == false) {
 		if (timeout-- <= 0)
-			return false;
+			return -ETIMEDOUT;
 	}
 
-	return true;
+	return 0;
 }
 
 static int set_pll_rate(int pllno, int p, int m, int s, int k)
