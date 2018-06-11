@@ -201,6 +201,14 @@
 		clock-names = "timer0";
 		clock_frequency = <100000000>;
 	};
+
+	udown: usbdown@240c0000 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "nexell,dwc2-usb-downloader";
+		reg = <0x240C0000 0x1000>, <0x24030000 0x100>, <0x20060000 0x100>;
+		status = "disabled";
+	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
