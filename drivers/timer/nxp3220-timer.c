@@ -51,21 +51,21 @@ static inline void timer_clock(void __iomem *base, int mux, int scl)
 
 static inline void timer_count(void __iomem *base, unsigned int cnt)
 {
-	writel((cnt-1), base + REG_TCNTB0);
-	writel((cnt-1), base + REG_TCMPB0);
+	writel(cnt, base + REG_TCNTB0);
+	writel(cnt, base + REG_TCMPB0);
 }
 
 static inline void timer_start(void __iomem *base)
 {
 	writel(1 , base + REG_CSTAT);
 	writel(TCON_BIT_UP, base + REG_TCON);
+	writel(TCON_BIT_AUTO | TCON_BIT_RUN, base + REG_TCON);
 
 	dmb();
 }
 
 static inline void timer_stop(void __iomem *base)
 {
-	writel(0, base + REG_CSTAT);
 	writel(0, base + REG_TCON);
 }
 
@@ -139,7 +139,7 @@ static int nx_timer_probe(struct udevice *dev)
 	struct clk clk;
 	unsigned long rate, set_rate, tclk = 0;
 	unsigned long mout, thz, cmp = -1UL;
-	int tcnt, tscl = 0, tmux = 0;
+	int tscl = 0, tmux = 0;
 	int mux = 0, scl = 0;
 	void __iomem *base;
 	int ret;
@@ -178,13 +178,11 @@ static int nx_timer_probe(struct udevice *dev)
 		cmp = abs(thz - TIMER_FREQ);
 	}
 
-	tcnt = tclk;/* Timer Count := 1 Mhz counting */
-
-	debug(" tmux:%d, tscl:%d, tcnt:%d, tclk:%ld\n", tmux, tscl, tcnt, tclk);
+	debug(" tmux:%d, tscl:%d, tclk:%ld\n", tmux, tscl, tclk);
 
 	timer_stop(base);
 	timer_clock(base, tmux, tscl);
-	timer_count(base, tcnt);
+	timer_count(base, TIMER_COUNT);
 	timer_start(base);
 
 	_reset_timer_masked(dev);
