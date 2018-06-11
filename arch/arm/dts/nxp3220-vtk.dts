@@ -11,4 +11,9 @@
 / {
 	model = "Nexell nxp3220 validation test board";
 	compatible = "nexell,nxp3220";
+
+	clock_pll: clock-src@27020000 {
+		frequency = <0 800000000>,
+			    <1 400000000>;
+	};
 };
