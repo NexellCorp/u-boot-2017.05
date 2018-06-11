@@ -12,8 +12,23 @@
 	model = "Nexell nxp3220 validation test board";
 	compatible = "nexell,nxp3220";
 
+	chosen {
+		stdout-path = "serial2:115200n8";
+		tick-timer = &timer0;
+	};
+
 	clock_pll: clock-src@27020000 {
 		frequency = <0 800000000>,
 			    <1 400000000>;
+	};
+
+	clock_sys: clock-sys@27010000 {
+		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>,
+				     <UART_2_CORE_CLK 100000000 1>;
+	};
+
+	uart2: serial@20420000 {
+		clock-frequency = <100000000>;
+		status = "okay";
 	};
 };
