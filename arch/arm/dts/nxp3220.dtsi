@@ -11,6 +11,10 @@
 / {
 	#include "nxp3220-clk.dtsi"
 
+	aliases {
+		serial2 = &uart2;
+	};
+
 	pinctrl: pinctrl@20180000 {
 		compatible = "nexell,nxp3220-pinctrl";
 		reg = <0x20180000 0x1000>,
@@ -76,6 +80,98 @@
 		gpio-bank-name = "gpio_alv";
 		gpio-controller;
 		#gpio-cells = <2>;
+	};
+
+	uart0: serial@20400000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20400000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_0_CORE_CLK>,
+		      <&clock_sys UART_0_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart0_bus>;
+		status = "disabled";
+	};
+
+	uart1: serial@20410000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20410000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_1_CORE_CLK>,
+		      <&clock_sys UART_1_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart1_bus>;
+
+		status = "disabled";
+	};
+
+	uart2: serial@20420000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20420000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_2_CORE_CLK>,
+		      <&clock_sys UART_2_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart2_bus>;
+		status = "disabled";
+	};
+
+	uart3: serial@20430000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20430000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_3_CORE_CLK>,
+		      <&clock_sys UART_3_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart3_bus>;
+		status = "disabled";
+	};
+
+	uart4: serial@20440000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20440000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_4_CORE_CLK>,
+		      <&clock_sys UART_4_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart4_bus>;
+		status = "disabled";
+	};
+
+	uart5: serial@20450000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20450000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_5_CORE_CLK>,
+		      <&clock_sys UART_5_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart5_bus>;
+		status = "disabled";
+	};
+
+	uart6: serial@20460000 {
+		compatible = "snps,dw-apb-uart";
+		reg = <0x20460000 0x1000>;
+		reg-shift = <2>;
+		reg-io-width = <4>;
+		clocks = <&clock_sys UART_6_CORE_CLK>,
+		      <&clock_sys UART_6_APB_CLK >;
+		clock-names = "baudclk", "apb_pclk";
+		pinctrl-names = "default";
+		pinctrl-0 = <&uart6_bus>;
+		status = "disabled";
 	};
 
 	sys_reg_sys: syscon@20030000 {
