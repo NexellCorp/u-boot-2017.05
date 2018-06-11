@@ -21,6 +21,7 @@ obj-$(CONFIG_USB_GADGET_DWC2_OTG) += dwc2_udc_otg.o dwc2_udc_otg_dm.o
 obj-$(CONFIG_USB_GADGET_DWC2_OTG_PHY) += dwc2_udc_otg_phy.o
 obj-$(CONFIG_USB_GADGET_FOTG210) += fotg210.o
 obj-$(CONFIG_CI_UDC)	+= ci_udc.o
+obj-$(CONFIG_USB_GADGET_DWC2_NEXELL_OTG) += dwc2_nexell_otg.o
 obj-$(CONFIG_USB_GADGET_DWC2_NEXELL_DOWNLOADER) += dwc2_nexell_usbdown.o
 ifndef CONFIG_SPL_BUILD
 obj-$(CONFIG_USB_GADGET_DOWNLOAD) += g_dnl.o

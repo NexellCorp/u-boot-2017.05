@@ -89,6 +89,10 @@ config USB_GADGET_DWC2_OTG_PHY_BUS_WIDTH_8
 	  Set the Designware USB2.0 high-speed OTG controller
 	  PHY interface width to 8 bits, rather than the default (16 bits).
 
+config USB_GADGET_DWC2_NEXELL_OTG
+	bool "Nexell DesignWare USB2.0 HS OTG"
+	depends on ARCH_NEXELL
+
 endif # USB_GADGET_DWC2_OTG
 
 config USB_GADGET_DWC2_NEXELL_DOWNLOADER
