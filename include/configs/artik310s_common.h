@@ -18,7 +18,8 @@
 #define	CONFIG_SYS_INIT_SP_ADDR	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_SDRAM_BASE	0x40000000
-#define CONFIG_SYS_SDRAM_SIZE	0x70000000
+/* 512MB - 16MB(Reserved for SecureOS) */
+#define CONFIG_SYS_SDRAM_SIZE	0x1F000000
 #define CONFIG_SYS_MALLOC_LEN	(64 * SZ_1M)
 
 /* kernel load address */
@@ -38,7 +39,7 @@
 #if !defined(CONFIG_ENV_IS_IN_MMC) && !defined(CONFIG_ENV_IS_IN_NAND) && \
 	!defined(CONFIG_ENV_IS_IN_FLASH) && !defined(CONFIG_ENV_IS_IN_EEPROM)
 	#define CONFIG_ENV_OFFSET	1024
-	#define CONFIG_ENV_SIZE		(4 * 1024) /* env size */
+	#define CONFIG_ENV_SIZE		(16 * 1024) /* env size */
 	/* imls - list all images found in flash, default enable so disable */
 	#undef CONFIG_CMD_IMLS
 #endif
