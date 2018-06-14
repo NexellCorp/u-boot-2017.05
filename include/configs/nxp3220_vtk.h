@@ -21,12 +21,12 @@
 /* kernel load address */
 #define CONFIG_SYS_LOAD_ADDR	0x48000000
 
-/* environments */
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootdelay=0\0"
-
 /* flash */
 #define CONFIG_CMD_SF
 #define CONFIG_SPI_FLASH_BAR
 
+/* environments */
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"bootdelay=0\0"
+	"bootcmd=udown 48000000;udown 49000000;bootz 48000000 - 49000000\0"
 #endif
