@@ -282,6 +282,57 @@
 		sample_rate = <200000>;
 		status = "disabled";
 	};
+
+	i2c_0: i2c@20500000 {
+		compatible = "nexell,nx-i2c";
+		reg = <0x20500000 0x1000>;
+		clocks =<&clock_sys I2C_0_APB_CLK>;
+		clock-names = "i2c0_apb";
+		clock-frequency = <100000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c0_bus>;
+		status = "disabled";
+	};
+
+	i2c_1: i2c@20510000 {
+		compatible = "nexell,nx-i2c";
+		reg = <0x20510000 0x1000>;
+		clocks =<&clock_sys I2C_1_APB_CLK>;
+		clock-names = "i2c1_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c1_bus>;
+		status = "disabled";
+	};
+
+	i2c_2: i2c@20520000 {
+		compatible = "nexell,nx-i2c";
+		reg = <0x20520000 0x1000>;
+		clocks =<&clock_sys I2C_2_APB_CLK>;
+		clock-names = "i2c2_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c2_bus>;
+		status = "disabled";
+	};
+
+	i2c_3: i2c@20530000 {
+		compatible = "nexell,nx-i2c";
+		reg = <0x20530000 0x1000>;
+		clocks =<&clock_sys I2C_3_APB_CLK>;
+		clock-names = "i2c3_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c3_bus>;
+		status = "disabled";
+	};
+
+	i2c_4: i2c@20540000 {
+		compatible = "nexell,nx-i2c";
+		reg = <0x20540000 0x1000>;
+		clocks =<&clock_sys I2C_4_APB_CLK>;
+		clock-names = "i2c4_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2c4_bus>;
+		status = "disabled";
+	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
