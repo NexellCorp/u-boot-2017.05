@@ -20,15 +20,15 @@
 	clock_sys: clock-sys@27010000 {
 		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>,
 			<PWM_0_APB_CLK 100000000 1>,
-			<ADC_0_APB_CLK 100000000 1>;
-		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>;
-		clk-init-frequency = <I2C_0_APB_CLK 100000000 1>;
-		clk-init-frequency = <SPI_0_APB_CLK 100000000 1>;
+			<ADC_0_APB_CLK 100000000 1>,
+			<UART_2_CORE_CLK 100000000 1>,
+			<I2C_0_APB_CLK 100000000 1>,
+			<SPI_0_APB_CLK 100000000 1>;
 	};
 
 	clock_usb: clock-usb@24000000 {
-		clk-init-frequency = <USB_0_AHB_CLK 300000000 1>;
-		clk-init-frequency = <USB20OTG_0_AHB_CLK 300000000 1>;
+		clk-init-frequency = <USB_0_AHB_CLK 300000000 1>,
+			<USB20OTG_0_AHB_CLK 300000000 1>;
 	};
 
 	dwc2otg@240C0000 {
