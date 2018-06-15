@@ -86,6 +86,49 @@
 		#gpio-cells = <2>;
 	};
 
+
+	mmc0: mmc@26080000 {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                compatible = "nexell,nxp3220-dwmmc";
+                reg = <0x26080000 0x1000>;
+                nexell,bus-width = <8>;
+                index = <0>;
+                clocks = <&clock_sys SDMMC_0_CORE_CLK>,
+                        <&clock_sys SDMMC_0_AHB_CLK>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc0_clk &mmc0_cmd &mmc0_bus8>;
+                status = "disabled";
+        };
+
+        mmc1: mmc@26090000 {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                compatible = "nexell,nxp3220-dwmmc";
+                reg = <0x26090000 0x1000>;
+                nexell,bus-width = <4>;
+                clocks = <&clock_sys SDMMC_1_CORE_CLK>,
+                        <&clock_sys SDMMC_1_AHB_CLK>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc1_clk &mmc1_cmd &mmc1_bus4>;
+                index = <1>;
+                status = "disabled";
+        };
+
+        mmc2: mmc@260a0000 {
+                #address-cells = <1>;
+                #size-cells = <0>;
+                compatible = "nexell,nxp3220-dwmmc";
+                reg = <0x260a0000 0x1000>;
+                nexell,bus-width = <4>;
+                clocks = <&clock_sys SDMMC_2_CORE_CLK>,
+                        <&clock_sys SDMMC_2_AHB_CLK>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&mmc2_clk &mmc2_cmd &mmc2_bus4>;
+                index = <2>;
+                status = "disabled";
+        };
+
 	uart0: serial@20400000 {
 		compatible = "snps,dw-apb-uart";
 		reg = <0x20400000 0x1000>;
