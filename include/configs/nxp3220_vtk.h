@@ -26,8 +26,19 @@
 /* kernel load address */
 #define CONFIG_SYS_LOAD_ADDR	0x48000000
 
+/* USB Device Firmware Update support */
+#define DFU_ALT_INFO_RAM \
+	"dfu_alt_info_ram=" \
+	"setenv dfu_alt_info " \
+	"kernel ram 0x48000000 0xD80000\\\\;" \
+	"fdt ram 0x49000000 0x80000\\\\;" \
+	"ramdisk ram 0x49100000 0x4000000\0" \
+	"dfu_ram=run dfu_alt_info_ram && dfu 0 ram 0\0" \
+	"thor_ram=run dfu_ram_info && thordown 0 ram 0\0"
+
 /* environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootdelay=0\0"
+	"bootdelay=0\0"	\
+	DFU_ALT_INFO_RAM
 
 #endif

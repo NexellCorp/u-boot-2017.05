@@ -29,4 +29,6 @@
 	#undef CONFIG_CMD_IMLS
 #endif
 
+#define CONFIG_ENV_OVERWRITE
+
 #endif
