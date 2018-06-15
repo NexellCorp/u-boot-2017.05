@@ -35,7 +35,15 @@
 	};
 };
 
+&dwc2otg {
+	status = "okay";
+};
+
 &uart2 {
 	clock-frequency = <100000000>;
+	status = "okay";
+};
+
+&udown {
 	status = "okay";
 };
