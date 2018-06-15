@@ -15,17 +15,28 @@
 #include <fdtdec.h>
 #include <asm/io.h>
 #include <asm/gpio.h>
+#include <mach/alive_gpio.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define NEXELL_GPIO_OUT		(0x0)
+#define NEXELL_GPIO_OUT			(0x0)
 #define NEXELL_GPIO_OUTENB		(0x4)
 #define NEXELL_GPIO_DETMODE0		(0x8)
 #define NEXELL_GPIO_DETMODE1		(0xc)
 #define NEXELL_GPIO_INTENB		(0x10)
-#define NEXELL_GPIO_DET		(0x14)
-#define NEXELL_GPIO_PAD		(0x18)
+#define NEXELL_GPIO_DET			(0x14)
+#define NEXELL_GPIO_PAD			(0x18)
 #define NEXELL_GPIO_INPUTENB		(0x74)
+
+#define NEXELL_ALIVE_OUTENB_RST		(0x74)
+#define NEXELL_ALIVE_OUTENB_SET		(0x78)
+#define NEXELL_ALIVE_OUTENB_READ	(0x7C)
+#define NEXELL_ALIVE_OUT_RST		(0x8C)
+#define NEXELL_ALIVE_OUT_SET		(0x90)
+#define NEXELL_ALIVE_OUT_READ		(0x94)
+#define NEXELL_ALIVE_INENB_RST		(0x15C)
+#define NEXELL_ALIVE_INENB_SET		(0x160)
+#define NEXELL_ALIVE_INENB_READ		(0x164)
 
 struct nexell_gpio_platdata {
 	void __iomem *regs;
@@ -34,56 +45,81 @@ struct nexell_gpio_platdata {
 	bool is_alive;
 };
 
-static int nexell_alive_gpio_direction_input(struct udevice *dev, unsigned pin)
+static int nexell_alive_direction_input(struct udevice *dev, unsigned int pin)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+	u32 bit = 1 << pin;
+
+	ALIVE_WRITE(base + NEXELL_ALIVE_INENB_SET, bit);
+	ALIVE_WRITE(base + NEXELL_ALIVE_OUTENB_RST, bit);
 
 	return 0;
 }
 
-static int nexell_alive_gpio_direction_output(struct udevice *dev, unsigned pin,
-					      int val)
+static int nexell_alive_direction_output(struct udevice *dev, unsigned int pin,
+					 int val)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+	u32 bit = 1 << pin;
+
+	ALIVE_WRITE(base + NEXELL_ALIVE_OUT_SET, bit);
+
+	ALIVE_WRITE(base + NEXELL_ALIVE_INENB_RST, bit);
+	ALIVE_WRITE(base + NEXELL_ALIVE_OUTENB_SET, bit);
 
 	return 0;
 }
 
-static int nexell_alive_gpio_get_value(struct udevice *dev, unsigned pin)
+static int nexell_alive_get_value(struct udevice *dev, unsigned int pin)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+
+	return (ALIVE_READ(base + NEXELL_ALIVE_OUT_READ) >> pin) & 1;
+}
+
+
+static int nexell_alive_set_value(struct udevice *dev, unsigned int pin,
+				  int val)
+{
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+
+	ALIVE_WRITE(base + NEXELL_ALIVE_OUT_SET, 1 << pin);
 
 	return 0;
 }
 
-
-static int nexell_alive_gpio_set_value(struct udevice *dev, unsigned pin,
-		int val)
+static int nexell_alive_get_function(struct udevice *dev, unsigned int pin)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+
+	u32 mask = 1UL << pin;
+	unsigned int output, input;
+
+	output = ALIVE_READ(base + NEXELL_ALIVE_OUTENB_READ) & mask;
+	input = ALIVE_READ(base + NEXELL_ALIVE_INENB_READ) & mask;
+
+	if (output && !input)
+		return GPIOF_OUTPUT;
+	else if (!output && input)
+		return GPIOF_INPUT;
+	else
+		return GPIOF_UNKNOWN;
 
 	return 0;
 }
 
-static int nexell_alive_gpio_get_function(struct udevice *dev, unsigned pin)
-{
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
-
-	return 0;
-}
-
-static int nexell_gpio_direction_input(struct udevice *dev, unsigned pin)
+static int nexell_gpio_direction_input(struct udevice *dev, unsigned int pin)
 {
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
 
 	if (plat->is_alive)
-		return nexell_alive_gpio_direction_input(dev, pin);
+		return nexell_alive_direction_input(dev, pin);
 
 	clrbits_le32(base + NEXELL_GPIO_OUTENB, 1 << pin);
 	if (of_device_is_compatible(dev, "nexell,nxp3220-gpio"))
@@ -92,14 +128,14 @@ static int nexell_gpio_direction_input(struct udevice *dev, unsigned pin)
 	return 0;
 }
 
-static int nexell_gpio_direction_output(struct udevice *dev, unsigned pin,
+static int nexell_gpio_direction_output(struct udevice *dev, unsigned int pin,
 					int val)
 {
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
 
 	if (plat->is_alive)
-		return nexell_alive_gpio_direction_output(dev, pin, val);
+		return nexell_alive_direction_output(dev, pin, val);
 
 	if (val)
 		setbits_le32(base + NEXELL_GPIO_OUT, 1 << pin);
@@ -111,7 +147,7 @@ static int nexell_gpio_direction_output(struct udevice *dev, unsigned pin,
 	return 0;
 }
 
-static int nexell_gpio_get_value(struct udevice *dev, unsigned pin)
+static int nexell_gpio_get_value(struct udevice *dev, unsigned int pin)
 {
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
@@ -119,7 +155,7 @@ static int nexell_gpio_get_value(struct udevice *dev, unsigned pin)
 	unsigned int value;
 
 	if (plat->is_alive)
-		return nexell_alive_gpio_get_value(dev, pin);
+		return nexell_alive_get_value(dev, pin);
 
 	value = (readl(base + NEXELL_GPIO_PAD) & mask) >> pin;
 
@@ -127,13 +163,13 @@ static int nexell_gpio_get_value(struct udevice *dev, unsigned pin)
 }
 
 
-static int nexell_gpio_set_value(struct udevice *dev, unsigned pin, int val)
+static int nexell_gpio_set_value(struct udevice *dev, unsigned int pin, int val)
 {
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
 
 	if (plat->is_alive)
-		return nexell_alive_gpio_set_value(dev, pin, val);
+		return nexell_alive_set_value(dev, pin, val);
 
 	if (val)
 		setbits_le32(base + NEXELL_GPIO_OUT, 1 << pin);
@@ -143,7 +179,7 @@ static int nexell_gpio_set_value(struct udevice *dev, unsigned pin, int val)
 	return 0;
 }
 
-static int nexell_gpio_get_function(struct udevice *dev, unsigned pin)
+static int nexell_gpio_get_function(struct udevice *dev, unsigned int pin)
 {
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
@@ -151,7 +187,7 @@ static int nexell_gpio_get_function(struct udevice *dev, unsigned pin)
 	unsigned int output;
 
 	if (plat->is_alive)
-		return nexell_alive_gpio_get_function(dev, pin);
+		return nexell_alive_get_function(dev, pin);
 
 	output = readl(base + NEXELL_GPIO_OUTENB) & mask;
 
