@@ -18,6 +18,9 @@
 /* max number of command args   */
 #define CONFIG_SYS_MAXARGS	16
 
+/* For SD/MMC */
+#define CONFIG_BOUNCE_BUFFER
+
 /*
  * Default environment organization
  */
