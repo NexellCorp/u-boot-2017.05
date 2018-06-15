@@ -25,4 +25,8 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"bootdelay=0\0"
 
+/* flash */
+#define CONFIG_CMD_SF
+#define CONFIG_SPI_FLASH_BAR
+
 #endif
