@@ -14,6 +14,7 @@
 
 	aliases {
 		serial2 = &uart2;
+		i2c0    = &i2c_0;
 	};
 
 	chosen {
@@ -35,7 +36,8 @@
 				     <PWM_0_TCLK0_CLK 100000000 1>,
 				     <PWM_0_TCLK1_CLK 100000000 1>,
 				     <PWM_0_TCLK2_CLK 100000000 1>,
-				     <PWM_0_TCLK3_CLK 100000000 1>;
+				     <PWM_0_TCLK3_CLK 100000000 1>,
+				     <I2C_0_APB_CLK 100000000 1>;
 	};
 };
 
@@ -70,5 +72,9 @@
 };
 
 &udown {
+	status = "okay";
+};
+
+&i2c_0 {
 	status = "okay";
 };
