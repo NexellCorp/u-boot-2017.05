@@ -13,6 +13,9 @@
 	aliases {
 		serial2 = &uart2;
 		i2c0	= &i2c_0;
+		spi0	= &spi_0;
+		spi1	= &spi_1;
+		spi2	= &spi_2;
 	};
 
 	pinctrl: pinctrl@20180000 {
@@ -336,6 +339,49 @@
 		clocks = <&clock_sys ADC_0_APB_CLK>;
 		clock-names = "adc";
 		sample_rate = <200000>;
+		status = "disabled";
+	};
+
+	spi_0: spi@30000000 {
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x30000000 0x1000>;
+		spi-max-frequency = <10000000>;
+		clocks =<&clock_sys SPI_0_APB_CLK>;
+		clock-names = "spi0_apb";
+		num-cs = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi0_bus>, <&spi0_bus_single>;
+		cs-gpio = <&gpio_c 4 0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+
+	spi_1: spi@20A90000 {
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x20A90000 0x1000>;
+		clocks =<&clock_sys SPI_1_APB_CLK>;
+		clock-names = "spi1_apb";
+		num-cs = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi1_bus>;
+		cs-gpio = <&gpio_a 9 0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+
+	spi_2: spi@20AA0000 {
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x20AA0000 0x1000>;
+		clocks =<&clock_sys SPI_2_APB_CLK>;
+		clock-names = "spi2_apb";
+		num-cs = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi2_bus>;
+		cs-gpio = <&gpio_a 13 0>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 		status = "disabled";
 	};
 };
