@@ -39,6 +39,13 @@
 	status = "okay";
 };
 
+&mmc2 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	status = "okay";
+};
+
 &uart2 {
 	clock-frequency = <100000000>;
 	status = "okay";
