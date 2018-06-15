@@ -15,6 +15,7 @@
 	aliases {
 		serial2 = &uart2;
 		i2c0    = &i2c_0;
+		spi0	= &spi_0;
 	};
 
 	chosen {
@@ -37,7 +38,8 @@
 				     <PWM_0_TCLK1_CLK 100000000 1>,
 				     <PWM_0_TCLK2_CLK 100000000 1>,
 				     <PWM_0_TCLK3_CLK 100000000 1>,
-				     <I2C_0_APB_CLK 100000000 1>;
+				     <I2C_0_APB_CLK 100000000 1>,
+		 		     <SPI_0_APB_CLK 100000000 1>;
 	};
 };
 
@@ -76,5 +78,11 @@
 };
 
 &i2c_0 {
+	status = "okay";
+};
+
+&spi_0 {
+	num-cs = <1>;
+	cs-gpio = <&gpio_c 4 0>;
 	status = "okay";
 };
