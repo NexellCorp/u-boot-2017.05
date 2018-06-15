@@ -333,6 +333,42 @@
 		pinctrl-0 = <&i2c4_bus>;
 		status = "disabled";
 	};
+
+	spi_0: spi@30000000 {
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x30000000 0x1000>;
+		clocks =<&clock_sys SPI_0_APB_CLK>;
+		clock-names = "spi0_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi0_bus>, <&spi0_bus_single>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+
+	spi_1: spi@20A90000 {
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x20A90000 0x1000>;
+		clocks =<&clock_sys SPI_1_APB_CLK>;
+		clock-names = "spi1_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi1_bus>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
+
+	spi_2: spi@20AA0000 {
+		compatible = "snps,dw-apb-ssi";
+		reg = <0x20AA0000 0x1000>;
+		clocks =<&clock_sys SPI_2_APB_CLK>;
+		clock-names = "spi2_apb";
+		pinctrl-names = "default";
+		pinctrl-0 = <&spi2_bus>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "disabled";
+	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
