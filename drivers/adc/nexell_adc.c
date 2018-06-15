@@ -71,7 +71,7 @@ static int nexell_adc_channel_data(struct udevice *dev, int channel,
 	while (!(readl(base + REG_INTCLR) & ADC_INTENB_ENB))
 		;
 
-	writel(ADC_INTENB_ENB, base + REG_INTCLR);
+	writel(ADC_INTCLR_CLR, base + REG_INTCLR);
 	*data = readl(base + REG_ADCDAT) & ADC_DAT_MASK;
 
 	return 0;
@@ -84,6 +84,9 @@ static int nexell_adc_start_channel(struct udevice *dev, int channel)
 	unsigned int adccon;
 
 	channel = CLAMP_CHANNEL(channel);
+
+	/* clear interrupt */
+	writel(ADC_INTCLR_CLR, base + REG_INTCLR);
 
 	/* channel */
 	adccon = readl(base + REG_ADCCON) & ~ADC_CON_ASEL(7);
