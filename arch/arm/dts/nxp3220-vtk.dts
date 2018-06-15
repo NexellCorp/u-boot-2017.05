@@ -23,6 +23,7 @@
 			<ADC_0_APB_CLK 100000000 1>;
 		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>;
 		clk-init-frequency = <I2C_0_APB_CLK 100000000 1>;
+		clk-init-frequency = <SPI_0_APB_CLK 100000000 1>;
 	};
 
 	clock_usb: clock-usb@24000000 {
@@ -75,4 +76,8 @@
 &i2c_0 {
 	status = "okay";
 	u-boot,dm-pre-reloc;
+};
+
+&spi_0 {
+	status = "okay";
 };
