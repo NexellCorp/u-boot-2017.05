@@ -76,22 +76,45 @@ static void nx_gpio_set_pull_mode(void *base, u32 pin, u32 mode)
 	}
 }
 
-static void nx_alive_set_pad_function(u32 pin, u32 fn)
+static void nx_alive_set_pad_function(void *base, u32 pin, u32 fn)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	if (fn > nx_gpio_padfunc_1) {
+		debug("wrong pad function to alive pin %d\n", pin);
+		return;
+	}
+	nx_gpio_set_bit2(base + ALIVE_ALTFN_SEL_LOW, pin, fn);
+
+	debug("%s base %p pin %u fn %u\n", __func__, base, pin, fn);
 }
 
-static void nx_alive_set_pullup(u32 pin, bool enable)
+static void nx_alive_set_pull_mode(void *base, u32 pin, u32 mode)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	u32 bit = 1UL << pin;
+
+	if (mode == nx_gpio_pull_off) {
+		writel(bit, base + ALIVE_PULLENB_RST);
+		writel(bit, base + ALIVE_PULLSEL_RST);
+	} else {
+		writel(bit, base + ALIVE_PULLENB_SET);
+		if (mode == nx_gpio_pull_down)
+			writel(bit, base + ALIVE_PULLSEL_RST);
+		else
+			writel(bit, base + ALIVE_PULLSEL_SET);
+	}
+
+	debug("%s base %p pin %u mode %u\n", __func__, base, pin, mode);
 }
 
-static void nx_alive_set_drive_strength(u32 pin, u32 drv)
+static void nx_alive_set_drive_strength(void *base, u32 pin, u32 drv)
 {
-	/* TODO request to secure os */
-	error("%s called\n", __func__);
+	u32 bit = 1UL << pin;
+	u32 drv0_reg = drv & 0x2 ? ALIVE_DRV0_SET : ALIVE_DRV0_RST;
+	u32 drv1_reg = drv & 0x1 ? ALIVE_DRV1_SET : ALIVE_DRV1_RST;
+
+	writel(bit, base + drv0_reg);
+	writel(bit, base + drv1_reg);
+
+	debug("%s base %p pin %u mode %u\n", __func__, base, pin, drv);
 }
 
 static int nxp3220_pinctrl_gpio_init(struct udevice *dev)
@@ -126,6 +149,7 @@ static int nxp3220_pinctrl_init(struct udevice *dev)
 
 static int is_pin_alive(const char *name)
 {
+	debug("%s %s\n", __func__, name);
 	return !strncmp(name, "alive", 5);
 }
 
@@ -161,22 +185,25 @@ static int nxp3220_pinctrl_set_state(struct udevice *dev,
 		if (!name)
 			continue;
 
-		if (is_pin_alive(name)) {
-			if (pinfunc != -1)
-				nx_alive_set_pad_function(pin, pinfunc);
-
-			/* pin pull up/down */
-			if (pinpud != -1)
-				nx_alive_set_pullup(pin, pinpud & 1);
-
-			if (pindrv != -1)
-				nx_alive_set_drive_strength(pin, pindrv);
-			continue;
-		}
-
 		reg = pin_to_bank_base(dev, name, &pin);
 		if (!reg || pin == -1) {
 			printf("invalid pin configurations of pin %s\n", name);
+			continue;
+		}
+
+		if (is_pin_alive(name)) {
+			/* pin function */
+			if (pinfunc != -1)
+				nx_alive_set_pad_function(reg, pin, pinfunc);
+
+			/* pin pull up/down/off */
+			if (pinpud != -1)
+				nx_alive_set_pull_mode(reg, pin, pinpud);
+
+			/* pin drive strength 0/1/2/3 */
+			if (pindrv != -1)
+				nx_alive_set_drive_strength(reg, pin, pindrv);
+
 			continue;
 		}
 

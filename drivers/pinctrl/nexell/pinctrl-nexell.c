@@ -24,9 +24,9 @@ void __iomem *pin_to_bank_base(struct udevice *dev, const char *pin_name,
 						u32 *pin)
 {
 	struct nexell_pinctrl_priv *priv = dev_get_priv(dev);
-	const struct nexell_pin_ctrl *pin_ctrl = priv->pin_ctrl;
-	const struct nexell_pin_bank_data *bank_data = pin_ctrl->pin_banks;
-	u32 nr_banks = pin_ctrl->nr_banks, idx = 0;
+	const struct nexell_pin_ctrl *ctrl = priv->pin_ctrl;
+	const struct nexell_pin_bank_data *banks = ctrl->pin_banks;
+	u32 nr_banks = ctrl->nr_banks, idx = 0;
 	char bank[10];
 
 	/*
@@ -42,10 +42,13 @@ void __iomem *pin_to_bank_base(struct udevice *dev, const char *pin_name,
 
 	/* lookup the pin bank data using the pin bank name */
 	for (idx = 0; idx < nr_banks; idx++)
-		if (!strcmp(bank, bank_data[idx].name))
+		if (!strcmp(bank, banks[idx].name))
 			break;
 
-	return bank_data[idx].addr;
+	if (idx == nr_banks)
+		return NULL;
+
+	return banks[idx].addr;
 }
 
 int nexell_pinctrl_probe(struct udevice *dev)
@@ -83,8 +86,7 @@ int nexell_pinctrl_probe(struct udevice *dev)
 		for (i = 0; i < ctrl->nr_banks; i++) {
 			if (!strncmp(list, banks[i].name,
 				     strlen(banks[i].name))) {
-				banks[i].addr =
-					devm_ioremap(dev, addr, size);
+				banks[i].addr = devm_ioremap(dev, addr, size);
 				break;
 			}
 		}
