@@ -22,6 +22,7 @@ obj-$(CONFIG_MMC_DAVINCI)		+= davinci_mmc.o
 obj-$(CONFIG_MMC_DW)			+= dw_mmc.o
 obj-$(CONFIG_MMC_DW_EXYNOS)		+= exynos_dw_mmc.o
 obj-$(CONFIG_MMC_DW_K3)			+= hi6220_dw_mmc.o
+obj-$(CONFIG_MMC_DW_NXP3220)             += nxp3220_dw_mmc.o
 obj-$(CONFIG_MMC_DW_ROCKCHIP)		+= rockchip_dw_mmc.o
 obj-$(CONFIG_MMC_DW_SOCFPGA)		+= socfpga_dw_mmc.o
 obj-$(CONFIG_FSL_ESDHC) += fsl_esdhc.o

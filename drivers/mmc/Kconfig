@@ -173,6 +173,15 @@ config MMC_DW_K3
 	  Synopsys DesignWare Memory Card Interface driver. Select this option
 	  for platforms based on Hisilicon K3 SoC's.
 
+config MMC_DW_NXP3220
+	bool "Nexell NXP3220 extensions for Synopsys DW Memory Card Interface"
+	depends on MMC_DW && ARCH_NEXELL
+	default y
+	help
+	  This selects support for Nexell SoC specific extensions to the
+	  Synopsys DesignWare Memory Card Interface driver. Select this option
+	  for platforms based on NEXELL NXP3220
+
 config MMC_DW_ROCKCHIP
 	bool "Rockchip SD/MMC controller support"
 	depends on DM_MMC && OF_CONTROL
