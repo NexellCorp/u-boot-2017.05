@@ -81,7 +81,7 @@ static int nx_calc_divisor(unsigned long req, struct nx_clk_div *cdiv)
 	int div0 = 0, div1 = 0;
 	int v, m, i, d;
 
-	for (i = 1; i < PLL_NUM; i++) {
+	for (i = 0; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
 		v = plls[i] / req;
@@ -225,8 +225,8 @@ static ulong set_rate(struct clk_cmu_dev *sys,  struct clk_cmu_dev *src,
 	nx_calc_divisor(freq, &cdiv);
 
 	writel((cdiv.mux) & 0xFFFF, &src->reg->grp_clk_src);
-	writel((cdiv.div_s - 1) & 0xFFFF, &src->reg->divider[0]);
 	writel((cdiv.div_o - 1) & 0xFFFF, &sys->reg->divider[0]);
+	writel((cdiv.div_s - 1) & 0xFFFF, &src->reg->divider[0]);
 
 	cal_freq = plls[cdiv.mux] / cdiv.div_s / cdiv.div_o;
 	sys->c_freq = cal_freq;
