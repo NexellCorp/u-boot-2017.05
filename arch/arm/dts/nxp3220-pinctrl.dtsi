@@ -9,7 +9,7 @@
 #include <dt-bindings/pinctrl/nexell.h>
 
 &pinctrl {
-	mmc0_pin:mmc0 {
+	mmc0_bus:mmc0_bus {
 		nexell,pins = "gpiob-9", "gpiob-10", "gpiob-11", "gpiob-12",
 			      "gpiob-13", "gpiob-14", "gpiob-15", "gpiob-16",
 			      "gpiob-20", "gpiob-21";
@@ -18,7 +18,7 @@
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
-	mmc1_pin:mmc1 {
+	mmc1_bus:mmc1_bus {
 		nexell,pins = "gpioa-29", "gpioa-30", "gpioa-31", "gpiob-0",
 			      "gpiob-1", "gpiob-2";
 		nexell,pin-function = <NX_PIN_FUNC1>;
@@ -26,7 +26,7 @@
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
-	mmc2_pin:mmc2 {
+	mmc2_bus:mmc2_bus {
 		nexell,pins = "gpiob-3", "gpiob-4", "gpiob-5", "gpiob-6",
 			      "gpiob-7", "gpiob-8", "gpioc-11", "gpioc-12",
 			      "gpioc-13";
@@ -36,70 +36,70 @@
 	};
 
 	uart0_bus:uart0 {
-		nexell,pins = "gpiod-10", "gpiob-11";
+		nexell,pins = "gpiod-10", "gpiod-11";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart1_bus:uart1 {
-		nexell,pins = "gpiod-12", "gpiob-13";
+		nexell,pins = "gpiod-12", "gpiod-13";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart2_bus:uart2 {
-		nexell,pins = "gpiod-14", "gpiob-15";
+		nexell,pins = "gpiod-14", "gpiod-15";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart3_bus:uart3 {
-		nexell,pins = "gpiod-16", "gpiob-17";
+		nexell,pins = "gpiod-16", "gpiod-17";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart4_bus:uart4 {
-		nexell,pins = "gpiod-18", "gpiob-19";
+		nexell,pins = "gpiod-18", "gpiod-19";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart4_hflow:uart4_hflow {
-		nexell,pins = "gpiod-20", "gpiob-21";
+		nexell,pins = "gpiod-20", "gpiod-21";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart5_bus:uart5 {
-		nexell,pins = "gpiod-22", "gpiob-23";
+		nexell,pins = "gpiod-22", "gpiod-23";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart5_hflow:uart5_hflow {
-		nexell,pins = "gpiod-24", "gpiob-25";
+		nexell,pins = "gpiod-24", "gpiod-25";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart6_bus:uart6 {
-		nexell,pins = "gpiod-26", "gpiob-27";
+		nexell,pins = "gpiod-26", "gpiod-27";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
 
 	uart6_hflow:uart6_hflow {
-		nexell,pins = "gpiod-28", "gpiob-29";
+		nexell,pins = "gpiod-28", "gpiod-29";
 		nexell,pin-function = <NX_PIN_FUNC1>;
 		nexell,pin-pull = <NX_PIN_PULL_NONE>;
 		nexell,pin-strength = <NX_PIN_STR0>;

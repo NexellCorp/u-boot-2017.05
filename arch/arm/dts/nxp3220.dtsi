@@ -96,7 +96,7 @@
                 clocks = <&clock_sys SDMMC_0_CORE_CLK>,
                         <&clock_sys SDMMC_0_AHB_CLK>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&mmc0_pin>;
+		pinctrl-0 = <&mmc0_bus>;
 
                 status = "disabled";
         };
@@ -110,7 +110,7 @@
                 clocks = <&clock_sys SDMMC_1_CORE_CLK>,
                         <&clock_sys SDMMC_1_AHB_CLK>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&mmc1_pin>;
+		pinctrl-0 = <&mmc1_bus>;
                 index = <1>;
                 status = "disabled";
         };
@@ -124,7 +124,7 @@
                 clocks = <&clock_sys SDMMC_2_CORE_CLK>,
                         <&clock_sys SDMMC_2_AHB_CLK>;
 		pinctrl-names = "default";
-		pinctrl-0 = <&mmc2_pin>;
+		pinctrl-0 = <&mmc2_bus>;
                 index = <2>;
                 status = "disabled";
         };
