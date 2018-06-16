@@ -13,6 +13,7 @@
 /* dram 1 bank num */
 #define CONFIG_NR_DRAM_BANKS	1
 
+#define CONFIG_SYS_MAX_FLASH_BANKS 1
 /* Console I/O Buffer Size  */
 #define CONFIG_SYS_CBSIZE	1024
 /* max number of command args   */
@@ -33,6 +34,11 @@
 /*
  * Default environment organization
  */
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_OFFSET	1024
+#define CONFIG_ENV_SIZE		(4 * 1024) /* env size */
+#define CONFIG_SYS_MMC_ENV_DEV	0
+
 #if !defined(CONFIG_ENV_IS_IN_MMC) && !defined(CONFIG_ENV_IS_IN_NAND) && \
 	!defined(CONFIG_ENV_IS_IN_FLASH) && !defined(CONFIG_ENV_IS_IN_EEPROM)
 	/* default: CONFIG_ENV_IS_NOWHERE */
