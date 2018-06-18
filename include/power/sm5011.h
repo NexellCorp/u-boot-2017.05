@@ -1,0 +1,369 @@
+/* SPDX-License-Identifier: (GPL-2.0+ or MIT) */
+/*
+ * PMIC driver for the SM5011
+ *
+ * (C) Copyright 2018 Nexell
+ * GyoungBo, Min <mingyoungbo@nexell.co.kr>
+ */
+
+#ifndef __SM5011_H_
+#define __SM5011_H_
+
+/* SM5011 registers */
+enum SM5011_reg {
+	SM5011_REG_PWRONREG,
+	SM5011_REG_PWROFFREG,
+	SM5011_REG_REBOOTREG,
+	SM5011_REG_INT1,
+	SM5011_REG_INT2,
+	SM5011_REG_INTMSK1,
+	SM5011_REG_INTMSK2,
+	SM5011_REG_STATUS,
+
+	SM5011_REG_CNTL1 = 0x10,
+	SM5011_REG_CNTL2,
+	SM5011_REG_CNTL3,
+	SM5011_REG_MRSTBCNTL,
+	SM5011_REG_WDTCNTL,
+
+	SM5011_REG_BUCK2CNTL1 = 0x2B,
+	SM5011_REG_BUCK2CNTL2,
+	SM5011_REG_BUCK2CNTL3,
+	SM5011_REG_BUCK3CNTL1,
+	SM5011_REG_BUCK3CNTL2,
+	SM5011_REG_BUCK3CNTL3,
+	SM5011_REG_BUCK4CNTL1,
+	SM5011_REG_BUCK4CNTL2,
+	SM5011_REG_BUCK4CNTL3,
+	SM5011_REG_BUCK5CNTL1,
+	SM5011_REG_BUCK5CNTL2,
+	SM5011_REG_BUCK5CNTL3,
+	SM5011_REG_BUCK6CNTL1,
+	SM5011_REG_BUCK6CNTL2,
+	SM5011_REG_BUCK6CNTL3,
+	SM5011_REG_LDO1CNTL1 = 0x3c,
+	SM5011_REG_LDO1CNTL2,
+	SM5011_REG_LDO2CNTL1,
+	SM5011_REG_LDO2CNTL2,
+	SM5011_REG_LDO3CNTL1,
+	SM5011_REG_LDO3CNTL2,
+	SM5011_REG_LDO4CNTL1,
+	SM5011_REG_LDO4CNTL2,
+	SM5011_REG_LDO5CNTL1,
+	SM5011_REG_LDO5CNTL2,
+	SM5011_REG_LDO6CNTL1,
+	SM5011_REG_LDO6CNTL2,
+	SM5011_REG_LDO7CNTL1,
+	SM5011_REG_LDO7CNTL2,
+	SM5011_REG_LDO8CNTL1,
+	SM5011_REG_LDO8CNTL2,
+	SM5011_REG_LDO9CNTL1,
+	SM5011_REG_LDO9CNTL2,
+	SM5011_REG_LDO10CNTL1,
+	SM5011_REG_LDO10CNTL2,
+	SM5011_REG_LDO11CNTL1,
+	SM5011_REG_LDO11CNTL2,
+	SM5011_REG_LDO12CNTL1,
+	SM5011_REG_LDO12CNTL2,
+	SM5011_REG_LDO13CNTL1,
+	SM5011_REG_LDO13CNTL2,
+	SM5011_REG_LDO14CNTL1,
+	SM5011_REG_LDO14CNTL2,
+	SM5011_REG_LDO15CNTL1,
+	SM5011_REG_LDO15CNTL2,
+	SM5011_REG_LDO16CNTL1,
+	SM5011_REG_LDO16CNTL2,
+	SM5011_REG_LDO17CNTL1,
+	SM5011_REG_LDO17CNTL2,
+	SM5011_REG_LDO18CNTL1,
+	SM5011_REG_LDO18CNTL2,
+	SM5011_REG_LDO19CNTL1,
+	SM5011_REG_LDO19CNTL2,
+	SM5011_REG_LDO20CNTL1,
+	SM5011_REG_LDO20CNTL2,
+	SM5011_REG_COMPCNTL,
+
+	SM5011_REG_RTCCNTL1 = 0x70,
+	SM5011_REG_RTCCNTL2,
+	SM5011_REG_RTCCNTL3,
+	SM5011_REG_RTCCNTL4,
+	SM5011_REG_RTCCNTL5,
+	SM5011_REG_RTCCNTL6,
+	SM5011_REG_RTCCNTL7,
+	SM5011_REG_RTCALM1CNTL1,
+	SM5011_REG_RTCALM1CNTL2,
+	SM5011_REG_RTCALM1CNTL3,
+	SM5011_REG_RTCALM1CNTL4,
+	SM5011_REG_RTCALM1CNTL5,
+	SM5011_REG_RTCALM1CNTL6,
+	SM5011_REG_RTCALM1CNTL7,
+	SM5011_REG_RTCALM2CNTL1,
+	SM5011_REG_RTCALM2CNTL2,
+	SM5011_REG_RTCALM2CNTL3,
+	SM5011_REG_RTCALM2CNTL4,
+	SM5011_REG_RTCALM2CNTL5,
+	SM5011_REG_RTCALM2CNTL6,
+	SM5011_REG_RTCALM2CNTL7,
+	SM5011_REG_SECCNTL1,
+	SM5011_REG_SECCNTL2,
+	SM5011_REG_SECCNTL3,
+	SM5011_REG_SECCNTL4,
+	SM5011_REG_AUTHCNTL1,
+	SM5011_REG_AUTHCNTL2,
+
+	SM5011_REG_DEVICEID = 0x90,
+
+	SM5011_REG_MAX,
+};
+
+#define SM5011_NUM_OF_REGS SM5011_REG_MAX
+
+/* SM5011_REG_STATUS */
+#define CNTL_STATUS_OK			 1
+#define CNTL_STATUS_FAIL			(-1)
+#define CNTL_STATUS_UNSUPPORTED	(-2)
+
+/* REG interrupt */
+#define SM5011_IRQ1_MICDET_NAME			"SM5011_MICDET"
+#define SM5011_IRQ1_VBAT_VALID_NAME		"SM5011_VBAT_VALID"
+#define SM5011_IRQ1_MANUALRST_NAME		"SM5011_MANUALRST"
+#define SM5011_IRQ1_LONGKEY_MRSTB_NAME	"SM5011_LONGKEY_MRSTB"
+#define SM5011_IRQ1_LONGKEY_CHGON_NAME	"SM5011_LONGKEY_CHGON"
+#define SM5011_IRQ1_LONGKEY_nONKEY_NAME	"SM5011_LONGKEY_nONKEY"
+#define SM5011_IRQ1_SHORTKEY_NAME		"SM5011_SHORTKEY"
+
+#define SM5011_IRQ2_ALARM2_ON_NAME		"SM5011_ALARM2_ON"
+#define SM5011_IRQ2_ALARM1_ON_NAME		"SM5011_ALARM1_ON"
+#define SM5011_IRQ2_WDTMEROUT_NAME		"SM5011_WDTMEROUT"
+
+#define SM5011_IRQ1_MICDET_MASK			(1 << 6)
+#define SM5011_IRQ1_VBAT_VALID_MASK		(1 << 5)
+#define SM5011_IRQ1_MANUALRST_MASK		(1 << 4)
+#define SM5011_IRQ1_LONGKEY_MRSTB_MASK	(1 << 3)
+#define SM5011_IRQ1_LONGKEY_CHGON_MASK	(1 << 2)
+#define SM5011_IRQ1_LONGKEY_nONKEY_MASK	(1 << 1)
+#define SM5011_IRQ1_SHORTKEY_MASK		(1 << 0)
+
+#define SM5011_IRQ2_ALARM2_ON_MASK		(1 << 2)
+#define SM5011_IRQ2_ALARM1_ON_MASK		(1 << 1)
+#define SM5011_IRQ2_WDTMEROUT_MASK		(1 << 0)
+
+/* CNTL1 */
+#define SM5011_EN32KOUT_SHIFT		3
+#define SM5011_EN32KOUT_MASK		(1 << SM5011_EN32KOUT_SHIFT)
+#define SM5011_SMPLTMR_SHIFT		1
+#define SM5011_SMPLTMR_MASK			(3 << SM5011_SMPLTMR_SHIFT)
+#define SM5011_SMPLAUTO_SHIFT		0
+#define SM5011_SMPLAUTO_MASK		(1 << SM5011_SMPLAUTO_SHIFT)
+
+/* CNTL2 */
+#define SM5011_MASK_INT_SHIFT		0
+#define SM5011_MASK_INT_MASK		(1 << SM5011_MASK_INT_SHIFT)
+#define SM5011_SOFTRESET_SHIFT		1
+#define SM5011_SOFTRESET_MASK		(1 << SM5011_SOFTRESET_SHIFT)
+#define SM5011_HARDRESET_SHIFT		2
+#define SM5011_HARDRESET_MASK		(1 << SM5011_HARDRESET_SHIFT)
+#define SM5011_ENCNTL_SHIFT			3
+#define SM5011_ENCNTL_MASK			(1 << SM5011_ENCNTL_SHIFT)
+#define SM5011_ENnPWRSTM_SHIFT		3
+#define SM5011_ENnPWRSTM_MASK		(1 << SM5011_ENnPWRSTM_SHIFT)
+#define SM5011_GLOBALSHDN_SHIFT		4
+#define SM5011_GLOBALSHDN_MASK		(1 << SM5011_GLOBALSHDN_SHIFT)
+#define SM5011_LONGKEY_SHIFT		5
+#define SM5011_LONGKEY_MASK		(7 << SM5011_LONGKEY_SHIFT)
+
+/* CNTL3 */
+#define SM5011_ENVBATNG_SHIFT		1
+#define SM5011_ENVBATNG_MASK		(1 << SM5011_ENVBATNG_SHIFT)
+#define SM5011_ENVREF_SHIFT			0
+#define SM5011_ENVREF_MASK			(1 << SM5011_ENVREF_SHIFT)
+
+/* ENnPWRSTM */
+#define nPWRSTM_STATUS_OK			 1
+#define nPWRSTM_STATUS_FAIL			(-1)
+#define nPWRSTM_STATUS_UNSUPPORTED	(-2)
+
+/* MRSTBCNTL */
+#define SM5011_MRSTBTMR_SHIFT		4
+#define SM5011_MRSTBTMR_MASK		(7 << SM5011_MRSTBTMR_SHIFT)
+#define SM5011_ENPMICOFF2ON_SHIFT	3
+#define SM5011_ENPMICOFF2ON_MASK	(1 << SM5011_ENPMICOFF2ON_SHIFT)
+#define SM5011_ENnRESETOFF2ON_SHIFT	2
+#define SM5011_ENnRESETOFF2ON_MASK	(1 << SM5011_ENnRESETOFF2ON_SHIFT)
+#define SM5011_KEYOPTION_SHIFT		1
+#define SM5011_KEYOPTION_MASK		(1 << SM5011_KEYOPTION_SHIFT)
+#define SM5011_ENMRSTB_SHIFT		0
+#define SM5011_ENMRSTB_MASK			(1 << SM5011_ENMRSTB_SHIFT)
+
+/* RTC HOUR Register */
+#define HOUR_PM_SHIFT			5
+#define HOUR_PM_MASK			(1 << HOUR_PM_SHIFT)
+
+/* RTC 12/24-mode Register */
+#define MODE12_SHIFT			6
+#define MODE12_MASK				(1 << MODE12_SHIFT)
+
+/* RTC Alarm1 */
+#define ALARM1_PMIC_SHIFT		7
+#define ALARM1_PMIC_MASK		(1 << ALARM1_PMIC_SHIFT)
+#define ALARM1_ENABLE_SHIFT		6
+#define ALARM1_ENABLE_MASK		(1 << ALARM1_ENABLE_SHIFT)
+/* RTC Alarm2 */
+#define ALARM2_PMIC_SHIFT		7
+#define ALARM2_PMIC_MASK		(1 << ALARM2_PMIC_SHIFT)
+#define ALARM2_ENABLE_SHIFT		6
+#define ALARM2_ENABLE_MASK		(1 << ALARM2_ENABLE_SHIFT)
+
+#define SM5011_ALARM_DIS	0
+#define SM5011_ALARM_EN		1
+
+/* SM5011_REG_DEVICEID */
+#define SM5011_MAST_REV_SHIFT		4
+#define SM5011_MAST_REV_MASK		(0x0F << SM5011_MAST_REV_SHIFT)
+
+enum sm5011_regnum {
+	SM5011_BUCK2 = 0,
+	SM5011_BUCK3,
+	SM5011_BUCK4,
+	SM5011_BUCK5,
+	SM5011_BUCK6,
+
+	SM5011_LDO1,
+	SM5011_LDO2,
+	SM5011_LDO3,
+	SM5011_LDO4,
+	SM5011_LDO5,
+	SM5011_LDO6,
+	SM5011_LDO7,
+	SM5011_LDO8,
+	SM5011_LDO9,
+	SM5011_LDO10,
+	SM5011_LDO11,
+	SM5011_LDO12,
+	SM5011_LDO13,
+	SM5011_LDO14,
+	SM5011_LDO15,
+	SM5011_LDO16,
+	SM5011_LDO17,
+	SM5011_LDO18,
+	SM5011_LDO19,
+	SM5011_LDO20,
+
+	SM5011_MAX,
+};
+
+enum {
+	TYPE_UNKNOWN = 0,
+	TYPE_SM5011,
+	TYPE_MAX,
+};
+
+struct sec_voltage_desc {
+	int max;
+	int min;
+	int step;
+};
+
+/**
+ * struct sm5011_para - sm5011 register parameters
+ * @param vol_addr		i2c address of the given buck/ldo register
+ * @param vol_bitpos	bit position to be set or clear within register
+ * @param vol_bitmask	bit mask value
+ * @param reg_enaddr	control register address, which enable the given
+ *						given buck/ldo.
+ * @param reg_enbiton	value to be written to buck/ldo to make it ON
+ * @param vol			Voltage information
+ */
+struct sm5011_para {
+	enum sm5011_regnum regnum;
+	u8 vol_addr;
+	u8 slp_vol_addr;
+	u8 vol_bitpos;
+	u8 vol_bitmask;
+	u8 reg_enaddr;
+	u8 reg_enbitpos;
+	const struct sec_voltage_desc *vol;
+};
+
+struct dm_sm5011_platdata {
+	int				num_bucks;
+	int				num_ldos;
+
+	int				npwrstm_pin;
+	int				irq_base;
+	int			irq_gpio;
+	int			entcxo_pin;
+	int				enl16_pin;
+
+	bool			wakeup;
+
+	/* Bcuk2 */
+	int buck2mode;
+
+	/* Bcuk3 */
+	int buck3mode;
+
+	/* Bcuk4 */
+	int buck4mode;
+
+	/* Bcuk5 */
+	int buck5mode;
+
+	/* Bcuk6 */
+	int buck6mode;
+
+	int en_32kout;
+	int smpl_en;
+	int smpl_power_on_type;
+	int smpl_timer_val;
+
+	int longkey_val;
+
+	int npwrstm_en;
+	int mask_int_en;
+
+	int envbatng_en;
+	int envref_en;
+
+	int mrstb_en;
+	int mrstb_hehavior;
+	int mrstb_nreset;
+	int mrstb_key;
+	int mrstb_timer_val;
+
+	int wdt_en;
+	int wdt_timer_val;
+
+	int comp_en;
+	int comp_time_val;
+	int comp_duty_val;
+	int comp_vref_val;
+
+	/* ---- RTC ---- */
+	int rtc_24hr_mode;
+	struct rtc_time *init_time;
+};
+
+struct dm_sm5011_buck_platdata {
+	int	always_onoff_npwrstm;
+	int	always_lpm_npwrstm;
+	int init_uV;
+	unsigned always_on:1;	/* regulator never off when system is on */
+	unsigned boot_on:1;	/* bootloader/firmware enabled regulator */
+	unsigned on:1;	/* enabled regulator */
+};
+
+struct dm_sm5011_ldo_platdata {
+	int	always_onoff_npwrstm;
+	int	always_lpm_npwrstm;
+	int init_uV;
+	unsigned always_on:1;	/* regulator never off when system is on */
+	unsigned boot_on:1;	/* bootloader/firmware enabled regulator */
+	unsigned on:1;	/* enabled regulator */
+};
+
+/* Drivers name */
+#define SM5011_BUCK_DRIVER "sm5011_buck"
+#define SM5011_LDO_DRIVER "sm5011_ldo"
+
+#endif /* __SM5011_H_ */
