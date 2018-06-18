@@ -5,3 +5,4 @@
 # SPDX-License-Identifier:      GPL-2.0+
 #
 obj-y := dram.o
+obj-y += sec_io.o
