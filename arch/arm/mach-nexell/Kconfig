@@ -22,6 +22,12 @@ config SYS_SOC
 config SYS_VENDOR
         default "nexell"
 
+config ALIVE_WITH_SECURE
+	bool "AliveGPIO setting with secure monitor call (SMC)"
+	default n
+	depends on ARCH_NXP3220 || ARCH_SIP_S31NX
+	select ARM_SMCCC
+
 source "board/nexell/Kconfig"
 
 endif
