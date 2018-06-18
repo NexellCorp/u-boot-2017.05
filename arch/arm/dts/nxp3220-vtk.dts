@@ -8,6 +8,7 @@
 /dts-v1/;
 
 #include "nxp3220.dtsi"
+#include "nxp3220-vtk-sm5011.dtsi"
 / {
 	model = "Nexell nxp3220 validation test board";
 	compatible = "nexell,nxp3220";
@@ -76,6 +77,13 @@
 &i2c_0 {
 	status = "okay";
 	u-boot,dm-pre-reloc;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	sm5011: sm5011@47 {
+		compatible = "sm,sm5011";
+		reg = <0x47>;
+	};
 };
 
 &spi_0 {
