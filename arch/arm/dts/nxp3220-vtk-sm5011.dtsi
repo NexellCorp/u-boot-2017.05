@@ -1,8 +1,7 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * (C) Copyright 2018 Nexell
- * GyoungBo, Min <mingyoungbo@nexell.co.kr>
- *
- * SPDX-License-Identifier:      GPL-2.0+
+ * Copyright (C) 2018  Nexell Co., Ltd.
+ * Author: GyoungBo, Min <mingyoungbo@nexell.co.kr>
  */
 
 / {
