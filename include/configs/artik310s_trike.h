@@ -11,6 +11,7 @@
 #include "artik310s_common.h"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootdelay=0\0"
+	"bootdelay=0\0" \
+	DFU_ALT_INFO_RAM
 
 #endif
