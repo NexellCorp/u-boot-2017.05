@@ -25,3 +25,10 @@
 			     <TIMER_0_TCLK0_CLK 100000000 1>,
 			     <TIMER_0_TCLK1_CLK 100000000 1>;
 };
+
+&mmc0 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	status = "okay";
+};
