@@ -369,6 +369,11 @@
 		#size-cells = <0>;
 		status = "disabled";
 	};
+
+	psci {
+		compatible = "arm,psci-0.2";
+		method = "smc";
+	};
 };
 
 #include "nxp3220-pinctrl.dtsi"
