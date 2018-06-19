@@ -207,6 +207,9 @@ static int nexell_dwmmc_probe(struct udevice *dev)
 		return err;
 
 	err = clk_get_by_index(dev, 0 , &priv->clk);
+	if (err)
+		return err;
+
 	dwmci_setup_cfg(&plat->cfg, host, DWMMC_MAX_FREQ, DWMMC_MIN_FREQ);
 	host->mmc = &plat->mmc;
 	host->mmc->priv = &priv->host;
