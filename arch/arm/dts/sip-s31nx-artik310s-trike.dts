@@ -19,26 +19,17 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
-		tick-timer = &timer0;
 	};
+};
 
-	clock_pll: clock-src@27020000 {
-		frequency = <0 800000000>,
-			    <1 400000000>;
-	};
-
-	clock_sys: clock-sys@27010000 {
-		clk-init-frequency = <UART_0_CORE_CLK 100000000 1>,
-				     <UART_0_APB_CLK 100000000 1>,
-				     <TIMER_0_APB_CLK 100000000 1>,
-				     <TIMER_0_TCLK0_CLK 100000000 1>,
-				     <TIMER_0_TCLK1_CLK 100000000 1>,
-				     <PWM_0_APB_CLK 100000000 1>,
-				     <PWM_0_TCLK0_CLK 100000000 1>,
-				     <PWM_0_TCLK1_CLK 100000000 1>,
-				     <PWM_0_TCLK2_CLK 100000000 1>,
-				     <PWM_0_TCLK3_CLK 100000000 1>;
-	};
+&clock_sys {
+	clk-init-frequency = <UART_0_CORE_CLK 100000000 1>,
+			     <UART_0_APB_CLK 100000000 1>,
+			     <PWM_0_APB_CLK 100000000 1>,
+			     <PWM_0_TCLK0_CLK 100000000 1>,
+			     <PWM_0_TCLK1_CLK 100000000 1>,
+			     <PWM_0_TCLK2_CLK 100000000 1>,
+			     <PWM_0_TCLK3_CLK 100000000 1>;
 };
 
 &uart0 {

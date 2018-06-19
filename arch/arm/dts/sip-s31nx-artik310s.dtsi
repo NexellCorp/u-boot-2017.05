@@ -8,5 +8,20 @@
 #include "sip-s31nx.dtsi"
 
 / {
+	compatible = "samsung,artik310s", "nexell,nxp3220";
 
+	chosen {
+		tick-timer = &timer0;
+	};
+};
+
+&clock_pll {
+	frequency = <0 800000000>,
+		    <1 400000000>;
+};
+
+&clock_sys {
+	clk-init-frequency = <TIMER_0_APB_CLK 100000000 1>,
+			     <TIMER_0_TCLK0_CLK 100000000 1>,
+			     <TIMER_0_TCLK1_CLK 100000000 1>;
 };
