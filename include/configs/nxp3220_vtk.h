@@ -27,6 +27,6 @@
 
 /* environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"bootdelay=0\0"
+	"bootdelay=0\0" \
 	"bootcmd=udown 48000000;udown 49000000;bootz 48000000 - 49000000\0"
 #endif
