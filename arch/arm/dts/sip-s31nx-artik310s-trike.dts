@@ -32,6 +32,10 @@
 			     <PWM_0_TCLK3_CLK 100000000 1>;
 };
 
+&dwc2otg {
+	status = "okay";
+};
+
 &uart0 {
 	clock-frequency = <100000000>;
 	status = "okay";
@@ -49,5 +53,9 @@
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
 	frequency = <50000000>;
+	status = "okay";
+};
+
+&udown {
 	status = "okay";
 };
