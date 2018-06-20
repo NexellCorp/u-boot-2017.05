@@ -204,3 +204,11 @@ config DM_REGULATOR_TPS65910
 	The TPS65910 PMIC provides 4 SMPSs and 8 LDOs. This driver supports all
 	regulator types of the TPS65910 (BUCK, BOOST and LDO). It implements
 	the get/set api for value and enable.
+
+config DM_REGULATOR_SM5011
+	bool "Enable driver for SM5011 PMIC regulators"
+        depends on DM_REGULATOR && DM_PMIC_SM5011
+	---help---
+	This enables implementation of driver-model regulator uclass
+	features for REGULATOR SM5011 and the family of SM5011 PMICs.
+	The driver implements get/set api for: value and enable.

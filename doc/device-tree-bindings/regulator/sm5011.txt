@@ -1,0 +1,59 @@
+Silicon Mitus, SM5011 regulators
+
+This device uses two drivers:
+- drivers/power/pmic/sm5011.c (as parent I/O device)
+- drivers/power/regulator/sm5011.c (for child regulators)
+
+This file describes the binding info for the REGULATOR driver.
+
+First, please read the binding info for the pmic:
+- doc/device-tree-bindings/pmic/sm5011.txt
+
+Required subnode:
+- voltage-regulators: required for the PMIC driver
+
+Required properties:
+- regulator-name: used for regulator uclass platform data '.name'
+
+Optional:
+- regulator-min-microvolt: minimum allowed Voltage to set
+- regulator-max-microvolt: minimum allowed Voltage to set
+- regulator-always-on: regulator should be never disabled
+- regulator-boot-on: regulator should be enabled by the bootloader
+
+Example:
+	sm5011: sm5011@47 {
+		compatible = "sm,sm5011";
+		reg = <0x47>;
+
+		voltage-regulators {
+			/* BUCK */
+			dcdc2: BUCK2 {
+				regulator-name = "sm5011-buck2";
+				regulator-min-microvolt = <562500>;
+				regulator-max-microvolt = <2150000>;
+				always_onoff_npwrstm = <0>;
+				sm5011,init_uV = <1000000>;
+				sm5011,on = <1>;
+				regulator-always-on;
+			};
+			.
+			.
+			.
+
+			/* LDO */
+			ldo1_reg: LDO1 {
+				regulator-name = "sm5011-ldo1";
+				regulator-min-microvolt = <800000>;
+				regulator-max-microvolt = <3350000>;
+				always_onoff_npwrstm = <0>;
+				always_lpm_npwrstm = <0>;
+				sm5011,init_uV = <1000000>;
+				sm5011,on = <1>;
+				regulator-always-on;
+			};
+			.
+			.
+			.
+		}; /* voltage-regulators */
+	};
