@@ -86,3 +86,5 @@
 	cs-gpio = <&gpio_c 4 0>;
 	status = "okay";
 };
+
+#include "nxp3220-vtk-sm5011.dtsi"
