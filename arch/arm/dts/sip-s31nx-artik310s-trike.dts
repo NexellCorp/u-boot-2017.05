@@ -15,6 +15,11 @@
 
 	aliases {
 		serial0 = &uart0;
+		i2c0	= &i2c_0;
+		i2c1	= &i2c_1;
+		i2c2	= &i2c_2;
+		i2c3	= &i2c_3;
+		i2c4	= &i2c_4;
 	};
 
 	chosen {
@@ -29,7 +34,12 @@
 			     <PWM_0_TCLK0_CLK 100000000 1>,
 			     <PWM_0_TCLK1_CLK 100000000 1>,
 			     <PWM_0_TCLK2_CLK 100000000 1>,
-			     <PWM_0_TCLK3_CLK 100000000 1>;
+			     <PWM_0_TCLK3_CLK 100000000 1>,
+			     <I2C_0_APB_CLK 100000000 1>,
+			     <I2C_1_APB_CLK 100000000 1>,
+			     <I2C_2_APB_CLK 100000000 1>,
+			     <I2C_3_APB_CLK 100000000 1>,
+			     <I2C_4_APB_CLK 100000000 1>;
 };
 
 &dwc2otg {
@@ -46,6 +56,31 @@
 };
 
 &adc {
+	status = "okay";
+};
+
+&i2c_0 {
+	clock-frequency = <100000>;
+	status = "okay";
+};
+
+&i2c_1 {
+	clock-frequency = <100000>;
+	status = "okay";
+};
+
+&i2c_2 {
+	clock-frequency = <100000>;
+	status = "okay";
+};
+
+&i2c_3 {
+	clock-frequency = <100000>;
+	status = "okay";
+};
+
+&i2c_4 {
+	clock-frequency = <100000>;
 	status = "okay";
 };
 
