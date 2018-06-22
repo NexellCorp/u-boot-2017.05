@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nexell
+* (C) Copyright 2018 Nexell
  * JungHyun, Kim <jhkim@nexell.co.kr>
  *
  * SPDX-License-Identifier:      GPL-2.0+
@@ -20,6 +20,8 @@
 		i2c2	= &i2c_2;
 		i2c3	= &i2c_3;
 		i2c4	= &i2c_4;
+		spi1	= &spi_1;
+		spi2	= &spi_2;
 	};
 
 	chosen {
@@ -39,7 +41,10 @@
 			     <I2C_1_APB_CLK 100000000 1>,
 			     <I2C_2_APB_CLK 100000000 1>,
 			     <I2C_3_APB_CLK 100000000 1>,
-			     <I2C_4_APB_CLK 100000000 1>;
+			     <I2C_4_APB_CLK 100000000 1>,
+			     <SPI_0_APB_CLK 100000000 1>,
+			     <SPI_1_APB_CLK 100000000 1>,
+			     <SPI_2_APB_CLK 100000000 1>;
 };
 
 &dwc2otg {
@@ -88,6 +93,18 @@
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
 	frequency = <50000000>;
+	status = "okay";
+};
+
+&spi_1 {
+	num-cs = <1>;
+	cs-gpio = <&gpio_a 9 0>;
+	status = "okay";
+};
+
+&spi_2 {
+	num-cs = <1>;
+	cs-gpio = <&gpio_a 13 0>;
 	status = "okay";
 };
 
