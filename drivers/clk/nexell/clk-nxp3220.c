@@ -276,7 +276,7 @@ static ulong nx_set_rate(struct nx_cmu_priv *priv , int id, unsigned long freq)
 		par = nx_get_clk_priv(priv, sys->p_id);
 		src = nx_get_clk_src_priv(priv, par->p_id);
 		if (!src->c_freq)
-			set_rate(par, src, freq);
+			sys->c_freq = set_rate(par, src, freq);
 		else
 			sys->c_freq = src->c_freq;
 		return sys->c_freq;
