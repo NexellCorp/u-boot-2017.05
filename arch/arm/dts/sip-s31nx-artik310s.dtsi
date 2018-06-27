@@ -312,6 +312,7 @@
 &mmc0 {
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
+	nexell,ddr = <1>;
 	frequency = <50000000>;
 	status = "okay";
 };
