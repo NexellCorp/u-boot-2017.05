@@ -75,6 +75,9 @@
 	#undef CONFIG_CMD_IMLS
 #endif
 
+#define CONFIG_MISC_INIT_R
+#define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+
 /* USB Device Firmware Update support */
 #define DFU_ALT_INFO_RAM \
 	"dfu_alt_info_ram=" \
