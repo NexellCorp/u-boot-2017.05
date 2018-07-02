@@ -32,6 +32,15 @@
 		status = "disabled";
 	};
 
+	ehci: ehci@24080000 {
+		compatible = "generic-ehci";
+		reg = <0x24080000 0x100>;
+		clocks = <&clock_usb USB20HOST_0_AHB_CLK>;
+		phys = <&usb2phy 1>, <&usb2phy 2>;
+		phy-names = "usb0", "usb1";
+		status = "disabled";
+	};
+
 	gpio_a: gpio@20180000 {
 		compatible = "nexell,nxp3220-gpio";
 		reg = <0x20180000 0x100>;
