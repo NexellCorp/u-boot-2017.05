@@ -21,9 +21,11 @@ struct generic_ehci {
 	struct ehci_ctrl ctrl;
 	struct clk *clocks;
 	struct reset_ctl *resets;
-	struct phy phy;
+	struct phy *phys;
+	int num_phys;
 	int clock_count;
 	int reset_count;
+	int phy_count;
 };
 
 static int ehci_setup_phy(struct udevice *dev, int index)
@@ -31,46 +33,60 @@ static int ehci_setup_phy(struct udevice *dev, int index)
 	struct generic_ehci *priv = dev_get_priv(dev);
 	int ret;
 
-	ret = generic_phy_get_by_index(dev, index, &priv->phy);
+	ret = generic_phy_get_by_index(dev, index, &priv->phys[index]);
 	if (ret) {
 		if (ret != -ENOENT) {
 			dev_err(dev, "failed to get usb phy\n");
 			return ret;
 		}
 	} else {
-		ret = generic_phy_init(&priv->phy);
+		ret = generic_phy_init(&priv->phys[index]);
 		if (ret) {
 			dev_err(dev, "failed to init usb phy\n");
 			return ret;
 		}
 
-		ret = generic_phy_power_on(&priv->phy);
+		ret = generic_phy_power_on(&priv->phys[index]);
 		if (ret) {
 			dev_err(dev, "failed to power on usb phy\n");
-			return generic_phy_exit(&priv->phy);
+			return generic_phy_exit(&priv->phys[index]);
 		}
 	}
 
 	return 0;
 }
 
-static int ehci_shutdown_phy(struct udevice *dev)
+static int ehci_shutdown_phy(struct udevice *dev, int index)
 {
 	struct generic_ehci *priv = dev_get_priv(dev);
 	int ret = 0;
 
-	if (generic_phy_valid(&priv->phy)) {
-		ret = generic_phy_power_off(&priv->phy);
+	if (generic_phy_valid(&priv->phys[index])) {
+		ret = generic_phy_power_off(&priv->phys[index]);
 		if (ret) {
 			dev_err(dev, "failed to power off usb phy\n");
 			return ret;
 		}
 
-		ret = generic_phy_exit(&priv->phy);
+		ret = generic_phy_exit(&priv->phys[index]);
 		if (ret) {
 			dev_err(dev, "failed to power off usb phy\n");
 			return ret;
 		}
+	}
+
+	return 0;
+}
+
+static int ehci_shutdown_phy_all(struct udevice *dev)
+{
+	struct generic_ehci *priv = dev_get_priv(dev);
+	int i, ret;
+
+	for (i = 0; i < priv->phy_count; i++) {
+		ret = ehci_shutdown_phy(dev, i);
+		if (ret)
+			return ret;
 	}
 
 	return 0;
@@ -81,7 +97,7 @@ static int ehci_usb_probe(struct udevice *dev)
 	struct generic_ehci *priv = dev_get_priv(dev);
 	struct ehci_hccr *hccr;
 	struct ehci_hcor *hcor;
-	int i, err, ret, clock_nb, reset_nb;
+	int i, err, ret, clock_nb, reset_nb, phy_nb;
 
 	err = 0;
 	priv->clock_count = 0;
@@ -145,9 +161,28 @@ static int ehci_usb_probe(struct udevice *dev)
 		}
 	}
 
-	err = ehci_setup_phy(dev, 0);
-	if (err)
-		goto reset_err;
+	priv->phy_count = 0;
+	phy_nb = fdtdec_parse_phandle_with_args(gd->fdt_blob,
+						dev_of_offset(dev), "phys",
+						"#phy-cells", 0, -1, NULL);
+	if (phy_nb > 0) {
+		priv->phys = devm_kcalloc(dev, phy_nb, sizeof(struct phy),
+					 GFP_KERNEL);
+		if (!priv->phys)
+			return -ENOMEM;
+
+		for (i = 0; i < phy_nb; i++) {
+			err = ehci_setup_phy(dev, i);
+			if (err)
+				goto reset_err;
+		}
+	} else {
+		if (phy_nb != -ENOENT) {
+			dev_err(dev, "failed to get phy phandle(%d)\n",
+				phy_nb);
+			goto reset_err;
+		}
+	}
 
 	hccr = map_physmem(dev_read_addr(dev), 0x100, MAP_NOCACHE);
 	hcor = (struct ehci_hcor *)((uintptr_t)hccr +
@@ -160,7 +195,7 @@ static int ehci_usb_probe(struct udevice *dev)
 	return 0;
 
 phy_err:
-	ret = ehci_shutdown_phy(dev);
+	ret = ehci_shutdown_phy_all(dev);
 	if (ret)
 		dev_err(dev, "failed to shutdown usb phy\n");
 
@@ -185,7 +220,7 @@ static int ehci_usb_remove(struct udevice *dev)
 	if (ret)
 		return ret;
 
-	ret = ehci_shutdown_phy(dev);
+	ret = ehci_shutdown_phy_all(dev);
 	if (ret)
 		return ret;
 
