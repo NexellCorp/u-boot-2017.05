@@ -118,4 +118,6 @@ config MESON_GXL_USB_PHY
 	  This is the generic phy driver for the Amlogic Meson GXL
 	  USB2 and USB3 PHYS.
 
+source "drivers/phy/nexell/Kconfig"
+
 endmenu
