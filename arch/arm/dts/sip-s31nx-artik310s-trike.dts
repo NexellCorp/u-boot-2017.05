@@ -47,7 +47,15 @@
 			     <SPI_2_APB_CLK 100000000 1>;
 };
 
+&clock_usb {
+	clk-init-frequency = <USB_0_AHB_CLK 250000000 1>;
+};
+
 &dwc2otg {
+	status = "okay";
+};
+
+&ehci {
 	status = "okay";
 };
 
@@ -110,4 +118,9 @@
 
 &udown {
 	status = "okay";
+};
+
+&usb2phy {
+	status = "okay";
+	ehci,vbus-gpio = <&gpio_b 23 0>;
 };
