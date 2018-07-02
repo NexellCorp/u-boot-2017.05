@@ -221,6 +221,16 @@
 		status = "disabled";
 	};
 
+	usb2phy: usb2phy@24030000 {
+		compatible = "nexell,nxp3220-usb2-phy";
+		reg = <0x24030000 0x200>;
+		#phy-cells = <1>;
+		clocks = <&clock_usb USB_0_AHB_CLK>,
+		         <&clock_usb SYSREG_USB_0_APB_CLK>;
+		clock-names = "ahb", "apb";
+		status = "disabled";
+	};
+
 	sys_reg_sys: syscon@20030000 {
 		compatible = "nexell,system-reg","syscon", "simple-mfd";
 		reg = <0x20030000 0x42c>;
