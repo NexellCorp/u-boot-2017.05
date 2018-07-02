@@ -261,4 +261,112 @@
 		nexell,pin-pull = <NX_PIN_PULL_UP>;
 		nexell,pin-strength = <NX_PIN_STR0>;
 	};
+
+	gmac0_txd: gmac0-txd {
+		nexell,pins = "gpioc-18", "gpioc-19", "gpioc-20",
+			      "gpioc-21";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_rxd: gmac0-rxd {
+		nexell,pins = "gpioc-24", "gpioc-25", "gpioc-26",
+			      "gpioc-27";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_txen: gmac0-txen {
+		nexell,pins = "gpioc-22";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_rxen: gmac0-rxen {
+		nexell,pins = "gpioc-28";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_mdc: gmac0-mdc {
+		nexell,pins = "gpioc-31";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_mdio: gmac0-mdio {
+		nexell,pins = "gpioc-30";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_rxclk: gmac0-rxclk {
+		nexell,pins = "gpioc-29";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac0_txclk: gmac0-txclk {
+		nexell,pins = "gpioc-23";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR2>;
+	};
+
+	gmac1_txd: gmac1-txd {
+		nexell,pins = "gpiod-1", "gpiod-2";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac1_rxd: gmac1-rxd {
+		nexell,pins = "gpiod-4", "gpiod-5";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac1_txen: gmac1-txen {
+		nexell,pins = "gpiod-3";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac1_rxen: gmac1-rxen {
+		nexell,pins = "gpiod-6";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac1_mdc: gmac1-mdc {
+		nexell,pins = "gpiod-8";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac1_mdio: gmac1-mdio {
+		nexell,pins = "gpiod-7";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR3>;
+	};
+
+	gmac1_txclk: gmac1-txclk {
+		nexell,pins = "gpiod-0";
+		nexell,pin-function = <NX_PIN_FUNC1>;
+		nexell,pin-pull = <NX_PIN_PULL_NONE>;
+		nexell,pin-strength = <NX_PIN_STR2>;
+	};
+
 };

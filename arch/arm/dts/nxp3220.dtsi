@@ -389,6 +389,35 @@
 		status = "disabled";
 	};
 
+	gmac0: ethernet@26100000 {
+		compatible = "nexell,nxp3220-dwmac";
+		reg = <0x26100000 0x8000>;
+		clocks = <&clock_sys GMAC_RGMII_0_APB_CLK>,
+			 <&clock_sys GMAC_RGMII_0_AXI_CLK>,
+			 <&clock_sys GMAC_RGMII_0_PTP_REF_CLK>,
+			 <&clock_sys GMAC_RGMII_0_TX_CLK_CLK>;
+		clock-names = "slave_bus", "master_bus", "ptp_ref", "tx";
+		pinctrl-names = "default";
+		pinctrl-0 = <&gmac0_txd>, <&gmac0_rxd>, <&gmac0_txen>,
+			    <&gmac0_rxen>, <&gmac0_mdc>, <&gmac0_mdio>,
+			    <&gmac0_rxclk>, <&gmac0_txclk>;
+		status = "disabled";
+	};
+
+	gmac1: ethernet@26110000 {
+		compatible = "nexell,nxp3220-dwmac";
+		reg = <0x26110000 0x8000>;
+		clocks = <&clock_sys GMAC_RMII_0_APB_CLK>,
+			 <&clock_sys GMAC_RMII_0_AXI_CLK>,
+			 <&clock_sys GMAC_RMII_0_PTP_REF_CLK>;
+		clock-names = "slave_bus", "master_bus", "ptp_ref";
+		pinctrl-names = "default";
+		pinctrl-0 = <&gmac1_txd>, <&gmac1_rxd>, <&gmac1_txen>,
+			    <&gmac1_rxen>, <&gmac1_mdc>, <&gmac1_mdio>,
+			    <&gmac1_txclk>;
+		status = "disabled";
+	};
+
 	psci {
 		compatible = "arm,psci-0.2";
 		method = "smc";
