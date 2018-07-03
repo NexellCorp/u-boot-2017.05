@@ -88,10 +88,8 @@ static int nx_calc_divisor(unsigned long req, struct nx_clk_div *cdiv)
 		m = plls[i] % req;
 
 		/* under the min divider */
-		if (v == 0) {
-			div = 0;
+		if (v == 0)
 			continue;
-		}
 
 		if (v > div_max) {
 			div = div_max+1;
@@ -141,6 +139,7 @@ static int nx_calc_divisor(unsigned long req, struct nx_clk_div *cdiv)
 			div0 = d; div1 = v;
 		}
 	}
+
 	cdiv->mux = mux;
 	cdiv->div_s = div0;
 	cdiv->div_o = div1;
@@ -172,18 +171,25 @@ static struct clk_cmu_dev *nx_get_clk_src_priv(struct nx_cmu_priv *priv, int id)
 static int clk_grp_enable(struct nx_cmu_priv *priv, unsigned int id)
 {
 	struct clk_cmu_dev *sys = nx_get_clk_priv(priv, id);
-	struct clk_cmu_dev *src = nx_get_clk_src_priv(priv, sys->p_id);
-	unsigned int reg_idx = sys->clkenbit / 32;
-	unsigned int reg_bit = sys->clkenbit % 32;
-	unsigned int src_reg_idx = src->clkenbit / 32;
-	unsigned int src_bit = src->clkenbit % 32;
+	struct clk_cmu_dev *src = NULL;
+	unsigned int reg_idx, reg_bit, src_reg_idx, src_bit;
 
 	if (sys->nc) {
 		printf("CMU %d  is not en/disable\n", id);
-		return -EINVAL;
+		return 0;
 	}
+	reg_idx = sys->clkenbit / 32;
+	reg_bit = sys->clkenbit % 32;
+
 	writel(1 << reg_bit, &sys->reg->grp_clkenb[reg_idx]);
-	writel(1 << src_bit, &src->reg->grp_clkenb[src_reg_idx]);
+	if (sys->type == CMU_TYPE_MAINDIV)
+		src = nx_get_clk_src_priv(priv, sys->p_id);
+
+	if (src) {
+		src_reg_idx = src->clkenbit / 32;
+		src_bit = src->clkenbit % 32;
+		writel(1 << src_bit, &src->reg->grp_clkenb[src_reg_idx]);
+	}
 
 	return 0;
 }
@@ -200,18 +206,26 @@ static int nx_clk_disable(struct clk *clk)
 {
 	struct nx_cmu_priv *priv = dev_get_priv(clk->dev);
 	struct clk_cmu_dev *sys = nx_get_clk_priv(priv, clk->id);
-	struct clk_cmu_dev *src = nx_get_clk_src_priv(priv, sys->p_id);
-	unsigned int reg_idx = sys->clkenbit / 32;
-	unsigned int reg_bit = sys->clkenbit % 32;
-	unsigned int src_reg_idx = src->clkenbit / 32;
-	unsigned int src_bit = src->clkenbit % 32;
+	struct clk_cmu_dev *src = NULL;
+	unsigned int reg_idx, reg_bit, src_reg_idx, src_bit;
 
 	if (sys->nc) {
 		printf("CMU %ld is not disable\n", clk->id);
 		return -EINVAL;
 	}
+
+	reg_idx = sys->clkenbit / 32;
+	reg_bit = sys->clkenbit % 32;
 	writel(1<<reg_bit, &sys->reg->grp_clkenb_clr[reg_idx]);
-	writel(1<<src_bit, &src->reg->grp_clkenb_clr[src_reg_idx]);
+
+	if (sys->type == CMU_TYPE_MAINDIV)
+		src = nx_get_clk_src_priv(priv, sys->p_id);
+
+	if (src) {
+		src_reg_idx = src->clkenbit / 32;
+		src_bit = src->clkenbit % 32;
+		writel(1<<src_bit, &src->reg->grp_clkenb_clr[src_reg_idx]);
+	}
 
 	return 0;
 }
@@ -224,9 +238,9 @@ static ulong set_rate(struct clk_cmu_dev *sys, struct clk_cmu_dev *src,
 
 	nx_calc_divisor(freq, &cdiv);
 
-	writel((cdiv.mux) & 0xFFFF, &src->reg->grp_clk_src);
-	writel((cdiv.div_s - 1) & 0xFFFF, &src->reg->divider[0]);
 	writel((cdiv.div_o - 1) & 0xFFFF, &sys->reg->divider[0]);
+	writel((cdiv.div_s - 1) & 0xFFFF, &src->reg->divider[0]);
+	writel((cdiv.mux) & 0xFFFF, &src->reg->grp_clk_src);
 
 	cal_freq = plls[cdiv.mux] / cdiv.div_s / cdiv.div_o;
 	sys->c_freq = cal_freq;
