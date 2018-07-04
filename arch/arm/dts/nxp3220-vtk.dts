@@ -24,7 +24,7 @@
 	};
 
 	clock_pll: clock-src@27020000 {
-		frequency = <0 800000000>,
+		frequency = <0 1000000000>,
 			    <1 400000000>;
 	};
 
