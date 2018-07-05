@@ -355,7 +355,7 @@ static void eqos_inval_buffer(void *buf, size_t size)
 
 static void eqos_flush_buffer(void *buf, size_t size)
 {
-	flush_cache((unsigned long)buf, size);
+	flush_cache((unsigned long)buf, ALIGN(size, ARCH_DMA_MINALIGN));
 }
 
 static int eqos_mdio_wait_idle(struct eqos_priv *eqos)
