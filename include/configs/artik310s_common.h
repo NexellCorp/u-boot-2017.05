@@ -56,6 +56,7 @@
 #define MMC_MODULES_PART_TYPE	"ext4"
 #define MMC_FIRMWARE_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
+#define MMC_DATA_PART_TYPE	"ext4"
 
 /* Partition Size(Unit: MiB) */
 #define BOOT_PART_ALIGN		8

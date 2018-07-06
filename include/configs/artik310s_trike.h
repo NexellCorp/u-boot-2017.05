@@ -44,6 +44,10 @@
 		"bootpart_type=${mmc_boot_part_type} " \
 		"modulespart=/dev/mmcblk${mmc_boot_dev}p${mmc_modules_part} " \
 		"modulespart_type=${mmc_modules_part_type} " \
+		"firmwarepart=/dev/mmcblk${mmc_boot_dev}p${mmc_firmware_part} " \
+		"firmwarespart_type=${mmc_firmware_part_type} " \
+		"datapart=/dev/mmcblk${mmc_boot_dev}p${mmc_data_part} " \
+		"datapart_type=${mmc_data_part_type} " \
 		"${console} ${log_msg} ${opts}\0" \
 	"load_kernel=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} " \
 		"${kernel_file}\0" \
@@ -63,6 +67,8 @@
 	"mmc_firmware_part_type=" MMC_FIRMWARE_PART_TYPE "\0" \
 	"mmc_rootfs_part=" __stringify(MMC_ROOTFS_PART) "\0" \
 	"mmc_rootfs_part_type=" MMC_ROOTFS_PART_TYPE "\0" \
+	"mmc_data_part=" __stringify(MMC_DATA_PART) "\0" \
+	"mmc_data_part_type=" MMC_DATA_PART_TYPE "\0" \
 	"partitions=" PARTS_DEFAULT \
 	"root_rw=rw\0" \
 
