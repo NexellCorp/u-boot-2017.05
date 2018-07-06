@@ -16,7 +16,11 @@
 	"boot_initrd=" \
 		"run load_kernel;" \
 		"run load_fdt;" \
-		"run load_initrd;" \
+		"if run load_initrd; then " \
+			"setenv initrd_addr ${initrdaddr};" \
+		"else " \
+			"setenv initrd_addr -;" \
+		"fi;" \
 		"run load_args;" \
 		"bootz ${kernel_addr} ${initrd_addr} ${fdt_addr}\0" \
 	"console=" CONFIG_DEFAULT_CONSOLE \
@@ -31,7 +35,7 @@
 		"mmc partconf 0 0 1 1;" \
 		"mmc bootbus 0 2 0 0;" \
 		"mmc rescan\0" \
-	"initrd_addr=" __stringify(INITRD_ADDR) "\0" \
+	"initrdaddr=" __stringify(INITRD_ADDR) "\0" \
 	"initrd_file=uInitrd\0" \
 	"load_args=setenv bootargs " \
 		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
@@ -43,7 +47,7 @@
 		"${console} ${log_msg} ${opts}\0" \
 	"load_kernel=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} " \
 		"${kernel_file}\0" \
-	"load_initrd=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrd_addr} " \
+	"load_initrd=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrdaddr} " \
 		"${initrd_file}\0" \
 	"load_fdt=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} " \
 		"${fdt_file}\0" \
