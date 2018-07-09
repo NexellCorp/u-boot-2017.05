@@ -33,6 +33,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define NEXELL_ALIVE_OUT_RST		(0x8C)
 #define NEXELL_ALIVE_OUT_SET		(0x90)
 #define NEXELL_ALIVE_OUT_READ		(0x94)
+#define NEXELL_ALIVE_PAD_IN		(0x11C)
 #define NEXELL_ALIVE_INENB_RST		(0x15C)
 #define NEXELL_ALIVE_INENB_SET		(0x160)
 #define NEXELL_ALIVE_INENB_READ		(0x164)
@@ -63,9 +64,12 @@ static int nexell_alive_direction_output(struct udevice *dev, unsigned int pin,
 	void __iomem *base = plat->regs;
 	u32 bit = 1 << pin;
 
-	writel(bit, base + NEXELL_ALIVE_OUT_SET);
+	if (val)
+		writel(bit, base + NEXELL_ALIVE_OUT_SET);
+	else
+		writel(bit, base + NEXELL_ALIVE_OUT_RST);
 
-	writel(bit, base + NEXELL_ALIVE_INENB_RST);
+
 	writel(bit, base + NEXELL_ALIVE_OUTENB_SET);
 
 	return 0;
@@ -76,7 +80,7 @@ static int nexell_alive_get_value(struct udevice *dev, unsigned int pin)
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
 
-	return (readl(base + NEXELL_ALIVE_OUT_READ) >> pin) & 1;
+	return (readl(base + NEXELL_ALIVE_PAD_IN) >> pin) & 1;
 }
 
 
@@ -86,7 +90,10 @@ static int nexell_alive_set_value(struct udevice *dev, unsigned int pin,
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
 
-	writel(1 << pin, base + NEXELL_ALIVE_OUT_SET);
+	if (val)
+		writel(1 << pin, base + NEXELL_ALIVE_OUT_SET);
+	else
+		writel(1 << pin, base + NEXELL_ALIVE_OUT_RST);
 
 	return 0;
 }
