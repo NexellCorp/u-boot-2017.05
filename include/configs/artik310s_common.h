@@ -50,12 +50,14 @@
 #define MMC_MODULES_PART	4
 #define MMC_FIRMWARE_PART	6
 #define MMC_ROOTFS_PART		8
-#define MMC_DATA_PART		10
+#define MMC_SEC_PART		10
+#define MMC_DATA_PART		11
 
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_MODULES_PART_TYPE	"ext4"
 #define MMC_FIRMWARE_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
+#define MMC_SEC_PART_TYPE	"ext4"
 #define MMC_DATA_PART_TYPE	"ext4"
 
 /* Partition Size(Unit: MiB) */
@@ -64,6 +66,7 @@
 #define MODULES_PART_SIZE	20
 #define FIRMWARE_PART_SIZE	8
 #define ROOTFS_PART_SIZE	512
+#define SEC_PART_SIZE		128
 
 /*
  * Default environment organization
@@ -101,6 +104,7 @@
 	"modules.img part 0 " __stringify(MMC_MODULES_PART) ";" \
 	"firmware.img part 0 " __stringify(MMC_FIRMWARE_PART) ";" \
 	"rootfs.img part 0 " __stringify(MMC_ROOTFS_PART) ";" \
+	"sec.img part 0 " __stringify(MMC_SEC_PART) ";" \
 	"data.img part 0 " __stringify(MMC_DATA_PART) "\0"
 
 #define PARTS_DEFAULT \
@@ -115,6 +119,7 @@
 	"name=firmware_b,size=" __stringify(FIRMWARE_PART_SIZE) "MiB,uuid=${uuid_gpt_firmware_b};" \
 	"name=rootfs_a,size=" __stringify(ROOTFS_PART_SIZE) "MiB,uuid=${uuid_gpt_rootfs_a};" \
 	"name=rootfs_b,size=" __stringify(ROOTFS_PART_SIZE) "MiB,uuid=${uuid_gpt_rootfs_b};" \
+	"name=sec,size=" __stringify(SEC_PART_SIZE) "MiB,uuid=${uuid_gpt_sec};" \
 	"name=data,size=-,uuid=${uuid_gpt_data}\0"
 
 #endif
