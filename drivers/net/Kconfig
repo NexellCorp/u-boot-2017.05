@@ -86,9 +86,15 @@ config DWC_ETH_QOS
 	help
 	  This driver supports the Synopsys Designware Ethernet QOS (Quality
 	  Of Service) IP block. The IP supports many options for bus type,
-	  clocking/reset structure, and feature list. This driver currently
-	  supports the specific configuration used in NVIDIA's Tegra186 chip,
-	  but should be extensible to other combinations quite easily.
+	  clocking/reset structure, and feature list.
+
+config DWC_ETH_QOS_TEGRA186
+	bool "Tegra186 specific extensions for Sysnopsys DWC Ethernet QOS"
+	depends on DWC_ETH_QOS
+	default y if TEGRA186
+	help
+	  This driver is Tegra186 specific extensions for the Synopsys
+	  Designware Ethernet QOS IP.
 
 config E1000
 	bool "Intel PRO/1000 Gigabit Ethernet support"
