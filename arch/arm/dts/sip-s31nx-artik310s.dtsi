@@ -43,7 +43,7 @@
 				regulator-min-microvolt = <562500>;
 				regulator-max-microvolt = <2150000>;
 				always_onoff_npwrstm = <0>;
-				sm5011,init_uV = <1000000>;
+				sm5011,init_uV = <1100000>;
 				sm5011,on = <1>;
 				regulator-always-on;
 			};
