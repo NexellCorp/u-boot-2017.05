@@ -129,7 +129,8 @@ static int sm5011_probe(struct udevice *dev)
 	sm5011_device_setup(dev, cache);
 
 	sm5011_read(dev, SM5011_REG_DEVICEID, &value, 1);
-	printf("%s:%d: CHIP ID=0x%02x\n ", __func__, __LINE__, value);
+
+	debug("%s:%d: CHIP ID=0x%02x\n ", __func__, __LINE__, value);
 
 	return 0;
 }
