@@ -9,6 +9,10 @@
 #include <common.h>
 #include <asm/io.h>
 
+#ifdef CONFIG_DM_REGULATOR
+#include <power/regulator.h>
+#endif
+
 #define REG_RST_CONFIG	0x2008c86c
 #define BOOTMODE_MASK	0x7
 #define BOOTMODE_SDMMC	0x3
@@ -40,6 +44,19 @@ int misc_init_r(void)
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	set_board_info();
 #endif
+
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_DM_REGULATOR
+int power_init_board(void)
+{
+	int ret = -ENODEV;
+
+	ret = regulators_enable_boot_on(false);
+	if (ret)
+		return ret;
 
 	return 0;
 }
