@@ -98,8 +98,8 @@
 };
 
 &mmc2 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x04>;
+	nexell,sample_shift = <0x00>;
+	nexell,drive_shift = <0x01>;
 	frequency = <50000000>;
 	status = "okay";
 };
