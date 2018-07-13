@@ -56,6 +56,8 @@ struct eqos_priv {
 	void *rx_pkt;
 	bool started;
 	bool reg_access_ok;
+	phy_interface_t interface;
+	int phy_addr;
 
 	const struct eqos_drv_ops *drv_ops;
 };

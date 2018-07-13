@@ -505,11 +505,15 @@ static int eqos_adjust_link(struct udevice *dev)
 			eqos->drv_ops->disable_calibrate(dev);
 	}
 
-	if (eqos->drv_ops && eqos->drv_ops->set_tx_clk_speed) {
-		ret = eqos->drv_ops->set_tx_clk_speed(dev, eqos->phy->speed);
-		if (ret < 0) {
-			pr_err("eqos_set_tx_clk_speed() failed: %d", ret);
-			return ret;
+	if (eqos->interface == PHY_INTERFACE_MODE_RGMII) {
+		if (eqos->drv_ops && eqos->drv_ops->set_tx_clk_speed) {
+			ret = eqos->drv_ops->set_tx_clk_speed(dev,
+						eqos->phy->speed);
+			if (ret < 0) {
+				pr_err("eqos_set_tx_clk_speed() failed: %d",
+				      ret);
+				return ret;
+			}
 		}
 	}
 
@@ -610,7 +614,8 @@ static int eqos_start(struct udevice *dev)
 	val = (rate / 1000000) - 1;
 	writel(val, &eqos->mac_regs->us_tic_counter);
 
-	eqos->phy = phy_connect(eqos->mii, 0, dev, 0);
+	eqos->phy = phy_connect(eqos->mii, eqos->phy_addr, dev,
+				eqos->interface);
 	if (!eqos->phy) {
 		pr_err("phy_connect() failed");
 		goto err_stop_resets;

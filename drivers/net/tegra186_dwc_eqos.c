@@ -389,6 +389,9 @@ static int tegra186_eqos_probe(struct udevice *dev)
 
 	plat->tegra186_regs = (void *)(eqos->regs + EQOS_TEGRA186_REGS_BASE);
 
+	eqos->phy_addr = 0;
+	eqos->interface = PHY_INTERFACE_MODE_RGMII;
+
 	ret = eqos_probe_resources_tegra186(dev);
 	if (ret < 0) {
 		pr_err("eqos_probe_resources_tegra186() failed: %d", ret);
