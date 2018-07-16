@@ -8,6 +8,7 @@
 /dts-v1/;
 
 #include "sip-s31nx-artik310s.dtsi"
+#include <dt-bindings/gpio/gpio.h>
 / {
 	model = "Samsung artik310s trike board based on sip-s31nx";
 	compatible = "samsung,artik310s-trike", "samsung,artik310s",
@@ -47,7 +48,19 @@
 			     <I2C_4_APB_CLK 100000000 1>,
 			     <SPI_0_APB_CLK 100000000 1>,
 			     <SPI_1_APB_CLK 100000000 1>,
-			     <SPI_2_APB_CLK 100000000 1>;
+			     <SPI_2_APB_CLK 100000000 1>,
+			     <GMAC_RGMII_0_AXI_CLK 250000000 1>,
+			     <GMAC_RGMII_0_APB_CLK 125000000 1>,
+			     <GMAC_RGMII_0_TX_CLK_CLK 125000000 1>,
+			     <GMAC_RGMII_0_PTP_REF_CLK 25000000 1>,
+			     <GMAC_RMII_0_AXI_CLK 250000000 1>,
+			     <GMAC_RMII_0_APB_CLK 125000000 1>,
+			     <GMAC_RMII_0_PTP_REF_CLK 25000000 1>;
+};
+
+&clock_pll {
+	frequency = <0 1000000000>,
+		    <1 400000000>;
 };
 
 &clock_usb {
@@ -60,6 +73,40 @@
 
 &ehci {
 	status = "okay";
+};
+
+&gmac0 {
+	phy-mode = "rgmii";
+	phy-handle = <&ethphy0>;
+	status = "okay";
+
+	phy-reset-gpios = <&gpio_d 9 GPIO_ACTIVE_LOW>;
+
+	mdio@3 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@3 {
+			reg = <3>;
+		};
+	};
+};
+
+&gmac1 {
+	phy-mode = "rmii";
+	phy-handle = <&ethphy1>;
+	status = "okay";
+
+	phy-reset-gpios = <&gpio_b 31 GPIO_ACTIVE_LOW>;
+
+	mdio@1 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy1: ethernet-phy@1 {
+			reg = <1>;
+		};
+	};
 };
 
 &uart0 {
