@@ -29,7 +29,7 @@ void set_board_info(void)
 
 	/* set boot device only if it was sdmmc boot */
 	if (rst_config == BOOTMODE_SDMMC)
-		env_set_ulong("mmc_boot_dev", 1);
+		env_set_ulong("mmc_boot_dev", 2);
 }
 #endif
 
