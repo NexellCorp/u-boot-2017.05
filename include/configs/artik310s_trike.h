@@ -34,6 +34,7 @@
 		"mmc rescan;" \
 		"mmc partconf 0 0 1 1;" \
 		"mmc bootbus 0 2 0 0;" \
+		"mmc rst-function 0 1;" \
 		"mmc rescan\0" \
 	"initrdaddr=" __stringify(INITRD_ADDR) "\0" \
 	"initrd_file=uInitrd\0" \
