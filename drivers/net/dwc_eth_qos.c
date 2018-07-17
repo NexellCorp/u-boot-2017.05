@@ -1304,7 +1304,7 @@ static int eqos_probe_resources_core(struct udevice *dev)
 		ret = -ENOMEM;
 		goto err_free_descs;
 	}
-	debug("%s: rx_dma_buf=%p\n", __func__, eqos->rx_dma_buf);
+	debug("%s: tx_dma_buf=%p\n", __func__, eqos->tx_dma_buf);
 
 	eqos->rx_dma_buf = memalign(EQOS_BUFFER_ALIGN, EQOS_RX_BUFFER_SIZE);
 	if (!eqos->rx_dma_buf) {
@@ -1312,7 +1312,7 @@ static int eqos_probe_resources_core(struct udevice *dev)
 		ret = -ENOMEM;
 		goto err_free_tx_dma_buf;
 	}
-	debug("%s: tx_dma_buf=%p\n", __func__, eqos->tx_dma_buf);
+	debug("%s: rx_dma_buf=%p\n", __func__, eqos->rx_dma_buf);
 
 	eqos->rx_pkt = malloc(EQOS_MAX_PACKET_SIZE);
 	if (!eqos->rx_pkt) {
