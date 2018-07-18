@@ -312,6 +312,43 @@ void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 		return;
 	}
 #endif
+#ifdef CONFIG_ARCH_NEXELL
+	if (strcmp(cmd, "bootloader") == 0) {
+		struct mmc *mmc;
+		int part_num_bkp;
+		int ret;
+
+		mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
+		mmc_init(mmc);
+
+		part_num_bkp = mmc_get_blk_desc(mmc)->hwpart;
+		ret = blk_select_hwpart_devnum(IF_TYPE_MMC,
+				CONFIG_FASTBOOT_FLASH_MMC_DEV, 1);
+		if (ret) {
+			printf("switch to partitions %d error\n", 1);
+			return;
+		}
+
+		/* WIP: hard corded data
+		 * blocksize = 512, bootloader max size = 3M
+		 * */
+		info.start = 0;
+		info.size = 6144;
+		info.blksz = 512;
+		write_raw_image(dev_desc, &info, cmd, download_buffer,
+				download_bytes);
+
+		ret = blk_select_hwpart_devnum(IF_TYPE_MMC,
+				CONFIG_FASTBOOT_FLASH_MMC_DEV, part_num_bkp);
+		if (ret) {
+			printf("switch to partitions %d error\n", part_num_bkp);
+			return;
+		}
+
+		fastboot_okay("");
+		return;
+	}
+#endif
 
 #ifdef CONFIG_ANDROID_BOOT_IMAGE
 	if (strncasecmp(cmd, "zimage", 6) == 0) {
