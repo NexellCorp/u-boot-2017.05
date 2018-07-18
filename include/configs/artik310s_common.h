@@ -40,6 +40,10 @@
 #define CONFIG_BOOTCOMMAND		"run autoboot"
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS0,115200n8\0"
 
+/* Factory info(unit: sector) */
+#define FACTORY_INFO_START	0x1c00
+#define FACTORY_INFO_SIZE	0x100
+
 /* For SD/MMC */
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_SUPPORT_EMMC_BOOT

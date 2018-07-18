@@ -27,6 +27,12 @@
 	"dfu_bufsiz=0x2000000\0" \
 	DFU_ALT_INFO \
 	DFU_ALT_INFO_RAM \
+	"factory_load=factory_info load mmc 0 1 " \
+		__stringify(FACTORY_INFO_START) " " \
+		__stringify(FACTORY_INFO_SIZE) "\0" \
+	"factory_save=factory_info save mmc 0 1 " \
+		__stringify(FACTORY_INFO_START) " " \
+		__stringify(FACTORY_INFO_SIZE) "\0" \
 	"fdt_addr=" __stringify(FDT_ADDR) "\0" \
 	"fdt_file=sip-s31nx-artik310s-trike-rev00.dtb\0" \
 	"format_emmc=" \
