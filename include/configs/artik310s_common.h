@@ -37,6 +37,8 @@
 /* max number of command args   */
 #define CONFIG_SYS_MAXARGS	16
 
+#define CONFIG_ENV_OVERWRITE
+
 #define CONFIG_BOOTCOMMAND		"run autoboot"
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS0,115200n8\0"
 
