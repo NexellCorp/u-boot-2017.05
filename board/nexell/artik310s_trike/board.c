@@ -9,6 +9,8 @@
 #include <common.h>
 #include <asm/io.h>
 
+#include "../common/artik_mac.h"
+
 #ifdef CONFIG_DM_REGULATOR
 #include <power/regulator.h>
 #endif
@@ -44,6 +46,13 @@ int misc_init_r(void)
 #ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 	set_board_info();
 #endif
+#ifdef CONFIG_CMD_FACTORY_INFO
+	run_command("run factory_load", 0);
+	generate_mac(0);
+#ifdef CONFIG_HAS_ETH1
+	generate_mac(1);
+#endif
+#endif	/* End of CONFIG_CMD_FACTORY_INFO */
 
 	return 0;
 }
