@@ -39,7 +39,7 @@
 
 #define CONFIG_ENV_OVERWRITE
 
-#define CONFIG_BOOTCOMMAND		"run autoboot"
+#define CONFIG_BOOTCOMMAND		"run autoboot;fastboot 0"
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS0,115200n8\0"
 
 /* Factory info(unit: sector) */
