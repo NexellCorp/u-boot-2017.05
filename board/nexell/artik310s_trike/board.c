@@ -8,7 +8,8 @@
 #include <config.h>
 #include <common.h>
 #include <asm/io.h>
-
+#include <asm/gpio.h>
+#include <linux/err.h>
 #include "../common/artik_mac.h"
 
 #ifdef CONFIG_DM_REGULATOR
@@ -35,8 +36,65 @@ void set_board_info(void)
 }
 #endif
 
+static int gpio_get_val(u32 gpio)
+{
+	int value = -EINVAL;
+	int ret;
+
+	ret = gpio_request(gpio, "gpio_req");
+	if (ret && ret != -EBUSY) {
+		printf("gpio: requesting pin %u failed\n", gpio);
+		return -1;
+	}
+
+	gpio_direction_input(gpio);
+	value = gpio_get_value(gpio);
+	if (IS_ERR_VALUE(value))
+		printf("gpio: read fail pin %u\n", gpio);
+
+	gpio_free(gpio);
+
+	return value;
+}
+
+#ifdef CONFIG_REVISION_TAG
+u32 board_rev;
+
+u32 get_board_rev(void)
+{
+	return board_rev;
+}
+
+static void check_hw_revision(void)
+{
+	u32 val = 0;
+
+	val |= gpio_get_val(79);
+	val <<= 1;
+	val |= gpio_get_val(173);
+	val <<= 1;
+	val |= gpio_get_val(78);
+
+	board_rev = val;
+}
+
+static void set_board_rev(void)
+{
+	char info[8] = {0, };
+
+	snprintf(info, ARRAY_SIZE(info), "%d", board_rev);
+	env_set("board_rev", info);
+}
+
+#endif
+
 int board_init(void)
 {
+#ifdef CONFIG_REVISION_TAG
+	check_hw_revision();
+	printf("HW Revision:\t%d\n", board_rev);
+#endif
+
 	return 0;
 }
 
@@ -54,6 +112,9 @@ int misc_init_r(void)
 #endif
 #endif	/* End of CONFIG_CMD_FACTORY_INFO */
 
+#ifdef CONFIG_REVISION_TAG
+	set_board_rev();
+#endif
 	return 0;
 }
 #endif

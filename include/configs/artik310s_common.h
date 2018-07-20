@@ -76,6 +76,8 @@
 #define ROOTFS_PART_SIZE	512
 #define SEC_PART_SIZE		128
 
+#define CONFIG_REVISION_TAG
+
 /*
  * Default environment organization
  */
