@@ -42,6 +42,8 @@ static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		goto exit;
 	}
 
+	puts("FASTBOOT: Wait for download ...\n");
+
 	while (1) {
 		if (g_dnl_detach())
 			break;
