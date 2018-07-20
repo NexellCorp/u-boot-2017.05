@@ -107,6 +107,10 @@
 	status = "okay";
 };
 
+&mmc2_clk {
+	nexell,pin-strength = <NX_PIN_STR1>;
+};
+
 &spi_1 {
 	num-cs = <1>;
 	cs-gpio = <&gpio_a 9 0>;
