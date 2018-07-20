@@ -189,7 +189,7 @@ static int nx_dw_mmc_setup(const void *blob, struct udevice *dev,
 
 	priv = (struct nx_dwmci_dat *)host->priv;
 
-	nx_dw_mmc_set_clk(host, priv->frequency * 8);
+	nx_dw_mmc_set_clk(host, priv->frequency * 4);
 	nx_dw_mmc_clk_delay(host);
 
 	return 0;
