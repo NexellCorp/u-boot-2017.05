@@ -60,6 +60,13 @@ config NAND_OMAP_ELM
 	  detection. However ECC calculation on such plaforms would still be
 	  done by GPMC controller.
 
+config NAND_NXP3220
+	bool "Support for Nexell nxp3220 SoC NAND Controller"
+	select SYS_NAND_SELF_INIT
+	help
+	  This enables NAND driver for the NAND flash controller
+	  on the NEXELL SoC.
+
 config NAND_VF610_NFC
 	bool "Support for Freescale NFC for VF610"
 	select SYS_NAND_SELF_INIT
