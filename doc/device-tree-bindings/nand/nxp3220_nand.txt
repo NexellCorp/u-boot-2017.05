@@ -1,0 +1,36 @@
+Nexell nxp3320 NAND controller
+=============================
+
+The device node for a NAND flash device is as follows:
+
+Required properties :
+  - compatible: Must be "nexell,nxp3220-nand"
+  - reg: physical base address and length of the controller's registers
+  - nand-ecc-mode : String, operation mode of the NAND ecc mode.
+    Supported values are: "hw_syndrome".
+  - nand-bus-width : 8
+  - nand-on-flash-bbt: boolean to enable on flash bbt option
+  - nand-timing-mode : refer to the nand datasheet and select the appropriate
+		     timing mode value corresponding to onfi mode (0 ~ 5).
+		     Obtain the value of the onfi field corresponding to the
+		     timing mode (nanosecond) and convert it to the appropriate
+		     value for nexell nfc controller.
+  - wp-gpio : GPIO specifier for the write protect pin.
+
+Example :
+	nand: nand-controller@26180000 {
+		compatible = "nexell,nxp3220-nand";
+		reg = <0x26180000 0x1000>;
+		clocks = <&clock_sys NANDC_0_APB_CLK>,
+			 <&clock_sys NANDC_0_AXI_CLK>;
+		clock-names = "nand_apb", "nand_core";
+		core_freq = <250000000>;
+		nand-bus-width = <8>;
+		nand-on-flash-bbt;
+		nand-ecc-mode = "hw_syndrome";
+
+		nand-ecc-strength = <4>;
+		nand-ecc-step-size = <512>;
+		nand-timing-mode = <4>;
+		nexell,wp-gpio = <&gpio_c 16 GPIO_ACTIVE_LOW>;
+	};
