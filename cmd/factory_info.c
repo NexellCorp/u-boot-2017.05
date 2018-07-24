@@ -307,6 +307,8 @@ static int factory_info_write_entity(const char *entity_name,
 			entity->e_hdr.name_len + entity->e_hdr.val_len;
 	}
 
+	env_set(entity->name, entity->val);
+
 	return 0;
 }
 
