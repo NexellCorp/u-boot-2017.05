@@ -445,3 +445,30 @@ U_BOOT_CMD(
 );
 
 #endif  /* CONFIG_CMD_LINK_LOCAL */
+
+#if defined(CONFIG_CMD_GEN_ETHADDR)
+int do_gen_eth_addr(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	uchar addr[6];
+
+	if (argc != 2)
+		return -1;
+
+	net_random_ethaddr(addr);
+
+	if (eth_env_set_enetaddr(argv[1], addr) == -EEXIST) {
+		env_set(argv[1], "");
+		eth_env_set_enetaddr(argv[1], addr);
+	}
+
+	printf("%s\n", env_get(argv[1]));
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	gen_eth_addr,	2,	1,	do_gen_eth_addr,
+	"Generate a random ethernet mac address",
+	""
+);
+#endif  /* CONFIG_CMD_GEN_ETHADDR */

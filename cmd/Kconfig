@@ -1205,6 +1205,11 @@ config CMD_LINK_LOCAL
 	help
 	  Acquire a network IP address using the link-local protocol
 
+config CMD_GEN_ETHADDR
+	bool "gen_eth_addr"
+	help
+	  MAC address generate and save to env
+
 endif
 
 config CMD_ETHSW
