@@ -72,7 +72,7 @@
 		"${initrd_file}\0" \
 	"load_fdt=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} " \
 		"${fdt_file}\0" \
-	"log_msg=loglevel=7 printk.time=1 earlyprintk\0" \
+	"log_msg=loglevel=4\0" \
 	"kernel_addr=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"kernel_file=zImage\0" \
 	"mmc_boot_dev=" __stringify(MMC_BOOT_DEV) "\0" \
