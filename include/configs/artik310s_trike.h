@@ -33,6 +33,13 @@
 	"factory_save=factory_info save mmc 0 1 " \
 		__stringify(FACTORY_INFO_START) " " \
 		__stringify(FACTORY_INFO_SIZE) "\0" \
+	"factory_set_ethaddr=" \
+		"run factory_load; " \
+		"gen_eth_addr ethaddr; " \
+		"gen_eth_addr eth1addr; " \
+		"factory_info write ethaddr $ethaddr; " \
+		"factory_info write eth1addr $eth1addr; " \
+		"run factory_save\0" \
 	"fdt_addr=" __stringify(FDT_ADDR) "\0" \
 	"fdt_file=sip-s31nx-artik310s-trike-rev00.dtb\0" \
 	"format_emmc=" \
