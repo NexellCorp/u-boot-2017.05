@@ -23,6 +23,12 @@
 		"fi;" \
 		"run load_args;" \
 		"bootz ${kernel_addr} ${initrd_addr} ${fdt_addr}\0" \
+	"boot_tftp=" \
+		"tftp ${kernel_addr} ${serverip}:${kernel_file};" \
+		"tftp ${fdt_addr} ${serverip}:${fdt_file};" \
+		"tftp ${initrdaddr} ${serverip}:${initrd_file};" \
+		"run load_args;" \
+		"bootz ${kernel_addr} ${initrdaddr} ${fdt_addr}\0" \
 	"console=" CONFIG_DEFAULT_CONSOLE \
 	"dfu_bufsiz=0x2000000\0" \
 	DFU_ALT_INFO \
