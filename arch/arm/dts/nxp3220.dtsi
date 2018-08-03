@@ -272,7 +272,9 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "nexell,dwc2-usb-downloader";
-		reg = <0x240C0000 0x1000>, <0x24030000 0x100>, <0x20060000 0x100>;
+		reg = <0x240C0000 0x1000>, <0x20060000 0x100>;
+		clocks = <&clock_usb USB20OTG_0_AHB_CLK>;
+		phys = <&usb2phy 0>;
 		status = "disabled";
 	};
 
