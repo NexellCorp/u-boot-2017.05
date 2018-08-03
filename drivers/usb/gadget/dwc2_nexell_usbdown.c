@@ -10,9 +10,10 @@
 #include <console.h>
 #include <dm.h>
 #include <dm/uclass-internal.h>
+#include <clk.h>
 #include <usb.h>
+#include <generic-phy.h>
 #include <linux/io.h>
-#include <mach/usb.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -595,11 +596,11 @@ struct nx_ecid_reg {
 };
 
 struct nx_usbdown_priv {
-	void __iomem *reg_phy;
 	void __iomem *reg_otg;
 	void __iomem *reg_ecid;
 	struct nx_usbboot_status ustatus;
-	struct nx_otg_phy phy;
+	struct phy phy;
+	struct clk clk;
 };
 
 static void nx_usb_get_usbid(void __iomem *ecid, u16 *vid, u16 *pid)
@@ -1292,7 +1293,11 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 	ustatus->rx_buf_addr = (u8 *)buffer;
 	nsih = (unsigned int *)buffer;
 
-	nx_otg_phy_init(&priv->phy);
+	generic_phy_init(&priv->phy);
+	generic_phy_power_on(&priv->phy);
+
+	if (priv->clk.dev)
+		clk_enable(&priv->clk);
 
 	/* usb core soft reset */
 	writel(CORE_SOFT_RESET, &reg_otg->gcsr.grstctl);
@@ -1392,7 +1397,11 @@ _exit:
 			break;
 	}
 
-	nx_otg_phy_off(&priv->phy);
+	if (priv->clk.dev)
+		clk_disable(&priv->clk);
+
+	generic_phy_power_off(&priv->phy);
+	generic_phy_exit(&priv->phy);
 
 	return true;
 }
@@ -1401,6 +1410,7 @@ static int nx_usb_probe(struct udevice *dev)
 {
 	struct nx_usbdown_priv *priv = dev_get_priv(dev);
 	fdt_addr_t base;
+	int ret;
 
 	base = devfdt_get_addr_index(dev, 0);
 	if (base == FDT_ADDR_T_NONE)
@@ -1412,17 +1422,18 @@ static int nx_usb_probe(struct udevice *dev)
 	if (base == FDT_ADDR_T_NONE)
 		return -EINVAL;
 
-	priv->reg_phy = devm_ioremap(dev, base, SZ_256);
-
-	base = devfdt_get_addr_index(dev, 2);
-	if (base == FDT_ADDR_T_NONE)
-		return -EINVAL;
-
 	priv->reg_ecid = devm_ioremap(dev, base, SZ_256);
 
-	priv->phy.addr = priv->reg_phy;
+	ret = generic_phy_get_by_index(dev, 0, &priv->phy);
+	if (ret) {
+		printf("Failed to get USB PHY for %s (%d)\n", dev->name, ret);
+		return ret;
+	}
 
-	debug("%s: otg %p phy %p\n", __func__, priv->reg_otg, priv->reg_phy);
+	clk_get_by_index(dev, 0, &priv->clk);
+
+	debug("%s: otg %p phy %s\n",
+	      __func__, priv->reg_otg, priv->phy.dev->name);
 
 	return 0;
 }
