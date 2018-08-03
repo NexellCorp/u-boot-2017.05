@@ -9,6 +9,9 @@
 #include <usb.h>
 #include <usb/dwc2_udc.h>
 #include <linux/io.h>
+#include <generic-phy.h>
+
+#include "./dwc2_udc_otg_priv.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -18,7 +21,9 @@ static const struct dm_usb_ops dwc2_udc_ops = {
 static int dwc2_udc_ofdata_to_platdata(struct udevice *dev)
 {
 	struct dwc2_plat_otg_data *pdata = dev_get_platdata(dev);
+	struct phy *phy;
 	fdt_addr_t base;
+	int ret;
 
 	debug("%s: %p\n", __func__, pdata);
 
@@ -29,15 +34,21 @@ static int dwc2_udc_ofdata_to_platdata(struct udevice *dev)
 	}
 	pdata->regs_otg = (unsigned int)devm_ioremap(dev, base, SZ_4K);
 
-	base = devfdt_get_addr_index(dev, 1);
-	if (base == FDT_ADDR_T_NONE) {
-		pr_err("'otg' resoure not found");
-		return -EINVAL;
-	}
-	pdata->regs_phy = (unsigned int)devm_ioremap(dev, base, SZ_256);
+	phy = calloc(1, sizeof(*phy));
+	if (!phy)
+		return -ENOMEM;
 
-	debug("%s: otg 0x%x phy 0x%x\n",
-	      __func__, (unsigned int)pdata->regs_otg, pdata->regs_phy);
+	ret = generic_phy_get_by_index(dev, 0, phy);
+	if (ret) {
+		printf("Failed to get USB PHY for %s (%d)\n", dev->name, ret);
+		return ret;
+	}
+
+	/* set phy */
+	pdata->priv = phy;
+
+	debug("%s: otg 0x%x phy %s\n",
+	      __func__, pdata->regs_otg, phy->dev->name);
 
 	return 0;
 }

@@ -8,22 +8,54 @@
 #include <common.h>
 #include <dm.h>
 #include <dm/uclass-internal.h>
+#include <clk.h>
 #include <usb.h>
 #include <usb/dwc2_udc.h>
-#include <mach/usb.h>
+#include <generic-phy.h>
+
+#include "./dwc2_udc_otg_priv.h"
 
 DECLARE_GLOBAL_DATA_PTR;
+
+static struct clk otg_clk;
+
+void otg_phy_init(struct dwc2_udc *dev)
+{
+	struct dwc2_plat_otg_data *pdata = dev->pdata;
+	struct phy *phy = pdata->priv;
+	struct clk *clk = &otg_clk;
+
+	if (clk->dev)
+		clk_enable(clk);
+
+	if (!phy)
+		return;
+
+	generic_phy_init(phy);
+	generic_phy_power_on(phy);
+}
+
+void otg_phy_off(struct dwc2_udc *dev)
+{
+	struct dwc2_plat_otg_data *pdata = dev->pdata;
+	struct phy *phy = pdata->priv;
+	struct clk *clk = &otg_clk;
+
+	if (clk->dev)
+		clk_disable(clk);
+
+	if (!phy)
+		return;
+
+	generic_phy_power_off(phy);
+	generic_phy_exit(phy);
+}
 
 int board_usb_init(int index, enum usb_init_type init)
 {
 	struct dwc2_plat_otg_data *pdata;
-	struct nx_otg_phy *phy;
 	struct udevice *dev, *devp;
 	int ret = 0;
-
-	phy = calloc(1, sizeof(*phy));
-	if (!phy)
-		return -ENOMEM;
 
 	for (ret = uclass_find_first_device(UCLASS_USB, &dev); dev;
 		ret = uclass_find_next_device(&dev)) {
@@ -38,8 +70,7 @@ int board_usb_init(int index, enum usb_init_type init)
 		if (!pdata)
 			continue;
 
-		phy->dev = dev;
-		pdata->priv = phy;
+		clk_get_by_index(dev, 0, &otg_clk);
 
 		debug("USB_udc_probe %s\n", dev->name);
 
