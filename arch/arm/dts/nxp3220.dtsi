@@ -28,7 +28,9 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		compatible = "nexell,dwc2-udc-otg";
-		reg = <0x240c0000 0x1000>, <0x24030000 0x100>;
+		reg = <0x240c0000 0x1000>;
+		clocks = <&clock_usb USB20OTG_0_AHB_CLK>;
+		phys = <&usb2phy 0>;
 		status = "disabled";
 	};
 
