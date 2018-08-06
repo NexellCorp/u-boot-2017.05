@@ -158,12 +158,17 @@ static int nexell_gpio_get_value(struct udevice *dev, unsigned int pin)
 	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
 	void __iomem *base = plat->regs;
 	unsigned int mask = 1UL << pin;
-	unsigned int value;
+	unsigned int value, output;
 
 	if (plat->is_alive)
 		return nexell_alive_get_value(dev, pin);
 
-	value = (readl(base + NEXELL_GPIO_PAD) & mask) >> pin;
+	output = readl(base + NEXELL_GPIO_OUTENB) & mask;
+
+	if (output)
+		value = (readl(base + NEXELL_GPIO_OUT) & mask) >> pin;
+	else
+		value = (readl(base + NEXELL_GPIO_PAD) & mask) >> pin;
 
 	return value;
 }
