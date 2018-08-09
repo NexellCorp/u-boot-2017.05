@@ -59,7 +59,7 @@
 	"initrd_file=uInitrd\0" \
 	"load_args=setenv bootargs \"" \
 		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
-		"rootfstype=${mmc_rootfs_part_type} ${root_rw} " \
+		"rootfstype=${mmc_rootfs_part_type} ${root_rw} rootwait " \
 		"bootpart=/dev/mmcblk${mmc_boot_dev}p${mmc_boot_part} " \
 		"bootpart_type=${mmc_boot_part_type} " \
 		"modulespart=/dev/mmcblk${mmc_boot_dev}p${mmc_modules_part} " \
