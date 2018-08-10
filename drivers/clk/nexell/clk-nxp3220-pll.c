@@ -19,12 +19,14 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define PLL_DIRTYFLAG		(1 << 1)
 #define PLL_RUN_CHANGE		(1 << 0)
+#define PLL_UPDATE_DIRECT	(1 << 15)
 
 #define PMS_RATE(p, i) ((&p[i])->rate)
 #define PMS_P(p, i) ((&p[i])->P)
 #define PMS_M(p, i) ((&p[i])->M)
 #define PMS_S(p, i) ((&p[i])->S)
 #define PMS_K(p, i) ((&p[i])->K)
+
 
 #define PHY_BASEADDR_PLL0			0x27020000
 #define PHY_BASEADDR_PLL1			0x27030000
@@ -43,6 +45,9 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define PLL_TYPE_2555 0
 #define PLL_TYPE_2651 1
+
+#define PLL_RESETB_SET		0
+#define PLL_RESETB_CLEAR	1
 
 #define PLL_INIT(clk_num, addr)	\
 {				\
@@ -211,7 +216,7 @@ static void set_oscmux(unsigned int pll_num, unsigned int muxsel)
 	unsigned int tmp;
 
 	tmp = readl(&base->pll_ctrl);
-	writel(tmp | (muxsel << 3), &base->pll_ctrl);
+	writel((tmp&(~(1<<3))) | (muxsel << 3), &base->pll_ctrl);
 }
 
 static int get_pll_type(int pllno)
@@ -270,12 +275,27 @@ static int set_pll_rate(int pllno, int p, int m, int s, int k)
 	if (clock_is_stable(pllno))
 		return -EINVAL;
 
-	set_oscmux(pllno, PLL_MUX_PLL_FOUT);
+	set_oscmux(pllno, PLL_MUX_OSCCLK);
+
 	writel(p << PLL_P_BITPOS | m << PLL_M_BITPOS, &base->pll_cfg1);
 	writel(s << PLL_S_BITPOS | k << PLL_K_BITPOS, &base->pll_cfg2);
+
+	writel(PLL_RESETB_SET, &base->pll_cfg0);
+
 	tmp = readl(&base->pll_ctrl);
-	writel(tmp | PLL_DIRTYFLAG | PLL_RUN_CHANGE, &base->pll_ctrl);
-	clock_is_stable(pllno);
+	writel(tmp | PLL_DIRTYFLAG , &base->pll_ctrl);
+	writel(tmp | PLL_UPDATE_DIRECT, &base->pll_ctrl);
+
+	udelay(10);
+
+	writel(PLL_RESETB_CLEAR, &base->pll_cfg0);
+
+	tmp = readl(&base->pll_ctrl);
+	writel(tmp | PLL_DIRTYFLAG , &base->pll_ctrl);
+	writel(tmp | PLL_UPDATE_DIRECT, &base->pll_ctrl);
+
+	udelay(200);
+	set_oscmux(pllno, PLL_MUX_PLL_FOUT);
 
 	return 0;
 }
