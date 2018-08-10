@@ -174,10 +174,9 @@ static int clk_grp_enable(struct nx_cmu_priv *priv, unsigned int id)
 	struct clk_cmu_dev *src = NULL;
 	unsigned int reg_idx, reg_bit, src_reg_idx, src_bit;
 
-	if (sys->nc) {
-		printf("CMU %d  is not en/disable\n", id);
+	if (sys->nc)
 		return 0;
-	}
+
 	reg_idx = sys->clkenbit / 32;
 	reg_bit = sys->clkenbit % 32;
 
@@ -209,10 +208,8 @@ static int nx_clk_disable(struct clk *clk)
 	struct clk_cmu_dev *src = NULL;
 	unsigned int reg_idx, reg_bit, src_reg_idx, src_bit;
 
-	if (sys->nc) {
-		printf("CMU %ld is not disable\n", clk->id);
-		return -EINVAL;
-	}
+	if (sys->nc)
+		return 0;
 
 	reg_idx = sys->clkenbit / 32;
 	reg_bit = sys->clkenbit % 32;
