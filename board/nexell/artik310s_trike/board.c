@@ -31,8 +31,10 @@ void set_board_info(void)
 	rst_config &= BOOTMODE_MASK;
 
 	/* set boot device only if it was sdmmc boot */
-	if (rst_config == BOOTMODE_SDMMC)
+	if (rst_config == BOOTMODE_SDMMC) {
 		env_set_ulong("mmc_boot_dev", 2);
+		env_set("dfu_alt_info", CONFIG_DFU_ALT_BOOT_SD);
+	}
 }
 #endif
 
