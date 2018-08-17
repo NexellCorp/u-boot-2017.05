@@ -129,4 +129,8 @@
 	status = "okay";
 };
 
+&usb2phy {
+	status = "okay";
+};
+
 #include "nxp3220-vtk-sm5011.dtsi"
