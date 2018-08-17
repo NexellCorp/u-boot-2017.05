@@ -33,6 +33,7 @@
 #define CONFIG_SYS_LOAD_ADDR	0x48000000
 #define FDT_ADDR		0x49000000
 #define INITRD_ADDR		0x49100000
+#define FIT_ADDR		0x43000000
 
 /* Console I/O Buffer Size  */
 #define CONFIG_SYS_CBSIZE	1024

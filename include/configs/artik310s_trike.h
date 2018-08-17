@@ -23,6 +23,10 @@
 		"fi;" \
 		"run load_args;" \
 		"bootz ${kernel_addr} ${initrd_addr} ${fdt_addr}\0" \
+	"boot_fit=" \
+		"run load_fit;" \
+		"run load_args;" \
+		"bootm ${fit_addr}\0" \
 	"boot_tftp=" \
 		"tftp ${kernel_addr} ${serverip}:${kernel_file};" \
 		"tftp ${fdt_addr} ${serverip}:${fdt_file};" \
@@ -47,7 +51,9 @@
 		"factory_info write eth1addr $eth1addr; " \
 		"run factory_save\0" \
 	"fdt_addr=" __stringify(FDT_ADDR) "\0" \
+	"fit_addr=" __stringify(FIT_ADDR) "\0" \
 	"fdt_file=sip-s31nx-artik310s-trike-rev00.dtb\0" \
+	"fit_file=fitImage\0" \
 	"format_emmc=" \
 		"gpt write mmc 0 $partitions;" \
 		"mmc rescan;" \
@@ -72,6 +78,8 @@
 		"datapart_type=${mmc_data_part_type} " \
 		"${console} ${log_msg} ${opts}" \
 		"\"\0" \
+	"load_fit=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fit_addr} " \
+		"${fit_file}\0" \
 	"load_kernel=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} " \
 		"${kernel_file}\0" \
 	"load_initrd=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrdaddr} " \
