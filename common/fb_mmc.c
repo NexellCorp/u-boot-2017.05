@@ -259,6 +259,37 @@ static int fb_mmc_update_zimage(struct blk_desc *dev_desc,
 }
 #endif
 
+void fb_mmc_flash_write_hw(const char *cmd, void *download_buffer,
+		unsigned int download_bytes, struct blk_desc *dev_desc,
+		disk_partition_t *info)
+{
+	struct mmc *mmc;
+	int part_num_bkp;
+	int ret;
+
+	mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
+	mmc_init(mmc);
+
+	part_num_bkp = mmc_get_blk_desc(mmc)->hwpart;
+	ret = blk_select_hwpart_devnum(IF_TYPE_MMC,
+			CONFIG_FASTBOOT_FLASH_MMC_DEV, 1);
+	if (ret) {
+		printf("switch to partitions %d error\n", 1);
+		return;
+	}
+
+	write_raw_image(dev_desc, info, cmd, download_buffer, download_bytes);
+
+	ret = blk_select_hwpart_devnum(IF_TYPE_MMC,
+			CONFIG_FASTBOOT_FLASH_MMC_DEV, part_num_bkp);
+	if (ret) {
+		printf("switch to partitions %d error\n", part_num_bkp);
+		return;
+	}
+
+	fastboot_okay("");
+}
+
 void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 			unsigned int download_bytes)
 {
@@ -314,38 +345,46 @@ void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 #endif
 #ifdef CONFIG_ARCH_NEXELL
 	if (strcmp(cmd, "bootloader") == 0) {
-		struct mmc *mmc;
-		int part_num_bkp;
-		int ret;
-
-		mmc = find_mmc_device(CONFIG_FASTBOOT_FLASH_MMC_DEV);
-		mmc_init(mmc);
-
-		part_num_bkp = mmc_get_blk_desc(mmc)->hwpart;
-		ret = blk_select_hwpart_devnum(IF_TYPE_MMC,
-				CONFIG_FASTBOOT_FLASH_MMC_DEV, 1);
-		if (ret) {
-			printf("switch to partitions %d error\n", 1);
-			return;
-		}
-
-		/* WIP: hard corded data
-		 * blocksize = 512, bootloader max size = 3M
-		 * */
 		info.start = 0;
-		info.size = 6144;
+		info.size = 0x1800;
 		info.blksz = 512;
-		write_raw_image(dev_desc, &info, cmd, download_buffer,
-				download_bytes);
-
-		ret = blk_select_hwpart_devnum(IF_TYPE_MMC,
-				CONFIG_FASTBOOT_FLASH_MMC_DEV, part_num_bkp);
-		if (ret) {
-			printf("switch to partitions %d error\n", part_num_bkp);
-			return;
-		}
-
-		fastboot_okay("");
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
+		return;
+	} else if (strcmp(cmd, "bl1") == 0) {
+		info.start = 0;
+		info.size = 0x80;
+		info.blksz = 512;
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
+		return;
+	} else if (strcmp(cmd, "bl2") == 0) {
+		info.start = 0xa2;
+		info.size = 0x80;
+		info.blksz = 512;
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
+		return;
+	} else if (strcmp(cmd, "sss") == 0) {
+		info.start = 0x122;
+		info.size = 0x40;
+		info.blksz = 512;
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
+		return;
+	} else if (strcmp(cmd, "bl32") == 0) {
+		info.start = 0x162;
+		info.size = 0x1000;
+		info.blksz = 512;
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
+		return;
+	} else if (strcmp(cmd, "uboot") == 0) {
+		info.start = 0x1162;
+		info.size = 0x800;
+		info.blksz = 512;
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
 		return;
 	}
 #endif
