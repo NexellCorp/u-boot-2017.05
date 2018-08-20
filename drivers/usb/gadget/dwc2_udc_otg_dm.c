@@ -11,9 +11,7 @@
 #include <linux/io.h>
 #include <generic-phy.h>
 
-#include "./dwc2_udc_otg_priv.h"
-
-DECLARE_GLOBAL_DATA_PTR;
+#include "dwc2_udc_otg_priv.h"
 
 static const struct dm_usb_ops dwc2_udc_ops = {
 };
@@ -47,7 +45,7 @@ static int dwc2_udc_ofdata_to_platdata(struct udevice *dev)
 	/* set phy */
 	pdata->priv = phy;
 
-	debug("%s: otg 0x%x phy %s\n",
+	debug("%s: otg 0x%lx phy %s\n",
 	      __func__, pdata->regs_otg, phy->dev->name);
 
 	return 0;
