@@ -296,7 +296,6 @@ static int nexell_eqos_probe(struct udevice *dev)
 	struct eqos_priv *eqos = dev_get_priv(dev);
 	const char *phy_mode;
 	struct ofnode_phandle_args phandle_args;
-	int phy;
 	int ret;
 
 	eqos->regs = devfdt_get_addr(dev);
