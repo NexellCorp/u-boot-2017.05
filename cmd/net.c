@@ -447,6 +447,7 @@ U_BOOT_CMD(
 #endif  /* CONFIG_CMD_LINK_LOCAL */
 
 #if defined(CONFIG_CMD_GEN_ETHADDR)
+#include <environment.h>
 int do_gen_eth_addr(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 {
 	uchar addr[6];
