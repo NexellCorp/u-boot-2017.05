@@ -26,5 +26,6 @@ config SYS_CONFIG_NAME
 
 source "board/nexell/artik310s_trike/Kconfig"
 source "board/nexell/nxp3220_vtk/Kconfig"
+source "board/nexell/common/Kconfig"
 
 endif

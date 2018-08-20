@@ -6,3 +6,4 @@
 #
 
 obj-$(CONFIG_ARCH_SIP_S31NX)		+= mac.o
+obj-$(CONFIG_ARTIK_OTA)			+= ota.o
