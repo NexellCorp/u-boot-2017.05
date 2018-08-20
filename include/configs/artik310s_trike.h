@@ -11,7 +11,6 @@
 #include "artik310s_common.h"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"autoboot=run boot_initrd\0" \
 	"bootdelay=" __stringify(CONFIG_BOOTDELAY) "\0" \
 	"boot_initrd=" \
 		"run load_kernel;" \
