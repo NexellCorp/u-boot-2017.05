@@ -90,6 +90,13 @@ static void set_board_rev(void)
 
 #endif
 
+#ifndef CONFIG_SYS_DCACHE_OFF
+void enable_caches(void)
+{
+	dcache_enable();
+}
+#endif
+
 int board_init(void)
 {
 #ifdef CONFIG_REVISION_TAG
