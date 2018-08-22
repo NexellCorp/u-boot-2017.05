@@ -66,6 +66,7 @@
 		"mmc rescan\0" \
 	"initrdaddr=" __stringify(INITRD_ADDR) "\0" \
 	"initrd_file=uInitrd\0" \
+	"rescue=0\0" \
 	"load_args=setenv bootargs \"" \
 		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
 		"rootfstype=${mmc_rootfs_part_type} ${root_rw} rootwait " \
@@ -79,13 +80,33 @@
 		"secpart_type=${mmc_sec_part_type} " \
 		"datapart=/dev/mmcblk${mmc_boot_dev}p${mmc_data_part} " \
 		"datapart_type=${mmc_data_part_type} " \
-		"board_type=${board_type} " \
+		"board_type=${board_type} rescue=${rescue} ${ota} " \
 		"${console} ${log_msg} ${opts}" \
 		"\"\0" \
-	"load_fit=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fit_addr} " \
-		"${fit_file}\0" \
-	"load_kernel=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} " \
-		"${kernel_file}\0" \
+	"load_fit=" \
+		"ret=0; " \
+		"load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fit_addr} ${fit_file} && setexpr ret 1; " \
+		"if test ${ret} -eq 0; then " \
+			"if test ${mmc_boot_part} -eq "__stringify(MMC_BOOT_A_PART) "; then " \
+				"setenv mmc_boot_part "__stringify(MMC_BOOT_B_PART)  ";" \
+			"else " \
+				"setenv mmc_boot_part "__stringify(MMC_BOOT_A_PART) ";" \
+			"fi; " \
+			"setenv rescue 1; " \
+			"load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fit_addr} ${fit_file}; " \
+		"fi;\0" \
+	"load_kernel=" \
+		"ret=0;" \
+		"load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file} && setexpr ret 1; " \
+		"if test ${ret} -eq 0; then " \
+			"if test ${mmc_boot_part} -eq "__stringify(MMC_BOOT_A_PART) "; then " \
+				"setenv mmc_boot_part "__stringify(MMC_BOOT_B_PART)  ";" \
+			"else " \
+				"setenv mmc_boot_part "__stringify(MMC_BOOT_A_PART) ";" \
+			"fi; " \
+			"setenv rescue 1; " \
+			"load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file}; " \
+		"fi;\0" \
 	"load_initrd=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrdaddr} " \
 		"${initrd_file}\0" \
 	"load_fdt=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} " \

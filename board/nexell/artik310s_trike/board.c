@@ -18,6 +18,10 @@
 #include <power/regulator.h>
 #endif
 
+#ifdef CONFIG_ARTIK_OTA
+#include <artik_ota.h>
+#endif
+
 #define REG_RST_CONFIG	0x2008c86c
 #define BOOTMODE_MASK	0x7
 #define BOOTMODE_SDMMC	0x3
@@ -185,6 +189,9 @@ int misc_init_r(void)
 #endif
 #ifdef CONFIG_BOARD_TYPES
 	env_set("board_type", board_type);
+#endif
+#ifdef CONFIG_ARTIK_OTA
+	check_ota_update();
 #endif
 	return 0;
 }

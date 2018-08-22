@@ -95,6 +95,15 @@
 #define CONFIG_MISC_INIT_R
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
 
+#if defined(CONFIG_ARTIK_OTA)
+#define MMC_BOOT_A_PART		2
+#define MMC_BOOT_B_PART		3
+#define MMC_MODULES_A_PART	4
+#define MMC_MODULES_B_PART	5
+#define MMC_ROOT_A_PART		8
+#define MMC_ROOT_B_PART		9
+#endif
+
 /* USB Device Firmware Update support */
 #define DFU_ALT_INFO_RAM \
 	"dfu_alt_info_ram=" \
