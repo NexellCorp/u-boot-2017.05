@@ -140,6 +140,11 @@ static void setup_adc_con(struct nexell_adc_priv *priv)
 
 	writel(ADC_INTCLR_CLR, base + REG_INTCLR);
 	writel(ADC_INTENB_ENB, base + REG_INTENB);
+
+	/* It takes time to stabilized after ADC driver probe
+	 * Minimum 6 clocks of CLK are needed for ADC operation setup
+	 */
+	udelay(10);
 }
 
 #define _ceil(x, y) \
