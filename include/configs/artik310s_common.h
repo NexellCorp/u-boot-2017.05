@@ -30,7 +30,7 @@
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + MEMTEST_SIZE)
 
 /* kernel load address */
-#define CONFIG_SYS_LOAD_ADDR	0x48000000
+#define CONFIG_SYS_LOAD_ADDR	0x40008000
 #define FDT_ADDR		0x49000000
 #define INITRD_ADDR		0x49100000
 #define FIT_ADDR		0x43000000
@@ -98,7 +98,7 @@
 #define DFU_ALT_INFO_RAM \
 	"dfu_alt_info_ram=" \
 	"setenv dfu_alt_info " \
-	"kernel ram 0x48000000 0xD80000\\\\;" \
+	"kernel ram " __stringify(CONFIG_SYS_LOAD_ADDR) " 0xD80000\\\\;" \
 	"fdt ram 0x49000000 0x80000\\\\;" \
 	"ramdisk ram 0x49100000 0x4000000\0" \
 	"dfu_ram=run dfu_alt_info_ram && dfu 0 ram 0\0" \
