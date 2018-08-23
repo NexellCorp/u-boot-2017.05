@@ -79,6 +79,7 @@
 #define SEC_PART_SIZE		128
 
 #define CONFIG_REVISION_TAG
+#define CONFIG_BOARD_TYPES
 
 /*
  * Default environment organization

@@ -79,6 +79,7 @@
 		"secpart_type=${mmc_sec_part_type} " \
 		"datapart=/dev/mmcblk${mmc_boot_dev}p${mmc_data_part} " \
 		"datapart_type=${mmc_data_part_type} " \
+		"board_type=${board_type} " \
 		"${console} ${log_msg} ${opts}" \
 		"\"\0" \
 	"load_fit=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fit_addr} " \
