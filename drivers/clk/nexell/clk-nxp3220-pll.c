@@ -268,7 +268,7 @@ static int clock_is_stable(int pll_num)
 static int set_pll_rate(int pllno, int p, int m, int s, int k)
 {
 	struct nx_pll_reg *base;
-	unsigned int tmp;
+	unsigned int tmp, i, j;
 
 	base = (struct nx_pll_reg *)get_pll_baseaddr(pllno);
 
@@ -286,15 +286,21 @@ static int set_pll_rate(int pllno, int p, int m, int s, int k)
 	writel(tmp | PLL_DIRTYFLAG , &base->pll_ctrl);
 	writel(tmp | PLL_UPDATE_DIRECT, &base->pll_ctrl);
 
-	udelay(10);
+	tmp = readl(&base->pll_dbg0);
+
+	while ((readl(&base->pll_dbg0) - tmp) < 500)
+		;
 
 	writel(PLL_RESETB_CLEAR, &base->pll_cfg0);
 
 	tmp = readl(&base->pll_ctrl);
 	writel(tmp | PLL_DIRTYFLAG , &base->pll_ctrl);
 	writel(tmp | PLL_UPDATE_DIRECT, &base->pll_ctrl);
+	tmp = readl(&base->pll_dbg0);
 
-	udelay(200);
+	while ((readl(&base->pll_dbg0) - tmp) < 4000)
+		;
+
 	set_oscmux(pllno, PLL_MUX_PLL_FOUT);
 
 	return 0;
