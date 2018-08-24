@@ -99,8 +99,9 @@
 	"dfu_alt_info_ram=" \
 	"setenv dfu_alt_info " \
 	"kernel ram " __stringify(CONFIG_SYS_LOAD_ADDR) " 0xD80000\\\\;" \
-	"fdt ram 0x49000000 0x80000\\\\;" \
-	"ramdisk ram 0x49100000 0x4000000\0" \
+	"fdt ram " __stringify(FDT_ADDR) " 0x80000\\\\;" \
+	"ramdisk ram " __stringify(INITRD_ADDR) " 0x4000000\\\\;" \
+	"fit ram " __stringify(FIT_ADDR) " 0x4000000\0" \
 	"dfu_ram=run dfu_alt_info_ram && dfu 0 ram 0\0" \
 	"thor_ram=run dfu_ram_info && thordown 0 ram 0\0"
 
@@ -124,10 +125,10 @@
 #define DFU_ALT_INFO \
 	"dfu_alt_info=" \
 	DFU_ALT_BOOT_EMMC \
-	"zImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"Image.itb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"uInitrd ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"sip-s31nx-artik310s-trike-rev00.dtb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	"/zImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	"/fitImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	"/uInitrd ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	"/sip-s31nx-artik310s-trike-rev00.dtb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
 	"boot.img part 0 " __stringify(MMC_BOOT_PART) ";" \
 	"modules.img part 0 " __stringify(MMC_MODULES_PART) ";" \
 	"firmware.img part 0 " __stringify(MMC_FIRMWARE_PART) ";" \
@@ -137,16 +138,16 @@
 
 #define CONFIG_DFU_ALT_BOOT_SD \
 	DFU_ALT_BOOT_SD \
-	"zImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"Image.itb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"uInitrd ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"sip-s31nx-artik310s-trike-rev00.dtb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"boot.img part 0 " __stringify(MMC_BOOT_PART) ";" \
-	"modules.img part 0 " __stringify(MMC_MODULES_PART) ";" \
-	"firmware.img part 0 " __stringify(MMC_FIRMWARE_PART) ";" \
-	"rootfs.img part 0 " __stringify(MMC_ROOTFS_PART) ";" \
-	"sec.img part 0 " __stringify(MMC_SEC_PART) ";" \
-	"data.img part 0 " __stringify(MMC_DATA_PART) "\0"
+	"/zImage ext4 2 " __stringify(MMC_BOOT_PART) ";" \
+	"/fitImage ext4 2 " __stringify(MMC_BOOT_PART) ";" \
+	"/uInitrd ext4 2 " __stringify(MMC_BOOT_PART) ";" \
+	"/sip-s31nx-artik310s-trike-rev00.dtb ext4 2 " __stringify(MMC_BOOT_PART) ";" \
+	"boot.img part 2 " __stringify(MMC_BOOT_PART) ";" \
+	"modules.img part 2 " __stringify(MMC_MODULES_PART) ";" \
+	"firmware.img part 2 " __stringify(MMC_FIRMWARE_PART) ";" \
+	"rootfs.img part 2 " __stringify(MMC_ROOTFS_PART) ";" \
+	"sec.img part 2 " __stringify(MMC_SEC_PART) ";" \
+	"data.img part 2 " __stringify(MMC_DATA_PART) "\0"
 
 #define PARTS_DEFAULT \
 	"uuid_disk=${uuid_gpt_disk};" \
