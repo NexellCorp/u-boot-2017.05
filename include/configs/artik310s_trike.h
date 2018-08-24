@@ -32,6 +32,10 @@
 		"tftp ${initrdaddr} ${serverip}:${initrd_file};" \
 		"run load_args;" \
 		"bootz ${kernel_addr} ${initrdaddr} ${fdt_addr}\0" \
+	"boot_tftp_fit=" \
+		"tftp ${fit_addr} ${serverip}:${fit_file};" \
+		"run load_args;" \
+		"bootm ${fit_addr}\0" \
 	"console=" CONFIG_DEFAULT_CONSOLE \
 	"dfu_bufsiz=0x2000000\0" \
 	DFU_ALT_INFO \
