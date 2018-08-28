@@ -203,11 +203,11 @@ static int nexell_dwmmc_probe(struct udevice *dev)
 	struct dwmci_host *host = &priv->host;
 	int err;
 
-	err =  nx_dw_mmc_setup(gd->fdt_blob, dev, host);
+	err = clk_get_by_index(dev, 0 , &priv->clk);
 	if (err)
 		return err;
 
-	err = clk_get_by_index(dev, 0 , &priv->clk);
+	err = nx_dw_mmc_setup(gd->fdt_blob, dev, host);
 	if (err)
 		return err;
 
