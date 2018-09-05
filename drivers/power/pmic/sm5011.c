@@ -130,6 +130,15 @@ static int sm5011_probe(struct udevice *dev)
 
 	sm5011_read(dev, SM5011_REG_DEVICEID, &value, 1);
 
+	printf("SM5011: Rev %02x", value >> 4);
+
+	sm5011_read(dev, SM5011_REG_PWRONREG, &value, 1);
+	printf(" [%02x", value);
+	sm5011_read(dev, SM5011_REG_PWROFFREG, &value, 1);
+	printf("/%02x", value);
+	sm5011_read(dev, SM5011_REG_REBOOTREG, &value, 1);
+	printf("/%02x]\n", value);
+
 	debug("%s:%d: CHIP ID=0x%02x\n ", __func__, __LINE__, value);
 
 	return 0;
