@@ -31,6 +31,12 @@
 	chosen {
 		stdout-path = "serial0:115200n8";
 	};
+
+	board_type: board-type {
+		compatible = "artik,boardtype";
+		en-gpio = <&gpio_c 5 0>;
+		adc = <&adc 2>;
+	};
 };
 
 &clock_sys {
