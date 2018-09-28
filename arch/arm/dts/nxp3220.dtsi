@@ -262,6 +262,17 @@
 		reg = <0x25030000 0x60>;
 	};
 
+	reboot_alive: alive@2008d000 {
+		compatible = "syscon", "simple-mfd";
+		reg = <0x2008d000 0x110>;
+
+		boot_mode: boot-mode {
+			compatible = "nexell,boot-mode";
+			syscon = <&reboot_alive>;
+			offset = <0xd8>;        /* ALIVE_SCRATCHRSTREG4 */
+		};
+	};
+
 	timer0: timer@208c0000 {
 		compatible = "nexell,nxp3220-timer";
 		reg = <0x208c0000 0x100>;
