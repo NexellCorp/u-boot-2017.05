@@ -13,6 +13,7 @@
 #include <dm.h>
 #include <adc.h>
 #include "../common/artik_mac.h"
+#include "../common/boot_mode.h"
 
 #ifdef CONFIG_DM_REGULATOR
 #include <power/regulator.h>
@@ -190,6 +191,9 @@ int misc_init_r(void)
 #ifdef CONFIG_BOARD_TYPES
 	env_set("board_type", board_type);
 #endif
+
+	check_boot_mode();
+
 #ifdef CONFIG_ARTIK_OTA
 	check_ota_update();
 #endif
