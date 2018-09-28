@@ -50,6 +50,8 @@
 
 #define CONFIG_HAS_ETH1
 
+#define CONFIG_PREBOOT
+
 /* For SD/MMC */
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_SUPPORT_EMMC_BOOT
