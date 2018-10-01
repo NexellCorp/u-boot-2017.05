@@ -6,45 +6,83 @@
 #include <mmc.h>
 #include <artik_ota.h>
 
-static void write_flag_partition(u32 dev, char *buf)
+static int write_flag_partition(u32 dev, struct boot_header *hdr)
 {
 	struct mmc *mmc;
-	u32 n;
+	char buf[FLAG_PART_BLOCK_SIZE * BLOCK_SIZE] = {0,  };
+	int part_num_bkp;
+	int ret;
 
 	mmc = find_mmc_device(dev);
 	if (!mmc) {
 		printf("no mmc device at slot %x\n", 1);
-		return;
+		return -ENODEV;
+	}
+	mmc_init(mmc);
+
+	part_num_bkp = mmc_get_blk_desc(mmc)->hwpart;
+	ret = blk_select_hwpart_devnum(IF_TYPE_MMC, 0, 1);
+	if (ret) {
+		printf("switch to partitions %d error\n", 1);
+		return ret;
 	}
 
-	n = blk_dwrite(mmc_get_blk_desc(mmc), FLAG_PART_BLOCK_START,
-			FLAG_PART_BLOCK_SIZE, buf);
-	if (n < FLAG_PART_BLOCK_SIZE)
+	memcpy(buf, hdr, sizeof(struct boot_header));
+	hdr->checksum =
+		crc32(0, (unsigned char *)&hdr->blocks, sizeof(struct blocks));
+
+	if (blk_dwrite(mmc_get_blk_desc(mmc), FLAG_PART_BLOCK_START,
+			FLAG_PART_BLOCK_SIZE, hdr) < FLAG_PART_BLOCK_SIZE)
 		printf("Cannot write flag information\n");
+
+	ret = blk_select_hwpart_devnum(IF_TYPE_MMC, 0, part_num_bkp);
+	if (ret) {
+		printf("switch to partitions %d error\n", part_num_bkp);
+		return ret;
+	}
+
+	return 0;
 }
 
-static struct boot_info *read_flag_partition(u32 dev, char *buf)
+static int read_flag_partition(u32 dev, struct boot_header *hdr)
 {
 	struct mmc *mmc;
-	u32 n;
+	char buf[FLAG_PART_BLOCK_SIZE * BLOCK_SIZE] = {0,  };
+	int part_num_bkp;
+	int ret;
 
 	mmc = find_mmc_device(dev);
 	if (!mmc) {
 		printf("no mmc device at slot %x\n", 1);
-		return NULL;
+		return -ENODEV;
+	}
+	mmc_init(mmc);
+
+	part_num_bkp = mmc_get_blk_desc(mmc)->hwpart;
+	ret = blk_select_hwpart_devnum(IF_TYPE_MMC, 0, 1);
+	if (ret) {
+		printf("switch to partitions %d error\n", 1);
+		return ret;
 	}
 
-	n = blk_dread(mmc_get_blk_desc(mmc), FLAG_PART_BLOCK_START,
-			FLAG_PART_BLOCK_SIZE, buf);
-	if (n < FLAG_PART_BLOCK_SIZE)
+	if (blk_dread(mmc_get_blk_desc(mmc), FLAG_PART_BLOCK_START,
+			FLAG_PART_BLOCK_SIZE, buf) < FLAG_PART_BLOCK_SIZE)
 		printf("Cannot read flag informatin\n");
 
-	return (struct boot_info *)buf;
+	ret = blk_select_hwpart_devnum(IF_TYPE_MMC, 0, part_num_bkp);
+	if (ret) {
+		printf("switch to partitions %d error\n", part_num_bkp);
+		return ret;
+	}
+
+	memcpy(hdr, buf, sizeof(struct boot_header));
+
+	return 0;
 }
 
-static inline void update_partition_env(enum boot_part part_num)
+static inline void update_partition_env(enum part_active active)
 {
-	if (part_num == PART0) {
+	if (active == PART_A) {
 		env_set("mmc_boot_part", __stringify(MMC_BOOT_A_PART));
 		env_set("mmc_modules_part", __stringify(MMC_MODULES_A_PART));
 	} else {
@@ -55,72 +93,74 @@ static inline void update_partition_env(enum boot_part part_num)
 
 int check_ota_update(void)
 {
-	struct boot_info *boot;
-	struct part_info *cur_part, *bak_part;
+	struct boot_header hdr;
+	BLOCK *block;
+	PART *part;
 	char *bootdev;
-	char flag[128 * 1024] = {0, };
 	u32 boot_device;
 
-	env_set("ota", "ota");
-	/* Check booted device */
+	/* Check boot device (Support only eMMC boot)*/
 	bootdev = env_get("mmc_boot_dev");
 	boot_device = simple_strtoul(bootdev, NULL, 10);
+	if (boot_device != 0)
+		return 0;
 
-	/* Read flag information */
-	boot = read_flag_partition(boot_device, flag);
-	if ((boot != NULL) &&
-			(strncmp(boot->header_magic, HEADER_MAGIC, 32) != 0)) {
-		printf("Wrong FLAG information\n");
+	env_set("ota", "ota");
+	/* Read & check flag information */
+	if (read_flag_partition(boot_device, &hdr) < 0)
 		return -1;
+
+	if (strncmp(hdr.header_magic, HEADER_MAGIC, 32) != 0) {
+		printf("Broken FLAG information\n");
+		return -EINVAL;
 	}
 
-	if (boot->part_num == PART0) {
-		cur_part = &boot->part0;
-		bak_part = &boot->part1;
-	} else {
-		cur_part = &boot->part1;
-		bak_part = &boot->part0;
+	if (hdr.checksum != crc32(0, (unsigned char *)&hdr.blocks,
+				sizeof(struct blocks))) {
+		printf("Tainted FLAG information\n");
+		return -EINVAL;
 	}
 
-	switch (boot->state) {
-	case BOOT_SUCCESS:
-		printf("Booting Partition: %s(Normal)\n",
-				boot->part_num == PART0 ? "PART0" : "PART1");
-		update_partition_env(boot->part_num);
+	/* Checks status */
+	block = &hdr.blocks.block_boot;
+
+	switch (block->b_state) {
+	case SUCCESS:
+		printf("OTA: Booting Partition: %s (Normal)\n",
+			block->active == PART_A ? "PART_A" : "PART_B");
 		env_set("rescue", "0");
+		update_partition_env(block->active);
 		break;
-	case BOOT_UPDATED:
-		if (cur_part->retry > 0) {
-			printf("Booting Partition: %s (Updated)\n",
-				boot->part_num == PART0 ? "PART0" : "PART1");
-			cur_part->retry--;
+	case UPDATE:
+		(block->active == PART_A) ?
+			(part = &block->part_a) : (part = &block->part_b);
+		if (part->retry > 0) { /* Success */
+			printf("OTA: Booting Partition: %s (Updated)\n",
+				block->active == PART_A ? "PART_A" : "PART_B");
+			part->retry--;
 			env_set("bootdelay", "0");
 			env_set("rescue", "0");
-		/* Handling Booting Fail */
-		} else if (cur_part->retry == 0) {
-			printf("Booting Partition: %s (Failed)\n",
-				boot->part_num == PART0 ? "PART0" : "PART1");
+			update_partition_env(block->active);
+		} else if (part->retry == 0) { /* Fail */
+			printf("OTA: Booting Partition: %s (Recovery)\n",
+				block->active == PART_A ? "PART_B" : "PART_A");
 			printf("OTA: Back to backup partiton\n");
-			cur_part->state = BOOT_FAILED;
-			if (bak_part->state == BOOT_SUCCESS) {
-				if (boot->part_num == PART0)
-					boot->part_num = PART1;
-				else
-					boot->part_num = PART0;
-				boot->state = BOOT_SUCCESS;
-				env_set("rescue", "1");
-			} else {
-				boot->state = BOOT_FAILED;
-			}
+			part->p_state = FAIL;
+			env_set("rescue", "1");
+			if (block->active == PART_A)
+				update_partition_env(PART_B);
+			else
+				update_partition_env(PART_A);
 		}
 
-		update_partition_env(boot->part_num);
-		write_flag_partition(boot_device, flag);
+		write_flag_partition(boot_device, &hdr);
 		break;
-	case BOOT_FAILED:
+	case FAIL:
 	default:
-		printf("Booting State = Abnormal\n");
-		update_partition_env(PART0);
+		printf("Booting Partition: %s (Failed)\n",
+			block->active == PART_A ? "PART_A" : "PART_B");
+		env_set("rescue", "1");
+		update_partition_env(block->active);
 		return -1;
 	}
 

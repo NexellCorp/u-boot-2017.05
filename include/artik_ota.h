@@ -8,36 +8,63 @@
 #ifndef __ARTIK_OTA_H
 #define __ARTIK_OTA_H
 
-#define FLAG_PART_BLOCK_START	0x2000
+#define HEADER_MAGIC		"ARTIK_OTA_V2"
+#define VERSION_MAJOR		2
+#define VERSION_MINOR		0
+
+#define FLAG_OFFSET		(3712 * 1024)
+#define CMD_LEN			1024
+#define TAG_SIZE		128
+#define NAME_SIZE		32
+#define MB			(1024 * 1024)
+
+#define FLAG_PART_BLOCK_START	0x1D00
 #define FLAG_PART_BLOCK_SIZE	0x100
-#define HEADER_MAGIC		"ARTIK_OTA"
-#define CMD_LEN			128
-#define MMC_DEV_NUM		0
-#define SD_DEV_NUM		1
+#define BLOCK_SIZE		512
 
-enum boot_part {
-	PART0		= 0,
-	PART1,
+enum part_active {
+	PART_A	= 0,
+	PART_B,
 };
 
-enum boot_state {
-	BOOT_FAILED	= 0,
-	BOOT_SUCCESS,
-	BOOT_UPDATED,
+enum part_state {
+	UNUSED = 0,
+	FAIL,
+	SUCCESS,
+	UPDATE,
 };
 
-struct part_info {
-	enum boot_state state;
-	char retry;
-	char tag[32];
+typedef struct part_info {
+	enum part_state p_state;
+	uint8_t retry;
+	uint8_t part_n;
+	char tag[TAG_SIZE];
+	uint32_t checksum;
+}PART;
+
+typedef struct block_info {
+	char block_name[NAME_SIZE];
+	enum part_active active;
+	enum part_state b_state;
+	PART part_a;
+	PART part_b;
+}BLOCK;
+
+struct blocks {
+	BLOCK block_boot;	/* boot */
+	BLOCK block_module;	/* modules */
+	BLOCK block_res1;	/* firmware */
+	BLOCK block_res2;	/* rootfs */
+	BLOCK block_res3;	/* reserved */
+	BLOCK block_res4;	/* reserved */
 };
 
-struct boot_info {
+struct boot_header {
 	char header_magic[32];
-	enum boot_part part_num;
-	enum boot_state state;
-	struct part_info part0;
-	struct part_info part1;
+	uint8_t major;
+	uint8_t minor;
+	uint32_t checksum;
+	struct blocks blocks;
 };
 
 int check_ota_update(void);
