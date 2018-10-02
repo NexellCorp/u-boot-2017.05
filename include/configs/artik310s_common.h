@@ -163,7 +163,7 @@
 
 #define PARTS_DEFAULT \
 	"uuid_disk=${uuid_gpt_disk};" \
-	"name=flag,start=4MiB,size=128KiB,uuid=${uuid_gpt_flag};" \
+	"name=reserved,start=4MiB,size=128KiB,uuid=${uuid_gpt_reserved};" \
 	"name=boot_a,start=" __stringify(BOOT_PART_ALIGN) "MiB,size=" \
 		__stringify(BOOT_PART_SIZE) "MiB,uuid=${uuid_gpt_boot_a};" \
 	"name=boot_b,size=" __stringify(BOOT_PART_SIZE) "MiB,uuid=${uuid_gpt_boot_b};" \
