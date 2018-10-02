@@ -386,6 +386,13 @@ void fb_mmc_flash_write(const char *cmd, void *download_buffer,
 		fb_mmc_flash_write_hw(cmd, download_buffer,
 				download_bytes, dev_desc, &info);
 		return;
+	} else if (strcmp(cmd, "flag") == 0) {
+		info.start = 0x1D00;
+		info.size = 0x100;
+		info.blksz = 512;
+		fb_mmc_flash_write_hw(cmd, download_buffer,
+				download_bytes, dev_desc, &info);
+		return;
 	}
 #endif
 
