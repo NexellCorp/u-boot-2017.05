@@ -119,6 +119,8 @@ static struct fi_entity *alloc_new_entity(const char *name, int name_len,
 		const char *val, int val_len)
 {
 	struct fi_entity *entity = malloc(sizeof(struct fi_entity));
+	if (!entity)
+		return NULL;
 	entity->e_hdr.name_len = name_len;
 	entity->e_hdr.val_len = val_len;
 	entity->name = alloc_string(name, name_len);
