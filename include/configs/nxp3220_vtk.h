@@ -49,17 +49,25 @@
 		"mmc rescan;" \
 		"mmc partconf 0 0 1 1;" \
 		"mmc bootbus 0 2 0 0;" \
+		"mmc rst-function 0 1;" \
 		"mmc rescan\0" \
 	"initrd_addr=" __stringify(INITRD_ADDR) "\0" \
 	"initrd_file=uInitrd\0" \
-	"load_args=setenv bootargs " \
+	"load_args=setenv bootargs \"" \
 		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
 		"rootfstype=${mmc_rootfs_part_type} ${root_rw} " \
 		"bootpart=/dev/mmcblk${mmc_boot_dev}p${mmc_boot_part} " \
 		"bootpart_type=${mmc_boot_part_type} " \
 		"modulespart=/dev/mmcblk${mmc_boot_dev}p${mmc_modules_part} " \
 		"modulespart_type=${mmc_modules_part_type} " \
-		"${console} ${log_msg} ${opts}\0" \
+		"firmwarepart=/dev/mmcblk${mmc_boot_dev}p${mmc_firmware_part} " \
+		"firmwarespart_type=${mmc_firmware_part_type} " \
+		"secpart=/dev/mmcblk${mmc_boot_dev}p${mmc_sec_part} " \
+		"secpart_type=${mmc_sec_part_type} " \
+		"datapart=/dev/mmcblk${mmc_boot_dev}p${mmc_data_part} " \
+		"datapart_type=${mmc_data_part_type} " \
+		"${console} ${log_msg} ${opts}" \
+		"\"\0" \
 	"load_kernel=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} " \
 		"${kernel_file}\0" \
 	"load_initrd=load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrd_addr} " \
@@ -78,6 +86,10 @@
 	"mmc_firmware_part_type=" MMC_FIRMWARE_PART_TYPE "\0" \
 	"mmc_rootfs_part=" __stringify(MMC_ROOTFS_PART) "\0" \
 	"mmc_rootfs_part_type=" MMC_ROOTFS_PART_TYPE "\0" \
+	"mmc_sec_part=" __stringify(MMC_SEC_PART) "\0" \
+	"mmc_sec_part_type=" MMC_SEC_PART_TYPE "\0" \
+	"mmc_data_part=" __stringify(MMC_DATA_PART) "\0" \
+	"mmc_data_part_type=" MMC_DATA_PART_TYPE "\0" \
 	"partitions=" PARTS_DEFAULT \
 	"root_rw=rw\0" \
 

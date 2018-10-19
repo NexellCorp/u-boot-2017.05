@@ -31,12 +31,15 @@
 #define MMC_MODULES_PART	4
 #define MMC_FIRMWARE_PART	6
 #define MMC_ROOTFS_PART		8
-#define MMC_DATA_PART		10
+#define MMC_SEC_PART		10
+#define MMC_DATA_PART		11
 
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_MODULES_PART_TYPE	"ext4"
 #define MMC_FIRMWARE_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
+#define MMC_SEC_PART_TYPE	"ext4"
+#define MMC_DATA_PART_TYPE	"ext4"
 
 /* Partition Size(Unit: MiB) */
 #define BOOT_PART_ALIGN		8
@@ -44,6 +47,7 @@
 #define MODULES_PART_SIZE	20
 #define FIRMWARE_PART_SIZE	8
 #define ROOTFS_PART_SIZE	512
+#define SEC_PART_SIZE		128
 
 /*
  * Default environment organization
@@ -70,19 +74,49 @@
 	"dfu_ram=run dfu_alt_info_ram && dfu 0 ram 0\0" \
 	"thor_ram=run dfu_ram_info && thordown 0 ram 0\0"
 
+#define DFU_ALT_BOOT_EMMC \
+	"bl-singleimage.bin.raw raw 0x0 0x1800 mmcpart 1;" \
+	"bl1 raw 0x0 0x80 mmcpart 1;" \
+	"bl2 raw 0xa2 0x80 mmcpart 1;" \
+	"sss raw 0x122 0x40 mmcpart 1;" \
+	"bl32 raw 0x162 0x1000 mmcpart 1;" \
+	"u-boot raw 0x1162 0x800 mmcpart 1;"
+
+#define DFU_ALT_BOOT_SD \
+	"donotuse raw 0x22 0x1800;" \
+	"bl1 raw 0x22 0x40;" \
+	"bl2 raw 0xa2 0x40;" \
+	"sss raw 0x122 0x40;" \
+	"bl32 raw 0x162 0x1000;" \
+	"u-boot raw 0x1162 0x800;"
+
 /* eMMC DFU info(Use eMMC Boot Partition) */
 #define DFU_ALT_INFO \
 	"dfu_alt_info=" \
-	"bl-singleimage.bin.raw raw 0x0 0x1800 mmcpart 1;" \
-	"zImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"Image.itb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
-	"uInitrd ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	DFU_ALT_BOOT_EMMC \
+	"/zImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	"/fitImage ext4 0 " __stringify(MMC_BOOT_PART) ";" \
+	"/uInitrd ext4 0 " __stringify(MMC_BOOT_PART) ";" \
 	"nxp3220-vtk.dtb ext4 0 " __stringify(MMC_BOOT_PART) ";" \
 	"boot.img part 0 " __stringify(MMC_BOOT_PART) ";" \
 	"modules.img part 0 " __stringify(MMC_MODULES_PART) ";" \
 	"firmware.img part 0 " __stringify(MMC_FIRMWARE_PART) ";" \
 	"rootfs.img part 0 " __stringify(MMC_ROOTFS_PART) ";" \
+	"sec.img part 0 " __stringify(MMC_SEC_PART) ";" \
 	"data.img part 0 " __stringify(MMC_DATA_PART) "\0"
+
+#define CONFIG_DFU_ALT_BOOT_SD \
+	DFU_ALT_BOOT_SD \
+	"/zImage ext4 1 " __stringify(MMC_BOOT_PART) ";" \
+	"/fitImage ext4 1 " __stringify(MMC_BOOT_PART) ";" \
+	"/uInitrd ext4 1 " __stringify(MMC_BOOT_PART) ";" \
+	"nxp3220-vtk.dtb ext4 1 " __stringify(MMC_BOOT_PART) ";" \
+	"boot.img part 1 " __stringify(MMC_BOOT_PART) ";" \
+	"modules.img part 1 " __stringify(MMC_MODULES_PART) ";" \
+	"firmware.img part 1 " __stringify(MMC_FIRMWARE_PART) ";" \
+	"rootfs.img part 1 " __stringify(MMC_ROOTFS_PART) ";" \
+	"sec.img part 1 " __stringify(MMC_SEC_PART) ";" \
+	"data.img part 1 " __stringify(MMC_DATA_PART) "\0"
 
 #define PARTS_DEFAULT \
 	"uuid_disk=${uuid_gpt_disk};" \
@@ -96,6 +130,7 @@
 	"name=firmware_b,size=" __stringify(FIRMWARE_PART_SIZE) "MiB,uuid=${uuid_gpt_firmware_b};" \
 	"name=rootfs_a,size=" __stringify(ROOTFS_PART_SIZE) "MiB,uuid=${uuid_gpt_rootfs_a};" \
 	"name=rootfs_b,size=" __stringify(ROOTFS_PART_SIZE) "MiB,uuid=${uuid_gpt_rootfs_b};" \
+	"name=sec,size=" __stringify(SEC_PART_SIZE) "MiB,uuid=${uuid_gpt_sec};" \
 	"name=data,size=-,uuid=${uuid_gpt_data}\0"
 
 #endif
