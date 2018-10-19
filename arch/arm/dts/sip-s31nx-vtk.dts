@@ -1,0 +1,14 @@
+/*
+ * (C) Copyright 2018 Nexell
+ * JungHyun, Kim <jhkim@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:      GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include "nxp3220-vtk-common.dtsi"
+/ {
+	model = "Samsung SIP-S31NX SoC validation test board";
+	compatible = "nexell,nxp3220";
+};
