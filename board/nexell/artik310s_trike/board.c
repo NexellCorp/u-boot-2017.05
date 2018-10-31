@@ -111,7 +111,7 @@ static void check_board_type(void)
 	if (value < 227) /* 0 ~ 0.1v */
 		strncpy(board_type, "Eagleye310", ARRAY_SIZE(board_type));
 	else if (value >= 910 && value < 1365) /* 0.4 ~ 0.6v */
-		strncpy(board_type, "Full-Function", ARRAY_SIZE(board_type));
+		strncpy(board_type, "FF-Board", ARRAY_SIZE(board_type));
 	else if (value >= 3412) /* 1.5 ~ 1.8v */
 		strncpy(board_type, "Dev-Kit", ARRAY_SIZE(board_type));
 	else
