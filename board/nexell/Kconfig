@@ -15,6 +15,12 @@ config TARGET_NXP3220_VTK
 	help
 	  Support for nxp3220 validation test board.
 
+config TARGET_NXP3220_EVB
+	bool "NXP3220_EVB"
+	depends on ARCH_NXP3220
+	help
+	  Support for nxp3220 evb board.
+
 endchoice
 
 config SYS_CONFIG_NAME
@@ -26,6 +32,7 @@ config SYS_CONFIG_NAME
 
 source "board/nexell/artik310s_trike/Kconfig"
 source "board/nexell/nxp3220_vtk/Kconfig"
+source "board/nexell/nxp3220_evb/Kconfig"
 source "board/nexell/common/Kconfig"
 
 endif
