@@ -1654,6 +1654,12 @@ config CMD_ZFS
 
 	  See doc/README.zfs for more details.
 
+config CMD_MBR_MMC
+	bool "Make MBR partition for MMC"
+	depends on CMD_MMC
+	help
+	  Enables mbr partition command for mmc
+
 endmenu
 
 menu "Debug commands"
