@@ -29,6 +29,7 @@ obj-$(CONFIG_USB_FUNCTION_THOR) += f_thor.o
 obj-$(CONFIG_DFU_OVER_USB) += f_dfu.o
 obj-$(CONFIG_USB_FUNCTION_MASS_STORAGE) += f_mass_storage.o
 obj-$(CONFIG_USB_FUNCTION_FASTBOOT) += f_fastboot.o
+obj-$(CONFIG_USB_FUNCTION_FASTBOOT_PARTMAP) += f_fastboot_partmap.o f_fastboot_partmap_mmc.o
 obj-$(CONFIG_USB_FUNCTION_SDP) += f_sdp.o
 obj-$(CONFIG_USB_FUNCTION_ROCKUSB) += f_rockusb.o
 endif

@@ -172,6 +172,10 @@ static void fastboot_complete(struct usb_ep *ep, struct usb_request *req)
 	printf("status: %d ep '%s' trans: %d\n", status, ep->name, req->actual);
 }
 
+void __weak fastboot_bind_ext(void)
+{
+}
+
 static int fastboot_bind(struct usb_configuration *c, struct usb_function *f)
 {
 	int id;
@@ -214,6 +218,8 @@ static int fastboot_bind(struct usb_configuration *c, struct usb_function *f)
 	s = env_get("serial#");
 	if (s)
 		g_dnl_set_serialnumber((char *)s);
+
+	fastboot_bind_ext();
 
 	return 0;
 }
@@ -397,6 +403,11 @@ static int strcmp_l1(const char *s1, const char *s2)
 	return strncmp(s1, s2, strlen(s1));
 }
 
+__weak int cb_getvar_ext(char *cmd, char *response, size_t chars_left)
+{
+	return -EINVAL;
+}
+
 static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 {
 	char *cmd = req->buf;
@@ -411,6 +422,11 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 	if (!cmd) {
 		pr_err("missing variable");
 		fastboot_tx_write_str("FAILmissing var");
+		return;
+	}
+
+	if (cb_getvar_ext(cmd, response, chars_left) != -EINVAL) {
+		fastboot_tx_write_str(response);
 		return;
 	}
 
@@ -585,6 +601,11 @@ static void cb_continue(struct usb_ep *ep, struct usb_request *req)
 }
 
 #ifdef CONFIG_FASTBOOT_FLASH
+__weak int cb_flash_ext(char *cmd, char *response, unsigned int download_bytes)
+{
+	return -EINVAL;
+}
+
 static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 {
 	char *cmd = req->buf;
@@ -601,6 +622,12 @@ static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 	fb_response_str = response;
 
 	fastboot_fail("no flash device defined");
+
+	if (cb_flash_ext(cmd, response, download_bytes) != -EINVAL) {
+		fastboot_tx_write_str(response);
+		return;
+	}
+
 #ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	fb_mmc_flash_write(cmd, (void *)CONFIG_FASTBOOT_BUF_ADDR,
 			   download_bytes);

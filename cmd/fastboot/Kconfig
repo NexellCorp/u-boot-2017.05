@@ -72,6 +72,12 @@ config FASTBOOT_FLASH
 	  the downloaded image to a non-volatile storage device. Define
 	  this to enable the "fastboot flash" command.
 
+config USB_FUNCTION_FASTBOOT_PARTMAP
+	bool "Enable USB fastboot gadget - extention partmap"
+	select CMD_MBR_MMC
+	help
+	  This enables the USB part of the fastboot gadget Extention.
+
 choice
 	prompt "Flash provider for FASTBOOT"
 	depends on FASTBOOT_FLASH
