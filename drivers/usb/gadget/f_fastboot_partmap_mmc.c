@@ -42,7 +42,7 @@ static int mmc_make_parts(int dev, uint64_t (*parts)[2], int count)
 }
 
 static int mmc_check_part_table(struct blk_desc *dev_desc,
-			struct fb_part_par *f_part)
+				struct fb_part_par *f_part)
 {
 	struct part_driver *first_drv =
 		ll_entry_start(struct part_driver, part_driver);
@@ -65,9 +65,9 @@ static int mmc_check_part_table(struct blk_desc *dev_desc,
 				continue;
 
 			/*
-		 	 * when last partition set value is zero,
-   		 	 * set avaliable length
-   		 	 */
+			 * when last partition set value is zero,
+			 * set available length
+			 */
 			if (f_part->length == 0)
 				f_part->length = info.size * info.blksz;
 
@@ -80,7 +80,8 @@ static int mmc_check_part_table(struct blk_desc *dev_desc,
 }
 
 static lbaint_t mmc_sparse_write(struct sparse_storage *info,
-			lbaint_t blk, lbaint_t blkcnt, const void *buffer)
+				 lbaint_t blk, lbaint_t blkcnt,
+				 const void *buffer)
 {
 	struct blk_desc *dev_desc = info->priv;
 
@@ -88,7 +89,7 @@ static lbaint_t mmc_sparse_write(struct sparse_storage *info,
 }
 
 static lbaint_t mmc_sparse_reserve(struct sparse_storage *info,
-			lbaint_t blk, lbaint_t blkcnt)
+				   lbaint_t blk, lbaint_t blkcnt)
 {
 	return blkcnt;
 }
@@ -159,6 +160,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 		sprintf(cmd, "mmc partconf %d 0 1 1", dev);
 	else
 		sprintf(cmd, "mmc partconf %d 0 1 0", dev);
+
 	if (run_command(cmd, 0) < 0)
 		return -EINVAL;
 
