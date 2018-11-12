@@ -10,15 +10,11 @@
 
 #include "nxp3220_common.h"
 
-/* kernel load address */
-#define CONFIG_SYS_LOAD_ADDR	0x48000000
-#define FDT_ADDR		0x49000000
-#define INITRD_ADDR		0x49100000
+/* System memory Configuration */
+#define CONFIG_SYS_SDRAM_SIZE	0x1F000000
+#define CONFIG_SYS_MALLOC_LEN	(64 * SZ_1M)
 
 /* For SD/MMC */
-#define CONFIG_BOUNCE_BUFFER
-#define CONFIG_SUPPORT_EMMC_BOOT
-
 #define MMC_BOOT_DEV		0
 #define MMC_ROOT_DEV		0
 #define MMC_BOOT_PART		1
@@ -26,13 +22,6 @@
 
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
-
-/* environments */
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV	0
-#define CONFIG_ENV_OFFSET	(0x2E0200)
-#define CONFIG_ENV_SIZE		(0x4000) /* env size */
-#endif
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"autoboot=run boot_rootfs\0" \

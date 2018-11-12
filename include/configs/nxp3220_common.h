@@ -15,8 +15,6 @@
 #define	CONFIG_SYS_INIT_SP_ADDR	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_MONITOR_BASE	CONFIG_SYS_TEXT_BASE
 #define CONFIG_SYS_SDRAM_BASE	0x40000000
-#define CONFIG_SYS_SDRAM_SIZE	0x1F000000
-#define CONFIG_SYS_MALLOC_LEN	(64 * SZ_1M)
 
 /* Memory Test (up to 0x3C00000:60MB) */
 #define MEMTEST_SIZE			(32 * SZ_1M)
@@ -31,8 +29,18 @@
 /* max number of command args   */
 #define CONFIG_SYS_MAXARGS	16
 
+/* kernel load address */
+#define CONFIG_SYS_LOAD_ADDR	0x48000000
+
 #define CONFIG_BOOTCOMMAND		"run autoboot"
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS2,115200n8\0"
+
+/* environments */
+#if defined(CONFIG_ENV_IS_IN_MMC)
+#define CONFIG_SYS_MMC_ENV_DEV		0
+#define CONFIG_ENV_OFFSET		(0x2E0200)
+#define CONFIG_ENV_SIZE			(0x4000) /* env size */
+#endif
 
 /*
  * Default environment organization
@@ -48,5 +56,11 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_MISC_INIT_R
 #define CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+
+/* For SD/MMC */
+#define CONFIG_BOUNCE_BUFFER
+
+/* support bootsector for emmc */
+#define CONFIG_SUPPORT_EMMC_BOOT
 
 #endif
