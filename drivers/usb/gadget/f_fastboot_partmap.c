@@ -736,7 +736,7 @@ int cb_flash_ext(char *cmd, char *response, unsigned int download_bytes)
 	char *p = (void *)CONFIG_FASTBOOT_BUF_ADDR;
 
 	if (!strcmp("partmap", cmd)) {
-		char tmp[512];
+		char tmp[2048];
 
 		if (sizeof(tmp) < download_bytes) {
 			printf("partmap size buffer %u overflow %u\n",
