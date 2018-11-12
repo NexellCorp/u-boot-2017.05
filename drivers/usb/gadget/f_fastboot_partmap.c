@@ -19,10 +19,6 @@
 
 #include "f_fastboot_partmap.h"
 
-#ifdef CONFIG_ENV_IS_NOWHERE
-int saveenv(void) { return 0; }
-#endif
-
 /* support fs type */
 static struct fastboot_part_name {
 	char *name;
@@ -35,6 +31,15 @@ static struct fastboot_part_name {
 
 static LIST_HEAD(f_dev_head);
 static bool f_dev_binded;
+
+static int saveenv(void)
+{
+#ifdef CONFIG_ENV_IS_NOWHERE
+	return 0;
+#else
+	return run_command("saveenv", 0);
+#endif
+}
 
 static void parse_comment(const char *str, const char **ret, int len)
 {
