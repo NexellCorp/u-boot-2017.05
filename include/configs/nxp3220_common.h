@@ -39,8 +39,7 @@
 
 /* environments */
 #if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV		0
-#define CONFIG_ENV_OFFSET		(0x2E0200)
+#define CONFIG_ENV_OFFSET		(0x32c400)
 #define CONFIG_ENV_SIZE			(0x4000) /* env size */
 #endif
 
