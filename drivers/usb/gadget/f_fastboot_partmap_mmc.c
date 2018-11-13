@@ -11,20 +11,22 @@
 #include <fastboot.h>
 #include <image-sparse.h>
 #include <div64.h>
+#include <linux/err.h>
 
 #include "f_fastboot_partmap.h"
 
 #ifdef CONFIG_FASTBOOT_FLASH
-static int mmc_make_parts(int dev, uint64_t (*parts)[2], int count)
+#ifdef CONFIG_FASTBOOT_PARTMAP_MBR
+static int mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2], int count)
 {
-	char cmd[1024];
+	char cmd[2048];
 	int i, l, p;
 
 	l = sprintf(cmd, "mbr mmc %d %d:", dev, count);
 	p = l;
 	for (i = 0; i < count; i++) {
-		l = sprintf(&cmd[p], " 0x%llx:0x%llx", parts[i][0],
-			    parts[i][1]);
+		l = sprintf(&cmd[p], " 0x%llx:0x%llx",
+			    parts[i][0], parts[i][1]);
 		p += l;
 	}
 
@@ -40,6 +42,51 @@ static int mmc_make_parts(int dev, uint64_t (*parts)[2], int count)
 	/* "mbr "mmc" <dev no> [counts] <start:length> <start:length> ..\n" */
 	return run_command(cmd, 0);
 }
+#endif
+
+#ifdef CONFIG_FASTBOOT_PARTMAP_GPT
+#define MB	(1024 * 1024)
+
+static int mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2], int count)
+{
+	char const *gpt_head[] = {
+		"uuid_disk=${uuid_gpt_disk};",
+		"name=flag,start=4MiB,size=128KiB,uuid=${uuid_gpt_flag};"
+	};
+	char cmd[2048];
+	int i, l, p;
+
+	for (p = 0, i = 0; i < ARRAY_SIZE(gpt_head); i++) {
+		strcpy(&cmd[p], gpt_head[i]);
+		p += strlen(gpt_head[i]);
+	}
+
+	for (i = 0; i < count; i++) {
+		if (parts[i][1])
+			l = sprintf(&cmd[p],
+				    "name=%s,start=%lldMiB,size=%lldMiB,uuid=${uuid_gpt_%s};",
+				    names[i], parts[i][0] / MB, parts[i][1] / MB, names[i]);
+		else
+			l = sprintf(&cmd[p],
+				    "name=%s,start=%lldMiB,size=-,uuid=${uuid_gpt_%s};",
+				    names[i], parts[i][0] / MB, names[i]);
+		p += l;
+	}
+
+	if (sizeof(cmd) <= p) {
+		printf("** %s: cmd stack overflow : stack %zu, cmd %d **\n",
+		       __func__, sizeof(cmd), p);
+		return -EINVAL;
+	}
+
+	cmd[p] = 0;
+	env_set("partitions", cmd);
+
+	sprintf(cmd, "gpt write mmc %d $partitions", dev);
+
+	return run_command(cmd, 0);
+}
+#endif
 
 static int mmc_check_part_table(struct blk_desc *dev_desc,
 				struct fb_part_par *f_part)
@@ -52,9 +99,6 @@ static int mmc_check_part_table(struct blk_desc *dev_desc,
 
 	for (part_drv = first_drv; part_drv != first_drv + n_drvs; part_drv++) {
 		int i, ret;
-
-		if (part_drv->part_type != PART_TYPE_DOS)
-			continue;
 
 		for (i = 1; i < part_drv->max_entries; i++) {
 			ret = part_drv->get_info(dev_desc, i, &info);
@@ -97,7 +141,7 @@ static lbaint_t mmc_sparse_reserve(struct sparse_storage *info,
 /* refer to image-sparse.c */
 static void mmc_write_block(struct blk_desc *dev_desc,
 			    disk_partition_t *info, const char *part_name,
-			    void *buffer, uint64_t sz)
+			    void *buffer, u64 sz)
 {
 	if (is_sparse_image(buffer)) {
 		struct sparse_storage sparse;
@@ -143,7 +187,7 @@ static void mmc_write_block(struct blk_desc *dev_desc,
 }
 
 static int mmc_write(struct fb_part_par *f_part, void *buffer,
-		     uint64_t bytes)
+		     u64 bytes)
 {
 	struct blk_desc *dev_desc;
 	int dev = f_part->dev_no;
@@ -167,7 +211,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	sprintf(cmd, "mmc dev %d", dev);
 
 	debug("** mmc.%d partition %s (%s)**\n", dev, f_part->partition,
-	      f_part->type & FS_TYPE_PART_TABLE ? "partition" : "data");
+	      f_part->type & PART_TYPE_PARTITION ? "partition" : "data");
 
 	/* set mmc devicee */
 	ret = blk_get_device_by_str("mmc", simple_itoa(dev), &dev_desc);
@@ -185,7 +229,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	info.size = (bytes / blksz) + ((bytes & (blksz - 1)) ? 1 : 0);
 	info.blksz = blksz;
 
-	if (f_part->type & FS_TYPE_PART_TABLE) {
+	if (f_part->type & PART_TYPE_PARTITION) {
 		ret = mmc_check_part_table(dev_desc, f_part);
 		if (ret < 0)
 			return -EINVAL;
@@ -204,7 +248,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	return 0;
 }
 
-static int mmc_capacity(int dev, uint64_t *length)
+static int mmc_capacity(int dev, u64 *length)
 {
 	struct blk_desc *dev_desc;
 	char cmd[32];
@@ -230,7 +274,7 @@ static int mmc_capacity(int dev, uint64_t *length)
 	if (ret < 0)
 		return -EINVAL;
 
-	*length = (uint64_t)dev_desc->lba * (uint64_t)dev_desc->blksz;
+	*length = (u64)dev_desc->lba * (u64)dev_desc->blksz;
 
 	debug("%u*%u = %llu\n",
 	      (uint)dev_desc->lba, (uint)dev_desc->blksz, *length);
@@ -241,7 +285,11 @@ static int mmc_capacity(int dev, uint64_t *length)
 static struct fb_part_ops fb_partmap_ops_mmc = {
 	.write = mmc_write,
 	.capacity = mmc_capacity,
-	.create_part = mmc_make_parts,
+#if defined CONFIG_FASTBOOT_PARTMAP_MBR
+	.create_part = mmc_make_mbr_parts,
+#elif defined CONFIG_FASTBOOT_PARTMAP_GPT
+	.create_part = mmc_make_gpt_parts,
+#endif
 };
 
 static struct fb_part_dev fb_partmap_dev_mmc = {

@@ -45,6 +45,7 @@ static void parse_comment(const char *str, int len)
 
 	do {
 		char *r = strchr(p, '#');
+
 		if (!r) {
 			strncpy(t, p, len - (p - str));
 			break;
@@ -395,7 +396,7 @@ static void part_lists_print(void)
 		list_for_each_entry(fp, &fd->part_list, link) {
 			printf(" %s.%d: %s, %s : 0x%llx, 0x%llx\n",
 			       fd->device, fp->dev_no, fp->partition,
-			       fp->type & FS_TYPE_PART_TABLE ?
+			       fp->type & PART_TYPE_PARTITION ?
 					"partition" : "data",
 			       fp->start, fp->length);
 		}
@@ -404,8 +405,8 @@ static void part_lists_print(void)
 	printf("Support part type:");
 	for (i = 0; i < ARRAY_SIZE(f_part_names); i++)
 		printf("%s(%s) ", f_part_names[i].name,
-		       f_part_names[i].type & FS_TYPE_PART_TABLE ?
-					"P" : "D");
+		       f_part_names[i].type & PART_TYPE_PARTITION ?
+					"partition" : "data");
 	printf("\n");
 }
 
@@ -569,7 +570,7 @@ static int part_dev_capacity(const char *device, u64 *length)
 	return !len ? -EINVAL : 0;
 }
 
-static void part_mbr_update(void)
+static void part_table_update(void)
 {
 	struct list_head *fd_head = &f_dev_head;
 	struct fb_part_dev *fd;
@@ -581,6 +582,7 @@ static void part_mbr_update(void)
 	list_for_each_entry(fd, fd_head, list) {
 		struct list_head *head = &fd->part_list;
 		u64 part_dev[FASTBOOT_DEV_PART_MAX][3] = { {0, 0, 0}, };
+		char *name_dev[FASTBOOT_DEV_PART_MAX];
 		int count = 0, dev = 0;
 		int total = 0;
 
@@ -588,12 +590,13 @@ static void part_mbr_update(void)
 			continue;
 
 		list_for_each_entry(fp, head, link) {
-			if (fp->type & FS_TYPE_PART_TABLE) {
+			if (fp->type & PART_TYPE_PARTITION) {
+				name_dev[total] = fp->partition;
 				part_dev[total][0] = fp->start;
 				part_dev[total][1] = fp->length;
 				part_dev[total][2] = fp->dev_no;
-				debug("%s.%d 0x%llx, 0x%llx\n",
-				      fd->device, fp->dev_no,
+				debug("%s.%d: %s: 0x%llx, 0x%llx\n",
+				      fd->device, fp->dev_no, name_dev[total],
 				      part_dev[total][0], part_dev[total][1]);
 				total++;
 			}
@@ -603,33 +606,35 @@ static void part_mbr_update(void)
 		count = total;
 		while (count > 0) {
 			u64 parts[FASTBOOT_DEV_PART_MAX][2] = { {0, 0 }, };
-			int mbrs = 0;
+			char *names[FASTBOOT_DEV_PART_MAX] = { 0, };
+			int num = 0;
 
-			if (dev > fd->dev_max) {
+			if (fd->dev_max < dev) {
 				printf("** Fail make to %s dev %d",
 				       fd->device, dev);
 				printf("is over max %d **\n", fd->dev_max);
 				break;
 			}
 
-			for (j = 0; total > j; j++) {
+			for (j = 0; j < total; j++) {
 				if (dev == (int)part_dev[j][2]) {
-					parts[mbrs][0] = part_dev[j][0];
-					parts[mbrs][1] = part_dev[j][1];
-					debug("MBR %s.%d 0x%llx,",
-					      fd->device, dev, parts[mbrs][0]);
+					names[num] = name_dev[j];
+					parts[num][0] = part_dev[j][0];
+					parts[num][1] = part_dev[j][1];
+					debug("Partition %s.%d 0x%llx,",
+					      fd->device, dev, parts[num][0]);
 					debug("0x%llx (%d:%d)\n",
-					      parts[mbrs][1], total, count);
-					mbrs++;
+					      parts[num][1], total, count);
+					num++;
 				}
 			}
 
-			/* new MBR */
-			if (mbrs && fd->ops && fd->ops->create_part)
-				fd->ops->create_part(dev, parts, mbrs);
+			/* new partition */
+			if (num && fd->ops && fd->ops->create_part)
+				fd->ops->create_part(dev, names, parts, num);
 
-			count -= mbrs;
-			debug("count %d, mbrs %d, dev %d\n", count, mbrs, dev);
+			count -= num;
+			debug("count %d, tables %d, dev %d\n", count, num, dev);
 			if (count)
 				dev++;
 		}
@@ -755,7 +760,7 @@ int cb_flash_ext(char *cmd, char *response, unsigned int download_bytes)
 		}
 
 		part_lists_print();
-		part_mbr_update();
+		part_table_update();
 		fastboot_okay(response);
 		return 0;
 	} else if (!strcmp("setenv", cmd)) {

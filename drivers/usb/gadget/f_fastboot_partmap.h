@@ -13,7 +13,7 @@ enum fastboot_part_type {
 	FASTBOOT_PART_PART = (1<<2),	/* partition write: ex) ext4 */
 };
 
-#define	FS_TYPE_PART_TABLE	(FASTBOOT_PART_PART)
+#define	PART_TYPE_PARTITION	(FASTBOOT_PART_PART)
 
 /* each device max partition max num */
 #define	FASTBOOT_DEV_PART_MAX		(16)
@@ -21,17 +21,17 @@ enum fastboot_part_type {
 struct fb_part_par {
 	char partition[32];	/* partition name: ex> boot, env, ... */
 	int dev_no;
-	uint64_t start;
-	uint64_t length;
+	u64 start;
+	u64 length;
 	enum fastboot_part_type type;
 	struct fb_part_dev *fd;
 	struct list_head link;
 };
 
 struct fb_part_ops {
-	int (*write)(struct fb_part_par *f_part, void *buffer, uint64_t bytes);
-	int (*capacity)(int dev, uint64_t *length);
-	int (*create_part)(int dev, uint64_t (*parts)[2], int count);
+	int (*write)(struct fb_part_par *f_part, void *buffer, u64 bytes);
+	int (*capacity)(int dev, u64 *length);
+	int (*create_part)(int dev, char **names, u64 (*parts)[2], int count);
 };
 
 struct fb_part_dev {
