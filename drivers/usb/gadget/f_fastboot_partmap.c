@@ -11,6 +11,7 @@
 #include <fastboot.h>
 #include <malloc.h>
 #include <asm/io.h>
+#include <linux/err.h>
 
 #include "f_fastboot_partmap.h"
 
@@ -36,29 +37,31 @@ static int saveenv(void)
 #endif
 }
 
-static void parse_comment(const char *str, const char **ret, int len)
+static void parse_comment(const char *str, int len)
 {
-	char *p = (char *)str, *r;
+	char *p = (char *)str;
+	char *t = kzalloc(len, GFP_KERNEL);
+	char *s = t;
 
 	do {
-		r = strchr(p, '#');
-		if (!r)
+		char *r = strchr(p, '#');
+		if (!r) {
+			strncpy(t, p, len - (p - str));
 			break;
-		r++;
+		}
+		strncpy(t, p, (r - p));
 
-		p = strchr(r, '\n');
+		t += (r - p);
+		p = strchr(++r, '\n');
 		if (!p) {
 			printf("---- not end comments '#' ----\n");
 			break;
 		}
 		p++;
-		len -= (int)(p - str);
-		if (len <= 0)
-			p = (char *)str;
-	} while (len > 1);
+	} while ((p - str) > 1);
 
-	/* for next */
-	*ret = p;
+	memcpy((void *)str, s, len);
+	kfree(s);
 }
 
 static int parse_string(const char *s, const char *e, char *b, int len)
@@ -339,8 +342,7 @@ static int part_lists_make(const char *ptable_str,
 
 	part_lists_init_all();
 
-	parse_comment(p, &p, len);
-	len -= (int)(p - ptable_str);
+	parse_comment(p, len);
 	sort_string((char *)p, len);
 	env = p;
 
@@ -411,7 +413,7 @@ static int parse_env_head(const char *env, const char **ret, char *str, int len)
 {
 	const char *p = env, *r = p;
 
-	parse_comment(p, &p, len);
+	parse_comment(p, len);
 	r = strchr(p, '=');
 	if (!r)
 		return -EINVAL;
@@ -462,7 +464,7 @@ static int parse_cmd(const char *cmd, const char **ret, char *str, int len)
 {
 	const char *p = cmd, *r = p;
 
-	parse_comment(p, &p, len);
+	parse_comment(p, len);
 	p = strchr(p, '"');
 	if (!p)
 		return -EINVAL;
