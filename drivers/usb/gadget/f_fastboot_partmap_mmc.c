@@ -50,8 +50,7 @@ static int mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2], int count)
 static int mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2], int count)
 {
 	char const *gpt_head[] = {
-		"uuid_disk=${uuid_gpt_disk};",
-		"name=flag,start=4MiB,size=128KiB,uuid=${uuid_gpt_flag};"
+		"uuid_disk=${uuid_gpt_disk};"
 	};
 	char cmd[2048];
 	int i, l, p;
@@ -304,8 +303,11 @@ void fb_partmap_add_dev_mmc(struct list_head *head)
 {
 	struct fb_part_dev *fd = &fb_partmap_dev_mmc;
 
-	debug("%s\n", __func__);
-
+#if defined CONFIG_FASTBOOT_PARTMAP_MBR
+	printf("FASTBOOT PARTMAP: MBR\n");
+#elif defined CONFIG_FASTBOOT_PARTMAP_GPT
+	printf("FASTBOOT PARTMAP: GPT\n");
+#endif
 	INIT_LIST_HEAD(&fd->list);
 	INIT_LIST_HEAD(&fd->part_list);
 
