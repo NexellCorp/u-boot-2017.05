@@ -57,14 +57,6 @@
 				regulator-boot-on = <1>;
 			};
 
-			dcdc4: BUCK4 {
-				regulator-name = "dcdc5";
-				regulator-min-microvolt = <600000>;
-				regulator-max-microvolt = <3500000>;
-				regulator-always-on = <1>;
-				regulator-boot-on = <1>;
-			};
-
 			ldo0: LDO0 {
 				regulator-min-microvolt = <900000>;
 				regulator-max-microvolt = <3500000>;
@@ -93,38 +85,6 @@
 				regulator-min-microvolt = <600000>;
 				regulator-max-microvolt = <3500000>;
 				regulator-name = "ldo5";
-			};
-
-			ldo5: LDO5 {
-				regulator-min-microvolt = <600000>;
-				regulator-max-microvolt = <3500000>;
-				regulator-name = "ldo6";
-				regulator-always-on = <1>;
-				regulator-boot-on = <1>;
-			};
-
-			ldo6: LDO6 {
-				regulator-min-microvolt = <900000>;
-				regulator-max-microvolt = <3500000>;
-				regulator-name = "ldo7";
-			};
-
-			ldo7: LDO7 {
-				regulator-min-microvolt = <900000>;
-				regulator-max-microvolt = <3500000>;
-				regulator-name = "ldo8";
-			};
-
-			ldo8: LDO8 {
-				regulator-min-microvolt = <900000>;
-				regulator-max-microvolt = <3500000>;
-				regulator-name = "ldo9";
-			};
-
-			ldo9: LDO9 {
-				regulator-min-microvolt = <900000>;
-				regulator-max-microvolt = <3500000>;
-				regulator-name = "ldo10";
 			};
 
 			ldortc1: LDO10 {
