@@ -27,7 +27,7 @@
 #define MMC_BOOT_DEV		0
 #define MMC_ROOT_DEV		0
 #define MMC_BOOT_PART		1
-#define MMC_ROOTFS_PART		2
+#define MMC_ROOTFS_PART		3
 
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
