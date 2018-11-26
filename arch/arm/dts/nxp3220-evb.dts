@@ -54,6 +54,26 @@
 	status = "okay";
 };
 
+&gmac0 {
+	phy-mode = "rgmii";
+	phy-handle = <&ethphy0>;
+	status = "okay";
+
+	phy-reset-gpios = <&gpio_alv 5 GPIO_ACTIVE_LOW>;
+	pinctrl-0 = <&gmac0_txd>, <&gmac0_rxd>, <&gmac0_txen>,
+		    <&gmac0_rxen>, <&gmac0_mdc>, <&gmac0_mdio>,
+		    <&gmac0_rxclk>, <&gmac0_txclk>, <&gmac0_nrst>;
+
+	mdio@3 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@3 {
+			reg = <3>;
+		};
+	};
+};
+
 &mmc0 {
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
@@ -73,6 +93,15 @@
 	nexell,drive_shift = <0x05>;
 	frequency = <50000000>;
 	status = "okay";
+};
+
+&pinctrl {
+	gmac0_nrst: gmac-nrst {
+		nexell,pins = "gpiod-4";
+		nexell,pin-function = <NX_PIN_FUNC0>;
+		nexell,pin-pull = <NX_PIN_PULL_UP>;
+		nexell,pin-strength = <NX_PIN_STR1>;
+	};
 };
 
 &uart2 {
