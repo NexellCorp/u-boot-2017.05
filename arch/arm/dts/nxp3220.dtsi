@@ -302,6 +302,7 @@
 			 <&clock_sys PWM_0_TCLK3_CLK>;
 		clock-names = "pwm_apb", "pwm_tclk0", "pwm_tclk1", "pwm_tclk2",
 			      "pwm_tclk3";
+		pwm-outputs = <0>, <1>, <2>, <3>;
 		tclk_freq = <100000000>, <100000000>, <100000000>, <100000000>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&pwm0_pin &pwm1_pin &pwm2_pin &pwm3_pin>;

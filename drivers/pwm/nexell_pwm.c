@@ -39,6 +39,7 @@ const char *pwm_tclk_name[] = {
 struct nexell_pwm_priv {
 	void __iomem *regs;
 	unsigned long tclk_freqs[PWM_MAX_CHANNEL];
+	int out_cnt;
 };
 
 static int nexell_pwm_set_config(struct udevice *dev, uint channel,
@@ -125,7 +126,11 @@ static int nexell_pwm_probe(struct udevice *dev)
 	struct clk apbclk;
 	struct clk tclk;
 	unsigned long tclk_freq;
+	u32 outputs[PWM_MAX_CHANNEL];
+	unsigned long freqs[PWM_MAX_CHANNEL];
+	int out_cnt, freq_cnt;
 	int ch;
+	int i;
 	int ret;
 
 	/* setup clock */
@@ -136,21 +141,38 @@ static int nexell_pwm_probe(struct udevice *dev)
 	}
 	clk_enable(&apbclk);
 
-	for (ch = 0; ch < PWM_MAX_CHANNEL; ch++) {
+	out_cnt = fdtdec_get_int_array_count(blob, node, "pwm-outputs",
+			outputs, PWM_MAX_CHANNEL);
+	if (out_cnt < 0) {
+		pr_err("failed to get pwm output channels\n");
+		return -EINVAL;
+	}
+
+	freq_cnt = fdtdec_get_int_array_count(blob, node, "tclk_freq",
+			freqs, PWM_MAX_CHANNEL);
+	if (freq_cnt < 0 || freq_cnt != out_cnt) {
+		pr_err("tclk_freq not match pwm-outputs\n");
+		return -EINVAL;
+	}
+
+	priv->out_cnt = out_cnt;
+
+	for (i = 0; i < out_cnt; i++) {
+		ch = outputs[i];
+
+		priv->tclk_freqs[ch] = freqs[i];
+		if (!freqs[i]) {
+			pr_err("failed to get pwm%d clk freq\n", ch);
+			return -EINVAL;
+		}
+
 		ret = clk_get_by_name(dev, pwm_tclk_name[ch], &tclk);
 		if (ret < 0) {
 			pr_err("failed to get pwm%d tclk\n", ch);
 			return ret;
 		}
 
-		tclk_freq = fdtdec_get_int(blob, node, "tclk_freq", 0);
-		if (tclk_freq == 0) {
-			pr_err("failed to get pwm%d clk freq\n", ch);
-			return -EINVAL;
-		}
-
-		clk_set_rate(&tclk, tclk_freq);
-		priv->tclk_freqs[ch] = tclk_freq;
+		clk_set_rate(&tclk, freqs[i]);
 		clk_enable(&tclk);
 
 		writel(0, priv->regs + REG_TCFG0(ch));
