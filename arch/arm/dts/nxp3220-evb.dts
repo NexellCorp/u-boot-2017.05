@@ -208,3 +208,10 @@
 		}; /* voltage-regulators */
 	};
 };
+
+&spi_0 {
+	status = "okay";
+	spi-max-frequency = <10000000>;
+	num-cs = <1>;
+	cs-gpio = <&gpio_c 4 0>;
+};
