@@ -17,16 +17,15 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define PLL_LOCK_COUNT		0x200
 
-#define PLL_DIRTYFLAG		(1 << 1)
-#define PLL_RUN_CHANGE		(1 << 0)
-#define PLL_UPDATE_DIRECT	(1 << 15)
+#define PLL_DIRTYFLAG		BIT(1)
+#define PLL_RUN_CHANGE		BIT(0)
+#define PLL_UPDATE_DIRECT	BIT(15)
 
 #define PMS_RATE(p, i) ((&p[i])->rate)
 #define PMS_P(p, i) ((&p[i])->P)
 #define PMS_M(p, i) ((&p[i])->M)
 #define PMS_S(p, i) ((&p[i])->S)
 #define PMS_K(p, i) ((&p[i])->K)
-
 
 #define PHY_BASEADDR_PLL0			0x27020000
 #define PHY_BASEADDR_PLL1			0x27030000
@@ -165,7 +164,7 @@ static int get_use_ddr_pll(void)
 }
 
 static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
-		int *m, int *s, int *k)
+				    int *m, int *s, int *k)
 {
 	struct pll_pms *pms = NULL;
 	int len = 0, l = 0;
@@ -216,7 +215,7 @@ static void set_oscmux(unsigned int pll_num, unsigned int muxsel)
 	unsigned int tmp;
 
 	tmp = readl(&base->pll_ctrl);
-	writel((tmp&(~(1<<3))) | (muxsel << 3), &base->pll_ctrl);
+	writel((tmp & ~(1 << 3)) | (muxsel << 3), &base->pll_ctrl);
 }
 
 static int get_pll_type(int pllno)
@@ -247,7 +246,7 @@ static int check_pll_lock(int pll_num)
 	else
 		st_check = (st_count > PLL_LOCK_COUNT);
 
-	if (((cur_st == 1) && (lock == 1)) && st_check)
+	if (cur_st == 1 && lock == 1 && st_check)
 		return true;
 	else
 		return false;
@@ -283,7 +282,7 @@ static int set_pll_rate(int pllno, int p, int m, int s, int k)
 	writel(PLL_RESETB_SET, &base->pll_cfg0);
 
 	tmp = readl(&base->pll_ctrl);
-	writel(tmp | PLL_DIRTYFLAG , &base->pll_ctrl);
+	writel(tmp | PLL_DIRTYFLAG, &base->pll_ctrl);
 	writel(tmp | PLL_UPDATE_DIRECT, &base->pll_ctrl);
 
 	tmp = readl(&base->pll_dbg0);
@@ -294,7 +293,7 @@ static int set_pll_rate(int pllno, int p, int m, int s, int k)
 	writel(PLL_RESETB_CLEAR, &base->pll_cfg0);
 
 	tmp = readl(&base->pll_ctrl);
-	writel(tmp | PLL_DIRTYFLAG , &base->pll_ctrl);
+	writel(tmp | PLL_DIRTYFLAG, &base->pll_ctrl);
 	writel(tmp | PLL_UPDATE_DIRECT, &base->pll_ctrl);
 	tmp = readl(&base->pll_dbg0);
 
@@ -335,7 +334,7 @@ static ulong nx_pll_get_rate(struct clk *clk)
 	rate = pll_rate(clk->id, ref_clk);
 
 	if (clk->id == 1 || clk->id >= 3)
-		return rate/2;
+		return rate / 2;
 
 	return rate;
 }
@@ -386,7 +385,8 @@ int nx_pll_parse_dt(struct udevice *dev)
 		return -1;
 
 	length /= sizeof(*list);
-	for (i = 0; i < length/2; i++) {
+
+	for (i = 0; i < length / 2; i++) {
 		init[i][0] = fdt32_to_cpu(*list++);
 		init[i][1] = fdt32_to_cpu(*list++);
 		nx_pll_set_rate(init[i][0], init[i][1]);
