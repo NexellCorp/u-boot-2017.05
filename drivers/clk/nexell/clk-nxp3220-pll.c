@@ -267,7 +267,7 @@ static int clock_is_stable(int pll_num)
 static int set_pll_rate(int pllno, int p, int m, int s, int k)
 {
 	struct nx_pll_reg *base;
-	unsigned int tmp, i, j;
+	unsigned int tmp;
 
 	base = (struct nx_pll_reg *)get_pll_baseaddr(pllno);
 
