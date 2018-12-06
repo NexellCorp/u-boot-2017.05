@@ -37,6 +37,16 @@
 		status = "disabled";
 	};
 
+	disp_lvds: disp_lvds@25150000 {
+		compatible = "nexell,nxp3220-lvds";
+		reg = <0x25150000 0x1000>, <0x25000200 0x100>;
+		clocks = <&clock_mm LVDS_0_VCLK_CLK>,
+			<&clock_mm LVDS_0_PHY_CLK>;
+		clock-names = "vclk", "phy";
+		u-boot,dm-pre-reloc;
+		status = "disabled";
+	};
+
 	disp_rgb: disp_rgb@25140000 {
 		compatible = "nexell,nxp3220-rgb";
 		reg = <0x25140000 0x1000>;
