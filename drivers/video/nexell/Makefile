@@ -7,3 +7,6 @@
 
 obj-$(CONFIG_VIDEO_NEXELL) 	+= display.o low.o
 obj-$(CONFIG_VIDEO_NEXELL_RGB)	+= rgb.o
+obj-$(CONFIG_VIDEO_NEXELL_LVDS)	+= lvds.o
+
+

@@ -11,6 +11,12 @@ config VIDEO_NEXELL_RGB
 	help
 	  Support for RGB display panel.
 
+config VIDEO_NEXELL_LVDS
+	bool "LVDS"
+	select VIDEO_NEXELL_LCD
+	help
+	  Support for LVDS display panel.
+
 endmenu
 
 endif
