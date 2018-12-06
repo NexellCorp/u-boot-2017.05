@@ -25,8 +25,8 @@ DECLARE_GLOBAL_DATA_PTR;
 
 struct nx_clk_div {
 	int mux;
-	int div_s;
-	int div_o;
+	int p_div; /* source/parent divider */
+	int d_div;
 };
 
 struct nx_cmu_priv {
@@ -102,6 +102,7 @@ static void nx_clk_calc_divider(unsigned long req, struct nx_clk_div *cdiv)
 	for (i = 0; i < PLL_NUM; i++) {
 		if (plls[i] == 0)
 			continue;
+
 		v = plls[i] / req;
 		m = plls[i] % req;
 
@@ -136,8 +137,8 @@ static void nx_clk_calc_divider(unsigned long req, struct nx_clk_div *cdiv)
 		}
 
 		cdiv->mux = mux;
-		cdiv->div_s = div0;
-		cdiv->div_o = div1;
+		cdiv->p_div = div1;
+		cdiv->d_div = div0;
 		return;
 	}
 
@@ -149,18 +150,18 @@ static void nx_clk_calc_divider(unsigned long req, struct nx_clk_div *cdiv)
 			continue;
 
 		if (m == 0) {
-			div0 = d;
-			div1 = v;
+			div0 = d; div1 = v;
 			break;
 		}
+
 		if (dlt == 0 || m < dlt) {
 			div0 = d; div1 = v;
 		}
 	}
 
 	cdiv->mux = mux;
-	cdiv->div_s = div0;
-	cdiv->div_o = div1;
+	cdiv->p_div = div1;
+	cdiv->d_div = div0;
 }
 
 static struct clk_cmu_dev *nx_clk_get_priv(struct nx_cmu_priv *priv, int id)
@@ -255,11 +256,11 @@ static ulong nx_clk_set_reg(struct clk_cmu_dev *sys,
 
 	nx_clk_calc_divider(freq, &cdiv);
 
-	writel((cdiv.div_o - 1) & 0xFFFF, &sys->reg->div_val[0]);
-	writel((cdiv.div_s - 1) & 0xFFFF, &src->reg->div_val[0]);
+	writel((cdiv.d_div - 1) & 0xFFFF, &sys->reg->div_val[0]);
+	writel((cdiv.p_div - 1) & 0xFFFF, &src->reg->div_val[0]);
 	writel((cdiv.mux) & 0xFFFF, &src->reg->clkmux_src);
 
-	sys->freq = plls[cdiv.mux] / cdiv.div_s / cdiv.div_o;
+	sys->freq = plls[cdiv.mux] / cdiv.p_div / cdiv.d_div;
 
 	return sys->freq;
 }
