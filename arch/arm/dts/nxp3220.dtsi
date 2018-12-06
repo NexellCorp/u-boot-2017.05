@@ -7,6 +7,7 @@
 
 #include "skeleton.dtsi"
 #include <dt-bindings/clock/nxp3220-clk.h>
+#include <dt-bindings/video/nexell.h>
 
 / {
 	#include "nxp3220-clk.dtsi"
@@ -22,6 +23,28 @@
 		reg-names = "gpioa", "gpiob", "gpioc", "gpiod", "gpioe",
 		            "alive";
 		u-boot,dm-pre-reloc;
+	};
+
+	display: display@25140000 {
+		compatible = "nexell,nxp3220-display";
+     		reg = <0x25140000 0x1000>, <0x25140800 0x1000>;
+     		overlays = <2>;
+		clocks = <&clock_mm DPC_0_AXI_CLK>,
+			<&clock_mm DPC_0_X1_CLK>,
+			<&clock_mm DPC_0_X2_CLK>;
+		clock-names = "axi", "clk_x1", "clk_x2";
+		u-boot,dm-pre-reloc;
+		status = "disabled";
+	};
+
+	disp_rgb: disp_rgb@25140000 {
+		compatible = "nexell,nxp3220-rgb";
+		reg = <0x25140000 0x1000>;
+		syscon = <&sys_reg_sys>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&dp_vclk &dp_vsync &dp_hsync &dp_de &dp_blue &dp_green &dp_red>;
+		u-boot,dm-pre-reloc;
+		status = "disabled";
 	};
 
 	dwc2otg: dwc2otg@240c0000 {
@@ -244,7 +267,7 @@
 
 	sys_reg_sys: syscon@20030000 {
 		compatible = "nexell,system-reg","syscon", "simple-mfd";
-		reg = <0x20030000 0x42c>;
+		reg = <0x20030000 0x1000>;
 	};
 
 	sys_reg_usb: syscon@24030000 {
