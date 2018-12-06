@@ -462,6 +462,18 @@ config VIDEO_FSL_DCU_MAX_FB_SIZE_MB
 	 Set maximum framebuffer size to be used for Freescale Display
 	 Controller Unit (DCU4).
 
+config VIDEO_NEXELL
+	bool "Enable video support on Nexell"
+	depends on ARCH_NEXELL
+	depends on DM_VIDEO
+	select DISPLAY
+	help
+	   Supports video output to an attached LCD panel as well as other
+	   options such as LVDS. This option enables this support which can
+	   be used on devices which have an LCD display connected.
+
+source "drivers/video/nexell/Kconfig"
+
 source "drivers/video/rockchip/Kconfig"
 
 config VIDEO_SANDBOX_SDL

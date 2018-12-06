@@ -1,0 +1,16 @@
+if VIDEO_NEXELL
+
+config VIDEO_NEXELL_LCD
+	bool
+
+menu "NexeLL LCD select"
+
+config VIDEO_NEXELL_RGB
+	bool "RGB"
+	select VIDEO_NEXELL_LCD
+	help
+	  Support for RGB display panel.
+
+endmenu
+
+endif
