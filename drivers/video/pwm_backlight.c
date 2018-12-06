@@ -11,9 +11,14 @@
 #include <asm/gpio.h>
 #include <power/regulator.h>
 
+#define MAX_ENABLE_GPIO		6
+
 struct pwm_backlight_priv {
 	struct udevice *reg;
-	struct gpio_desc enable;
+	struct gpio_desc enable[MAX_ENABLE_GPIO];
+	u32 enable_delay[MAX_ENABLE_GPIO];
+	int backlight_delay;
+	int num_enable;
 	struct udevice *pwm;
 	uint channel;
 	uint period_ns;
@@ -25,12 +30,14 @@ struct pwm_backlight_priv {
 static int pwm_backlight_enable(struct udevice *dev)
 {
 	struct pwm_backlight_priv *priv = dev_get_priv(dev);
-	struct dm_regulator_uclass_platdata *plat;
 	uint duty_cycle;
-	int ret;
+	int i, ret;
 
+#ifdef ONFIG_DM_REGULATOR
 	if (priv->reg) {
-		plat = dev_get_uclass_platdata(priv->reg);
+		struct dm_regulator_uclass_platdata *plat =
+					dev_get_uclass_platdata(priv->reg);
+
 		debug("%s: Enable '%s', regulator '%s'/'%s'\n", __func__,
 		      dev->name, priv->reg->name, plat->name);
 		ret = regulator_set_enable(priv->reg, true);
@@ -40,6 +47,12 @@ static int pwm_backlight_enable(struct udevice *dev)
 			return ret;
 		}
 		mdelay(120);
+	}
+#endif
+
+	for (i = 0; i < priv->num_enable; i++) {
+		dm_gpio_set_value(&priv->enable[i], 1);
+		mdelay(priv->enable_delay[i]);
 	}
 
 	duty_cycle = priv->period_ns * (priv->default_level - priv->min_level) /
@@ -51,8 +64,8 @@ static int pwm_backlight_enable(struct udevice *dev)
 	ret = pwm_set_enable(priv->pwm, priv->channel, true);
 	if (ret)
 		return ret;
-	mdelay(10);
-	dm_gpio_set_value(&priv->enable, 1);
+
+	mdelay(priv->backlight_delay);
 
 	return 0;
 }
@@ -63,19 +76,40 @@ static int pwm_backlight_ofdata_to_platdata(struct udevice *dev)
 	struct ofnode_phandle_args args;
 	int index, ret, count, len;
 	const u32 *cell;
+	const fdt32_t *list;
+	int i, length;
 
+#ifdef ONFIG_DM_REGULATOR
 	debug("%s: start\n", __func__);
 	ret = uclass_get_device_by_phandle(UCLASS_REGULATOR, dev,
 					   "power-supply", &priv->reg);
 	if (ret)
 		debug("%s: Cannot get power supply: ret=%d\n", __func__, ret);
-	ret = gpio_request_by_name(dev, "enable-gpios", 0, &priv->enable,
-				   GPIOD_IS_OUT);
-	if (ret) {
-		debug("%s: Warning: cannot get enable GPIO: ret=%d\n",
-		      __func__, ret);
-		if (ret != -ENOENT)
-			return ret;
+#endif
+
+	list = ofnode_get_property(dev_ofnode(dev), "enable-gpios", &length);
+	if (list) {
+		length = length / sizeof(*list) / 3;
+		for (i = 0; i < length; i++) {
+			if (length > MAX_ENABLE_GPIO)
+				break;
+
+			ret = gpio_request_by_name(dev, "enable-gpios", i,
+						   &priv->enable[i],
+						   GPIOD_IS_OUT);
+			if (ret) {
+				debug("%s: Warning: cannot get enable GPIO\n",
+				      __func__);
+				if (ret != -ENOENT)
+					return ret;
+			}
+			priv->enable_delay[i] = 0;
+		}
+		priv->num_enable = length;
+
+		ofnode_read_u32_array(dev_ofnode(dev), "enable-gpios-delay",
+				      priv->enable_delay, length);
+		debug("pwm enable gpios %d\n", priv->num_enable);
 	}
 	ret = dev_read_phandle_with_args(dev, "pwms", "#pwm-cells", 0, 0,
 					 &args);
@@ -103,7 +137,6 @@ static int pwm_backlight_ofdata_to_platdata(struct udevice *dev)
 		priv->max_level = 255;
 	}
 	debug("%s: done\n", __func__);
-
 
 	return 0;
 }
