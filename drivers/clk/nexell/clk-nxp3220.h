@@ -87,33 +87,29 @@
 	.cmu_id		= CMU_NAME_USB				\
 }
 
-/* CMU TOPC block device structure */
+/* CMU register set structure */
 struct clk_cmu_reg {
-	unsigned int grp_clk_src;
-	unsigned int grp_all_div_rst;
-	unsigned int rsv0[2];
-	unsigned int grp_clkenb[4];
-	unsigned int grp_clkenb_clr[4];
-	unsigned int grp_rst_set[4];
-	unsigned int grp_rst_clr[4];
-	unsigned int grp_rst_mode[4];
-	unsigned int divider[7];
-	unsigned int rsv1;
-	unsigned int cur_divider[7];
-	unsigned int rsv2;
+	u32 clkmux_src;
+	u32 rsv0[3];
+	u32 clkenb_set[4];
+	u32 clkenb_clr[4];
+	u32 rst_release[4];
+	u32 rst_enter[4];
+	u32 rst_mode[4];
+	u32 div_val[7];
 };
 
 struct clk_cmu_dev {
 	struct clk_cmu_reg *reg;
-	unsigned int id;
+	int id;
 	unsigned char cmu_id;
 	unsigned int p_set;
 	unsigned int type;
 	unsigned int clkenbit;
-	unsigned int p_id;
-	unsigned long c_freq;
-	unsigned int num_clk;
-	unsigned int grp_idx;
+	int p_id;
+	unsigned long freq;
+	int num_clk;
+	int grp_idx;
 	bool nc;
 };
 

@@ -160,7 +160,7 @@ static int get_use_ddr_pll(void)
 	struct clk_cmu_reg *reg =
 		(struct clk_cmu_reg *)PHY_BASEADDR_CMU_DDR_MODULE;
 
-	return readl(&reg->grp_clk_src) + 3;
+	return readl(&reg->clkmux_src) + 3;
 }
 
 static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
