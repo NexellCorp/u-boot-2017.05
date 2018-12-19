@@ -112,9 +112,10 @@ static int mmc_check_part_table(struct blk_desc *dev_desc,
 			 * set available length
 			 */
 			if (f_part->length == 0)
-				f_part->length = info.size * info.blksz;
+				f_part->length =
+					(u64)info.size * (u64)info.blksz;
 
-			if (info.size * info.blksz == f_part->length)
+			if ((u64)info.size * (u64)info.blksz == f_part->length)
 				return 0;
 		}
 	}
@@ -152,8 +153,8 @@ static void mmc_write_block(struct blk_desc *dev_desc,
 		sparse.reserve = mmc_sparse_reserve;
 		sparse.priv = dev_desc;
 
-		printf("Flashing sparse image at offset " LBAFU "\n",
-		       sparse.start);
+		printf("Flashing sparse image at offset 0x%x/0x%x\n",
+		       (unsigned int)sparse.start, (unsigned int)sparse.size);
 
 		write_sparse_image(&sparse, part_name, buffer, sz);
 	} else {
