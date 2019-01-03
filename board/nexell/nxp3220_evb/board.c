@@ -16,6 +16,13 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifndef CONFIG_SYS_DCACHE_OFF
+void enable_caches(void)
+{
+	dcache_enable();
+}
+#endif
+
 int board_init(void)
 {
 	return 0;
