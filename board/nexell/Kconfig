@@ -30,6 +30,18 @@ config SYS_CONFIG_NAME
           The header file include/configs/<CONFIG_SYS_CONFIG_NAME>.h
           should be included from include/config.h.
 
+config QUICKBOOT
+	bool "NXP3220 QUICKBOOT"
+	depends on TARGET_NXP3220_EVB
+	help
+	  Support for nxp3220 quickboot on evb board.
+
+config QUICKBOOT_QUIET
+	bool "NXP3220 QUICKBOOT QUIET"
+	depends on QUICKBOOT
+	help
+	  quickboot quiet
+
 source "board/nexell/artik310s_trike/Kconfig"
 source "board/nexell/nxp3220_vtk/Kconfig"
 source "board/nexell/nxp3220_evb/Kconfig"

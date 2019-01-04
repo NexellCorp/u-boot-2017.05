@@ -179,15 +179,19 @@ int boot_relocate_fdt(struct lmb *lmb, char **of_flat_tree, ulong *of_size)
 		debug("## device tree at %p ... %p (len=%ld [0x%lX])\n",
 		      fdt_blob, fdt_blob + *of_size - 1, of_len, of_len);
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("   Loading Device Tree to %p, end %p ... ",
 		       of_start, of_start + of_len - 1);
+#endif
 
 		err = fdt_open_into(fdt_blob, of_start, of_len);
 		if (err != 0) {
 			fdt_error("fdt move failed");
 			goto error;
 		}
+#ifndef CONFIG_QUICKBOOT_QUIET
 		puts("OK\n");
+#endif
 	}
 
 	*of_flat_tree = of_start;
@@ -373,8 +377,10 @@ int boot_get_fdt(int flag, int argc, char * const argv[], uint8_t arch,
 				 * FDT blob
 				 */
 				debug("*  fdt: raw FDT blob\n");
+#ifndef CONFIG_QUICKBOOT_QUIET
 				printf("## Flattened Device Tree blob at %08lx\n",
 				       (long)fdt_addr);
+#endif
 			}
 			break;
 		default:
@@ -382,7 +388,9 @@ int boot_get_fdt(int flag, int argc, char * const argv[], uint8_t arch,
 			goto no_fdt;
 		}
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("   Booting using the fdt blob at %#08lx\n", fdt_addr);
+#endif
 		fdt_blob = map_sysmem(fdt_addr, 0);
 	} else if (images->legacy_hdr_valid &&
 			image_check_type(&images->legacy_hdr_os_copy,
