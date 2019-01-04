@@ -212,10 +212,12 @@ static int __abortboot(int bootdelay)
 	int abort = 0;
 	unsigned long ts;
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 #ifdef CONFIG_MENUPROMPT
 	printf(CONFIG_MENUPROMPT);
 #else
 	printf("Hit any key to stop autoboot: %2d ", bootdelay);
+#endif
 #endif
 
 	/*
@@ -248,7 +250,9 @@ static int __abortboot(int bootdelay)
 		printf("\b\b\b%2d ", bootdelay);
 	}
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 	putc('\n');
+#endif
 
 	return abort;
 }

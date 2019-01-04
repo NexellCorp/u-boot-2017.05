@@ -22,6 +22,16 @@ config SYS_SOC
 config SYS_VENDOR
         default "nexell"
 
+config QUICKBOOT
+	bool "NXP3220 QUICKBOOT"
+	help
+	  Support for nxp3220 quickboot on evb board.
+
+config QUICKBOOT_QUIET
+	bool "NXP3220 QUICKBOOT QUIET"
+	help
+	  quickboot quiet
+
 source "board/nexell/Kconfig"
 
 endif
