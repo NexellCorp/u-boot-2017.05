@@ -194,12 +194,16 @@ int env_load(void)
 		if (!env_has_inited(drv->location))
 			continue;
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("Loading Environment from %s... ", drv->name);
+#endif
 		ret = drv->load();
+#ifndef CONFIG_QUICKBOOT_QUIET
 		if (ret)
 			printf("Failed (%d)\n", ret);
 		else
 			printf("OK\n");
+#endif
 
 		if (!ret)
 			return 0;

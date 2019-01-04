@@ -82,10 +82,12 @@ static void bootmenu_autoboot_loop(struct bootmenu_data *menu,
 {
 	int i, c;
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 	if (menu->delay > 0) {
 		printf(ANSI_CURSOR_POSITION, menu->count + 5, 1);
 		printf("  Hit any key to stop autoboot: %2d ", menu->delay);
 	}
+#endif
 
 	while (menu->delay > 0) {
 		for (i = 0; i < 100; ++i) {

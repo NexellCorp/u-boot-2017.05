@@ -40,10 +40,14 @@ char *display_options_get_banner(bool newlines, char *buf, int size)
 
 int display_options(void)
 {
+#ifndef CONFIG_QUICKBOOT_QUIET
 	char buf[DISPLAY_OPTIONS_BANNER_LENGTH];
 
 	display_options_get_banner(true, buf, sizeof(buf));
 	printf("%s", buf);
+#else
+	printf("UBOOT\n");
+#endif
 
 	return 0;
 }

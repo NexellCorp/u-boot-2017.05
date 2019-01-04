@@ -420,7 +420,9 @@ static int initr_onenand(void)
 #ifdef CONFIG_MMC
 static int initr_mmc(void)
 {
+#ifndef CONFIG_QUICKBOOT_QUIET
 	puts("MMC:   ");
+#endif
 	mmc_initialize(gd->bd);
 	return 0;
 }
@@ -569,7 +571,9 @@ static int initr_bbmii(void)
 #ifdef CONFIG_CMD_NET
 static int initr_net(void)
 {
+#ifndef CONFIG_QUICKBOOT_QUIET
 	puts("Net:   ");
+#endif
 	eth_initialize();
 #if defined(CONFIG_RESET_PHY_R)
 	debug("Reset Ethernet PHY\n");

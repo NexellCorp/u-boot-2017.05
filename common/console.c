@@ -836,9 +836,11 @@ int console_init_r(void)
 done:
 #endif
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 #ifndef CONFIG_SYS_CONSOLE_INFO_QUIET
 	stdio_print_current_devices();
 #endif /* CONFIG_SYS_CONSOLE_INFO_QUIET */
+#endif
 #ifdef CONFIG_VIDCONSOLE_AS_LCD
 	if (strstr(stdoutname, "lcd"))
 		printf("Warning: Please change 'lcd' to 'vidconsole' in stdout/stderr environment vars\n");
@@ -920,9 +922,11 @@ int console_init_r(void)
 #endif
 	}
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 #ifndef CONFIG_SYS_CONSOLE_INFO_QUIET
 	stdio_print_current_devices();
 #endif /* CONFIG_SYS_CONSOLE_INFO_QUIET */
+#endif
 
 	/* Setting environment variables */
 	for (i = 0; i < MAX_FILES; i++) {
