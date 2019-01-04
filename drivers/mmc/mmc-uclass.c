@@ -247,7 +247,8 @@ void mmc_do_preinit(void)
 	}
 }
 
-#if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)
+#if (!defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_LIBCOMMON_SUPPORT)) && \
+	!defined(CONFIG_QUICKBOOT_QUIET)
 void print_mmc_devices(char separator)
 {
 	struct udevice *dev;

@@ -560,6 +560,7 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	if (ret < 0)
 		return 1;
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 	printf("%llu bytes read in %lu ms", len_read, time);
 	if (time > 0) {
 		puts(" (");
@@ -567,6 +568,7 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		puts(")");
 	}
 	puts("\n");
+#endif
 
 	env_set_hex("fileaddr", addr);
 	env_set_hex("filesize", len_read);
