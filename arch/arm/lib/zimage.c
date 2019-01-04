@@ -30,9 +30,11 @@ int bootz_setup(ulong image, ulong *start, ulong *end)
 
 	*start = zi->zi_start;
 	*end = zi->zi_end;
+#ifndef CONFIG_QUICKBOOT_QUIET
 #ifndef CONFIG_SPL_FRAMEWORK
 	printf("Kernel image @ %#08lx [ %#08lx - %#08lx ]\n",
 	       image, *start, *end);
+#endif
 #endif
 
 	return 0;

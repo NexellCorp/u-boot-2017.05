@@ -417,7 +417,9 @@ int eth_initialize(void)
 			if (num_devices)
 				printf(", ");
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 			printf("eth%d: %s", dev->seq, dev->name);
+#endif
 
 			if (ethprime && dev == prime_dev)
 				printf(" [PRIME]");
@@ -516,11 +518,15 @@ static int eth_post_probe(struct udevice *dev)
 		   !is_valid_ethaddr(pdata->enetaddr)) {
 #ifdef CONFIG_NET_RANDOM_ETHADDR
 		net_random_ethaddr(pdata->enetaddr);
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("\nWarning: %s (eth%d) using random MAC address - %pM\n",
 		       dev->name, dev->seq, pdata->enetaddr);
+#endif
 #else
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("\nError: %s address not set.\n",
 		       dev->name);
+#endif
 		return -EINVAL;
 #endif
 	}

@@ -140,11 +140,13 @@ static int display_text_info(void)
 	return 0;
 }
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 static int announce_dram_init(void)
 {
 	puts("DRAM:  ");
 	return 0;
 }
+#endif
 
 static int show_dram_config(void)
 {
@@ -167,9 +169,11 @@ static int show_dram_config(void)
 	size = gd->ram_size;
 #endif
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 	print_size(size, "");
 	board_add_ram_info(0);
 	putc('\n');
+#endif
 
 	return 0;
 }
@@ -811,7 +815,9 @@ static const init_fnc_t init_sequence_f[] = {
 #if defined(CONFIG_HARD_SPI)
 	init_func_spi,
 #endif
+#ifndef CONFIG_QUICKBOOT_QUIET
 	announce_dram_init,
+#endif
 	dram_init,		/* configure available RAM banks */
 #ifdef CONFIG_POST
 	post_init_f,
