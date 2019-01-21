@@ -15,6 +15,37 @@
 
 #include "f_fastboot_partmap.h"
 
+/*
+ * MMC_BOOT_BUS_WIDTH
+ * 0x0 : x1 (sdr) or x4 (ddr) bus width in boot operation mode (default)
+ * 0x1 : x4 (sdr/ddr) bus width in boot operation mode
+ * 0x2 : x8 (sdr/ddr) bus width in boot operation mode
+ */
+#ifndef MMC_BOOT_BUS_WIDTH
+#define	MMC_BOOT_BUS_WIDTH		2
+#endif
+
+/*
+ * MMC_BOOT_RESET_BUS_WIDTH
+ * 0x0 : Reset bus width to x1, single data rate and backward compatible
+ *       timings after boot operation
+ * 0x1 : Retain BOOT_BUS_WIDTH and BOOT_MODE values after boot operation.
+ *       This is relevant to Push-pull mode operation only
+ */
+#ifndef MMC_BOOT_RESET_BUS_WIDTH
+#define	MMC_BOOT_RESET_BUS_WIDTH	0
+#endif
+/*
+ * MMC_BOOT_MODE
+ * 0x0 : Use single data rate + backward compatible timings
+ *       in boot operation (default)
+ * 0x1 : Use single data rate + High Speed timings in boot operation mode
+ * 0x2 : Use dual data rate in boot operation
+ */
+#ifndef MMC_BOOT_MODE
+#define	MMC_BOOT_MODE			0
+#endif
+
 #define MB	(1024 * 1024)
 
 #ifdef CONFIG_FASTBOOT_FLASH
@@ -192,24 +223,32 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	char cmd[128];
 	int ret = 0;
 
-	sprintf(cmd, "mmc bootbus %d 2 0 0", dev);
-	if (run_command(cmd, 0) < 0)
-		return -EINVAL;
+	/* set bootsector */
+	if (f_part->type == FASTBOOT_PART_BOOT) {
+		sprintf(cmd, "mmc bootbus %d %d %d %d", dev,
+			MMC_BOOT_BUS_WIDTH,
+			MMC_BOOT_RESET_BUS_WIDTH,
+			MMC_BOOT_MODE);
+		if (run_command(cmd, 0) < 0)
+			return -EINVAL;
 
-	if (f_part->type & FASTBOOT_PART_BOOT)
+		#ifdef MMC_BOOT_RESET_FUNCTION
+		sprintf(cmd, "mmc rst-function %d 1", dev);
+		if (run_command(cmd, 0) < 0)
+			return -EINVAL;
+		#endif
+
 		sprintf(cmd, "mmc partconf %d 0 1 1", dev);
-	else
-		sprintf(cmd, "mmc partconf %d 0 1 0", dev);
-
-	if (run_command(cmd, 0) < 0)
-		return -EINVAL;
-
-	sprintf(cmd, "mmc dev %d", dev);
+		if (run_command(cmd, 0) < 0)
+			return -EINVAL;
+	}
 
 	debug("** mmc.%d partition %s (%s)**\n", dev, f_part->name,
 	      f_part->type & PART_TYPE_PARTITION ? "partition" : "data");
 
 	/* set mmc devicee */
+	sprintf(cmd, "mmc dev %d", dev);
+
 	ret = blk_get_device_by_str("mmc", simple_itoa(dev), &dev_desc);
 	if (ret < 0) {
 		ret = run_command(cmd, 0);
@@ -240,6 +279,10 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	debug("** bytes     : 0x%llx (0x%lx)  **\n", bytes, info.blksz);
 
 	mmc_write_block(dev_desc, &info, f_part->name, buffer, bytes);
+
+	/* set bootsector */
+	if (f_part->type == FASTBOOT_PART_BOOT)
+		sprintf(cmd, "mmc partconf %d 0 1 0", dev);
 
 	return 0;
 }
@@ -295,7 +338,7 @@ static struct fb_part_ops fb_partmap_ops_mmc = {
 
 static struct fb_part_dev fb_partmap_dev_mmc = {
 	.device	= "mmc",
-	.dev_max = 3,
+	.dev_max = 4,
 	.part_support = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
 		FASTBOOT_PART_FS | FASTBOOT_PART_GPT | FASTBOOT_PART_MBR,
 	.ops = &fb_partmap_ops_mmc,
