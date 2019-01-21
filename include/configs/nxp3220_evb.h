@@ -29,6 +29,9 @@
 #define MMC_BOOT_PART		1
 #define MMC_ROOTFS_PART		3
 
+/* set 'mmc rst-function' in fastboot */
+#define MMC_BOOT_RESET_FUNCTION
+
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
 
@@ -63,10 +66,5 @@
 	"mmc_rootfs_part=" __stringify(MMC_ROOTFS_PART) "\0" \
 	"mmc_rootfs_part_type=" MMC_ROOTFS_PART_TYPE "\0" \
 	"root_rw=rw\0" \
-	"format_emmc=" \
-		"mmc rescan;" \
-		"mmc bootbus 0 2 0 0;" \
-		"mmc rst-function 0 1;" \
-		"mmc rescan\0" \
 
 #endif
