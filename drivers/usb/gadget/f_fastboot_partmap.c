@@ -18,11 +18,14 @@
 /* support fs type */
 static struct fastboot_part_name {
 	char *name;
-	enum fastboot_part_type type;
+	enum fb_part_type type;
 } f_part_names[] = {
 	{ "bootsector", FASTBOOT_PART_BOOT },
 	{ "raw", FASTBOOT_PART_RAW },
-	{ "partition", FASTBOOT_PART_PART },
+	/* partition type */
+	{ "partition", FASTBOOT_PART_FS }, /* default GPT */
+	{ "gpt", FASTBOOT_PART_GPT },
+	{ "mbr", FASTBOOT_PART_MBR },
 };
 
 static LIST_HEAD(f_dev_head);
@@ -155,7 +158,7 @@ static int parse_seq_device(const char *parts, const char **ret,
 		}
 	}
 
-	strcpy(fp->partition, "unknown");
+	strcpy(fp->name, "unknown");
 	list_add_tail(&fp->link, &fd->part_list);
 
 	printf("** Can't device parse : %s **\n", parts);
@@ -184,19 +187,19 @@ static int parse_seq_partition(const char *parts, const char **ret,
 	/* check partition */
 	list_for_each_entry(fd, fd_head, list) {
 		list_for_each_entry(fp, &fd->part_list, link) {
-			if (!strcmp(fp->partition, str)) {
+			if (!strcmp(fp->name, str)) {
 				printf("** Exist partition : %s -> %s **\n",
-				       fd->device, fp->partition);
+				       fd->device, fp->name);
 				return -EINVAL;
 			}
 		}
 	}
 
 	/* set partition name */
-	strcpy(f_part->partition, str);
-	f_part->partition[strlen(str)] = 0;
+	strcpy(f_part->name, str);
+	f_part->name[strlen(str)] = 0;
 
-	debug("part  : %s\n", f_part->partition);
+	debug("part  : %s\n", f_part->name);
 	return 0;
 }
 
@@ -320,7 +323,7 @@ static void part_lists_init_all(void)
 			list_for_each_safe(entry, n, head) {
 				fp = list_entry(entry,
 						struct fb_part_par, link);
-				debug("%s ", fp->partition);
+				debug("%s ", fp->name);
 				list_del(entry);
 				free(fp);
 			}
@@ -395,9 +398,10 @@ static void part_lists_print(void)
 	list_for_each_entry(fd, fd_head, list) {
 		list_for_each_entry(fp, &fd->part_list, link) {
 			printf(" %s.%d: %s, %s : 0x%llx, 0x%llx\n",
-			       fd->device, fp->dev_no, fp->partition,
+			       fd->device, fp->dev_no, fp->name,
 			       fp->type & PART_TYPE_PARTITION ?
-					"partition" : "data",
+			       fp->type == FASTBOOT_PART_GPT ?
+					"gpt" : "mbr" : "data",
 			       fp->start, fp->length);
 		}
 	}
@@ -406,7 +410,8 @@ static void part_lists_print(void)
 	for (i = 0; i < ARRAY_SIZE(f_part_names); i++)
 		printf("%s(%s) ", f_part_names[i].name,
 		       f_part_names[i].type & PART_TYPE_PARTITION ?
-					"partition" : "data");
+		       f_part_names[i].type == FASTBOOT_PART_GPT ?
+		       "gpt" : "mbr" : "data");
 	printf("\n");
 }
 
@@ -570,12 +575,12 @@ static int part_dev_capacity(const char *device, u64 *length)
 	return !len ? -EINVAL : 0;
 }
 
-static void part_table_update(void)
+static int part_table_update(void)
 {
 	struct list_head *fd_head = &f_dev_head;
 	struct fb_part_dev *fd;
 	struct fb_part_par *fp;
-	int j;
+	int j, ret;
 
 	debug("%s:\n", __func__);
 
@@ -583,6 +588,7 @@ static void part_table_update(void)
 		struct list_head *head = &fd->part_list;
 		u64 part_dev[FASTBOOT_DEV_PART_MAX][3] = { {0, 0, 0}, };
 		char *name_dev[FASTBOOT_DEV_PART_MAX];
+		unsigned int part_table = PART_TYPE_PARTITION;
 		int count = 0, dev = 0;
 		int total = 0;
 
@@ -591,13 +597,15 @@ static void part_table_update(void)
 
 		list_for_each_entry(fp, head, link) {
 			if (fp->type & PART_TYPE_PARTITION) {
-				name_dev[total] = fp->partition;
+				name_dev[total] = fp->name;
 				part_dev[total][0] = fp->start;
 				part_dev[total][1] = fp->length;
 				part_dev[total][2] = fp->dev_no;
-				debug("%s.%d: %s: 0x%llx, 0x%llx\n",
+				part_table = fp->type;
+				debug("%s.%d: %s: 0x%llx, 0x%llx [0x%x]\n",
 				      fd->device, fp->dev_no, name_dev[total],
-				      part_dev[total][0], part_dev[total][1]);
+				      part_dev[total][0], part_dev[total][1],
+				      fp->type);
 				total++;
 			}
 		}
@@ -630,8 +638,13 @@ static void part_table_update(void)
 			}
 
 			/* new partition */
-			if (num && fd->ops && fd->ops->create_part)
-				fd->ops->create_part(dev, names, parts, num);
+			if (num && fd->ops && fd->ops->create_part) {
+				ret = fd->ops->create_part(dev,
+							   names, parts, num,
+							   part_table);
+				if (ret)
+					return ret;
+			}
 
 			count -= num;
 			debug("count %d, tables %d, dev %d\n", count, num, dev);
@@ -639,6 +652,8 @@ static void part_table_update(void)
 				dev++;
 		}
 	}
+
+	return 0;
 }
 
 static struct fb_part_par *part_lookup(const char *cmd)
@@ -649,7 +664,7 @@ static struct fb_part_par *part_lookup(const char *cmd)
 
 	list_for_each_entry(fd, fd_head, list) {
 		list_for_each_entry(fp, &fd->part_list, link) {
-			if (strcmp(fp->partition, cmd))
+			if (strcmp(fp->name, cmd))
 				continue;
 			return fp;
 		}
@@ -741,6 +756,7 @@ int cb_getvar_ext(char *cmd, char *response, size_t chars_left)
 int cb_flash_ext(char *cmd, char *response, unsigned int download_bytes)
 {
 	char *p = (void *)CONFIG_FASTBOOT_BUF_ADDR;
+	int ret;
 
 	if (!strcmp("partmap", cmd)) {
 		char tmp[2048];
@@ -760,7 +776,11 @@ int cb_flash_ext(char *cmd, char *response, unsigned int download_bytes)
 		}
 
 		part_lists_print();
-		part_table_update();
+
+		ret = part_table_update();
+		if (ret)
+			return ret;
+
 		fastboot_okay(response);
 		return 0;
 	} else if (!strcmp("setenv", cmd)) {
