@@ -15,8 +15,9 @@
 
 #include "f_fastboot_partmap.h"
 
+#define MB	(1024 * 1024)
+
 #ifdef CONFIG_FASTBOOT_FLASH
-#ifdef CONFIG_FASTBOOT_PARTMAP_MBR
 static int mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2], int count)
 {
 	char cmd[2048];
@@ -42,10 +43,6 @@ static int mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2], int count)
 	/* "mbr "mmc" <dev no> [counts] <start:length> <start:length> ..\n" */
 	return run_command(cmd, 0);
 }
-#endif
-
-#ifdef CONFIG_FASTBOOT_PARTMAP_GPT
-#define MB	(1024 * 1024)
 
 static int mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2], int count)
 {
@@ -85,7 +82,6 @@ static int mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2], int count)
 
 	return run_command(cmd, 0);
 }
-#endif
 
 static int mmc_check_part_table(struct blk_desc *dev_desc,
 				struct fb_part_par *f_part)
@@ -210,7 +206,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 
 	sprintf(cmd, "mmc dev %d", dev);
 
-	debug("** mmc.%d partition %s (%s)**\n", dev, f_part->partition,
+	debug("** mmc.%d partition %s (%s)**\n", dev, f_part->name,
 	      f_part->type & PART_TYPE_PARTITION ? "partition" : "data");
 
 	/* set mmc devicee */
@@ -243,7 +239,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	debug("** part size : 0x%llx -> 0x%lx **\n", f_part->length, info.size);
 	debug("** bytes     : 0x%llx (0x%lx)  **\n", bytes, info.blksz);
 
-	mmc_write_block(dev_desc, &info, f_part->partition, buffer, bytes);
+	mmc_write_block(dev_desc, &info, f_part->name, buffer, bytes);
 
 	return 0;
 }
@@ -282,21 +278,26 @@ static int mmc_capacity(int dev, u64 *length)
 	return 0;
 }
 
+static int mmc_create_part(int dev, char **names, u64 (*parts)[2],
+			   int count, enum fb_part_type type)
+{
+	if (type == FASTBOOT_PART_GPT)
+		return mmc_make_gpt_parts(dev, names, parts, count);
+	else
+		return mmc_make_mbr_parts(dev, names, parts, count);
+}
+
 static struct fb_part_ops fb_partmap_ops_mmc = {
 	.write = mmc_write,
 	.capacity = mmc_capacity,
-#if defined CONFIG_FASTBOOT_PARTMAP_MBR
-	.create_part = mmc_make_mbr_parts,
-#elif defined CONFIG_FASTBOOT_PARTMAP_GPT
-	.create_part = mmc_make_gpt_parts,
-#endif
+	.create_part = mmc_create_part,
 };
 
 static struct fb_part_dev fb_partmap_dev_mmc = {
 	.device	= "mmc",
 	.dev_max = 3,
 	.part_support = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
-		FASTBOOT_PART_PART,
+		FASTBOOT_PART_FS | FASTBOOT_PART_GPT | FASTBOOT_PART_MBR,
 	.ops = &fb_partmap_ops_mmc,
 };
 
@@ -306,7 +307,8 @@ void fb_partmap_add_dev_mmc(struct list_head *head)
 
 #if defined CONFIG_FASTBOOT_PARTMAP_MBR
 	printf("FASTBOOT PARTMAP: MBR\n");
-#elif defined CONFIG_FASTBOOT_PARTMAP_GPT
+#endif
+#if defined CONFIG_FASTBOOT_PARTMAP_GPT
 	printf("FASTBOOT PARTMAP: GPT\n");
 #endif
 	INIT_LIST_HEAD(&fd->list);
