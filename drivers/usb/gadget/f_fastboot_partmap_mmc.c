@@ -223,8 +223,10 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	char cmd[128];
 	int ret = 0;
 
+	debug("part name:%s [0x%x]\n", f_part->name, f_part->type);
+
 	/* set bootsector */
-	if (f_part->type == FASTBOOT_PART_BOOT) {
+	if (f_part->type & FASTBOOT_PART_BOOT) {
 		sprintf(cmd, "mmc bootbus %d %d %d %d", dev,
 			MMC_BOOT_BUS_WIDTH,
 			MMC_BOOT_RESET_BUS_WIDTH,
@@ -238,6 +240,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 			return -EINVAL;
 		#endif
 
+		/* R/W boot partition 1 */
 		sprintf(cmd, "mmc partconf %d 0 1 1", dev);
 		if (run_command(cmd, 0) < 0)
 			return -EINVAL;
@@ -280,9 +283,11 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 
 	mmc_write_block(dev_desc, &info, f_part->name, buffer, bytes);
 
-	/* set bootsector */
-	if (f_part->type == FASTBOOT_PART_BOOT)
+	/* No access to boot partition */
+	if (f_part->type & FASTBOOT_PART_BOOT) {
 		sprintf(cmd, "mmc partconf %d 0 1 0", dev);
+		return run_command(cmd, 0);
+	}
 
 	return 0;
 }
