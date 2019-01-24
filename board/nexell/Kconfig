@@ -21,6 +21,12 @@ config TARGET_NXP3220_EVB
 	help
 	  Support for nxp3220 evb board.
 
+config TARGET_NXP3220_DAUDIO
+	bool "NXP3220_DAUDIO"
+	depends on ARCH_NXP3220
+	help
+	  Support for nxp3220 daudio board.
+
 endchoice
 
 config SYS_CONFIG_NAME
@@ -32,19 +38,18 @@ config SYS_CONFIG_NAME
 
 config QUICKBOOT
 	bool "NXP3220 QUICKBOOT"
-	depends on TARGET_NXP3220_EVB
 	help
-	  Support for nxp3220 quickboot on evb board.
+	  Support for nxp3220 quickboot.
 
 config QUICKBOOT_QUIET
 	bool "NXP3220 QUICKBOOT QUIET"
-	depends on QUICKBOOT
 	help
 	  quickboot quiet
 
 source "board/nexell/artik310s_trike/Kconfig"
 source "board/nexell/nxp3220_vtk/Kconfig"
 source "board/nexell/nxp3220_evb/Kconfig"
+source "board/nexell/nxp3220_daudio/Kconfig"
 source "board/nexell/common/Kconfig"
 
 endif
