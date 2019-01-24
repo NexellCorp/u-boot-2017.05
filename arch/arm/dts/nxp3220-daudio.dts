@@ -1,0 +1,38 @@
+/*
+ * (C) Copyright 2018 Nexell
+ * JungHyun, Kim <jhkim@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:      GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include "nxp3220-evb-common.dtsi"
+
+/ {
+	model = "Nexell nxp3220 daudio board";
+	compatible = "nexell,nxp3220";
+};
+
+&mmc0 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	nexell,ddr = <1>;
+	mmc-ddr-3_3v;
+	status = "okay";
+};
+
+&mmc1 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	status = "disabled";
+};
+
+&mmc2 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x05>;
+	frequency = <50000000>;
+	status = "disabled";
+};
