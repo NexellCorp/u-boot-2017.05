@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5e9cabd_8054bfbb",
+        "filename": "board/nexell/Kconfig",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-25T09:14:56Z",
+      "side": 1,
+      "message": "remove this\n- share \"board/nexell/nxp3220_evb\" for EVB/DAUDIO",
+      "revId": "e3c147e860feab5907a627d57ec72b8df0c0d476",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "24f64c0a_a8c226b5",
+        "filename": "board/nexell/nxp3220_daudio/Kconfig",
+        "patchSetId": 1
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-25T09:14:56Z",
+      "side": 1,
+      "message": "set to \"board/nexell/nxp3220_evb/Kconfig\"\nwith if status",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 25
+      },
+      "revId": "e3c147e860feab5907a627d57ec72b8df0c0d476",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
