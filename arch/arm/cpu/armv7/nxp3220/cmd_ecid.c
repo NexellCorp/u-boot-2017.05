@@ -7,6 +7,7 @@
 
 #include <common.h>
 #include <linux/ctype.h>
+#include <mach/usb.h>
 #include "ecid.h"
 
 static int nx_cpu_id_guid(u32 guid[4])
@@ -78,7 +79,7 @@ static int ecid_show(char *entry)
 	}
 
 	if (s != buf)
-		*(s-1) = '\n';
+		*(s - 1) = '\n';
 
 	printf("%s", buf);
 
@@ -86,7 +87,7 @@ static int ecid_show(char *entry)
 }
 
 static int do_efuse(cmd_tbl_t *cmdtp, int flag, int argc,
-		char * const argv[])
+		    char * const argv[])
 {
 	if (!strncmp(argv[1], "ecid", 4) ||
 	    !strncmp(argv[1], "guid", 4) ||
@@ -103,4 +104,57 @@ U_BOOT_CMD(
 	"  ecid - display 128-bit ECID\n"
 	"  guid - display guid\n"
 	"  name - display chipname\n"
+);
+
+int nx_cpu_id_usbid(u16 *vid, u16 *pid)
+{
+	u32 id, uid[4] = { 0, };
+	int ret;
+
+	ret = nx_cpu_id_ecid(uid);
+	if (ret)
+		return ret;
+
+	id = uid[3];
+	if (!id) {
+		/* ecid is not burned */
+		*vid = VENDORID;
+		*pid = PRODUCTID;
+	} else {
+		*vid = (id >> 16) & 0xFFFF;
+		*pid = id & 0xFFFF;
+	}
+
+	return 0;
+}
+
+static int do_usbid(cmd_tbl_t *cmdtp, int flag, int argc,
+		    char * const argv[])
+{
+	u16 vid, pid;
+	int ret;
+
+	ret = nx_cpu_id_usbid(&vid, &pid);
+	if (ret < 0) {
+		pr_err("ECID module busy\n");
+		return ret;
+	}
+
+	if (argc < 2) {
+		printf("VID %4x, PID %4x\n", vid, pid);
+		return 0;
+	}
+
+	if (!strcmp("vid", argv[1]))
+		printf("VID  : %4x\n", vid);
+	else if (!strcmp("pid", argv[1]))
+		printf("PID  : %4x\n", pid);
+
+	return 0;
+}
+
+U_BOOT_CMD(
+	usbid, 2, 1, do_usbid,
+	"Nexell USB ID from ECID",
+	"<vid | pid>\n"
 );
