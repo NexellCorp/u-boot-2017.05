@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e3ffb770_6de3c7ef",
+        "filename": "board/nexell/Kconfig",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-25T08:44:11Z",
+      "side": 1,
+      "message": "please move to arch/arm/mach-nexell/Kconfig",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 18
+      },
+      "revId": "1a3658c5b4e34a4f68a4dafbb904c9e27110eb3c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
