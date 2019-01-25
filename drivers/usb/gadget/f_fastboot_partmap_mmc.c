@@ -353,12 +353,6 @@ void fb_partmap_add_dev_mmc(struct list_head *head)
 {
 	struct fb_part_dev *fd = &fb_partmap_dev_mmc;
 
-#if defined CONFIG_FASTBOOT_PARTMAP_MBR
-	printf("FASTBOOT PARTMAP: MBR\n");
-#endif
-#if defined CONFIG_FASTBOOT_PARTMAP_GPT
-	printf("FASTBOOT PARTMAP: GPT\n");
-#endif
 	INIT_LIST_HEAD(&fd->list);
 	INIT_LIST_HEAD(&fd->part_list);
 

@@ -23,7 +23,11 @@ static struct fastboot_part_name {
 	{ "bootsector", FASTBOOT_PART_BOOT },
 	{ "raw", FASTBOOT_PART_RAW },
 	/* partition type */
-	{ "partition", FASTBOOT_PART_FS }, /* default GPT */
+#if defined(CONFIG_FASTBOOT_PARTMAP_PARTITION_MBR)
+	{ "partition", FASTBOOT_PART_MBR },
+#elif defined (CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
+	{ "partition", FASTBOOT_PART_GPT },
+#endif
 	{ "gpt", FASTBOOT_PART_GPT },
 	{ "mbr", FASTBOOT_PART_MBR },
 };
