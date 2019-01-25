@@ -14,6 +14,7 @@
 #include <usb.h>
 #include <generic-phy.h>
 #include <linux/io.h>
+#include <mach/usb.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -34,13 +35,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define	DEVICE_DESCRIPTOR_SIZE		(18)
 #define	CONFIG_DESCRIPTOR_SIZE		(9 + 9 + 7 + 7)
-
-/*
- * NXP3220: 0x2375, S5PXX18: 0x04e8, Samsung Vendor ID : 0x04e8
- * NXP3220: 0x3220, S5PXX18: 0x1234, Nexell Product ID : 0x1234
- */
-#define VENDORID			0x2375
-#define PRODUCTID			0x3220
 
 /* SPEC1.1 */
 
@@ -94,141 +88,97 @@ enum descriptortype {
  * USB2.0 HS OTG
  **/
 struct nx_usb_otg_gcsr_reg {
-	u32 gotgctl;			/* 0x000 R/W OTG Control and Status
-					   Register */
-	u32 gotgint;			/* 0x004 R/W OTG Interrupt Register */
-	u32 gahbcfg;			/* 0x008 R/W Core AHB Configuration
-					   Register */
-	u32 gusbcfg;			/* 0x00C R/W Core USB Configuration
-					   Register */
-	u32 grstctl;			/* 0x010 R/W Core Reset Register */
-	u32 gintsts;			/* 0x014 R/W Core Interrupt Register */
-	u32 gintmsk;			/* 0x018 R/W Core Interrupt Mask
-					   Register */
-	u32 grxstsr;			/* 0x01C R   Receive Status Debug Read
-					   Register */
-	u32 grxstsp;			/* 0x020 R/W Receive Status Debug Pop
-					   Register */
-	u32 grxfsiz;			/* 0x024 R/W Receive FIFO Size Register
-					   */
-	u32 gnptxfsiz;			/* 0x028 R   Non-Periodic Transmit FIFO
-					   Size Register */
-	u32 gnptxsts;			/* 0x02C R/W Non-Periodic Transmit
-					   FIFO/Queue Status Register */
+	u32 gotgctl;			/* 0x000 R/W OTG Control and Status */
+	u32 gotgint;			/* 0x004 R/W OTG Interrupt */
+	u32 gahbcfg;			/* 0x008 R/W Core AHB Configuration */
+	u32 gusbcfg;			/* 0x00C R/W Core USB Configuration */
+	u32 grstctl;			/* 0x010 R/W Core Reset */
+	u32 gintsts;			/* 0x014 R/W Core Interrupt */
+	u32 gintmsk;			/* 0x018 R/W Core Interrupt Mask */
+	u32 grxstsr;			/* 0x01C R   Receive Status Debug Read */
+	u32 grxstsp;			/* 0x020 R/W Receive Status Debug Pop */
+	u32 grxfsiz;			/* 0x024 R/W Receive FIFO Size */
+	u32 gnptxfsiz;			/* 0x028 R   Non-Periodic Transmit FIFO size */
+	u32 gnptxsts;			/* 0x02C R/W Non-Periodic Transmit FIFO/Queue Status */
 	u32 reserved0;			/* 0x030     Reserved */
 	u32 reserved1;			/* 0x034     Reserved */
 	u32 reserved2;			/* 0x038     Reserved */
-	u32 guid;			/* 0x03C R   User ID Register */
-	u32 gsnpsid;			/* 0x040 R   Synopsys ID Register */
-	u32 ghwcfg1;			/* 0x044 R   User HW Config1 Register */
-	u32 ghwcfg2;			/* 0x048 R   User HW Config2 Register */
-	u32 ghwcfg3;			/* 0x04C R   User HW Config3 Register */
-	u32 ghwcfg4;			/* 0x050 R   User HW Config4 Register */
-	u32 glpmcfg;			/* 0x054 R/W Core LPM Configuration
-					   Register */
+	u32 guid;			/* 0x03C R   User ID */
+	u32 gsnpsid;			/* 0x040 R   Synopsys ID */
+	u32 ghwcfg1;			/* 0x044 R   User HW Config1 */
+	u32 ghwcfg2;			/* 0x048 R   User HW Config2 */
+	u32 ghwcfg3;			/* 0x04C R   User HW Config3 */
+	u32 ghwcfg4;			/* 0x050 R   User HW Config4 */
+	u32 glpmcfg;			/* 0x054 R/W Core LPM Configuration */
 	u32 reserved3[(0x100-0x058)/4];	/* 0x058 ~ 0x0FC */
-	u32 hptxfsiz;			/* 0x100 R/W Host Periodic Transmit FIFO
-					   Size Register */
-	u32 dieptxf[15];		/* 0x104 ~ 0x13C R/W Device IN Endpoint
-					   Transmit FIFO Size Register */
+	u32 hptxfsiz;			/* 0x100 R/W Host Periodic Transmit FIFO Size */
+	u32 dieptxf[15];		/* 0x104 ~ 0x13C R/W Device IN Endpoint Transmit FIFO Size */
 	u32 reserved4[(0x400-0x140)/4];	/* 0x140 ~ 0x3FC */
 };
 
 struct nx_usb_otg_host_channel_reg {
-	u32 hcchar;			/* 0xn00 R/W Host Channel-n
-					   Characteristics Register */
-	u32 hcsplt;			/* 0xn04 R/W Host Channel-n Split
-					   Control Register */
-	u32 hcint;			/* 0xn08 R/W Host Channel-n Interrupt
-					   Register */
-	u32 hcintmsk;			/* 0xn0C R/W Host Channel-n Interrupt
-					   Mask Register */
-	u32 hctsiz;			/* 0xn10 R/W Host Channel-n Transfer
-					   Size Register */
-	u32 hcdma;			/* 0xn14 R/W Host Channel-n DMA Address
-					   Register */
+	u32 hcchar;			/* 0xn00 R/W Host Channel-n Characteristics */
+	u32 hcsplt;			/* 0xn04 R/W Host Channel-n Split Control */
+	u32 hcint;			/* 0xn08 R/W Host Channel-n Interrupt */
+	u32 hcintmsk;			/* 0xn0C R/W Host Channel-n Interrupt Mask */
+	u32 hctsiz;			/* 0xn10 R/W Host Channel-n Transfer Size */
+	u32 hcdma;			/* 0xn14 R/W Host Channel-n DMA Address */
 	u32 reserved[2];		/* 0xn18, 0xn1C Reserved */
 };
 
 struct nx_usb_otg_hmcsr_reg {
-	u32 hcfg;			/* 0x400 R/W Host Configuration Register
-					   */
-	u32 hfir;			/* 0x404 R/W Host Frame Interval
-					   Register */
-	u32 hfnum;			/* 0x408 R   Host Frame Number/Frame
-					   Time Remaining Register */
+	u32 hcfg;			/* 0x400 R/W Host Configuration */
+	u32 hfir;			/* 0x404 R/W Host Frame Interval */
+	u32 hfnum;			/* 0x408 R   Host Frame Number/Frame Time Remaining */
 	u32 reserved0;			/* 0x40C     Reserved */
-	u32 hptxsts;			/* 0x410 R/W Host Periodic Transmit
-					   FIFO/Queue Status Register */
-	u32 haint;			/* 0x414 R   Host All Channels Interrupt
-					   Register */
-	u32 haintmsk;			/* 0x418 R/W Host All Channels Interrupt
-					   Mask Register */
+	u32 hptxsts;			/* 0x410 R/W Host Periodic Transmit FIFO/Queue Status */
+	u32 haint;			/* 0x414 R   Host All Channels Interrupt */
+	u32 haintmsk;			/* 0x418 R/W Host All Channels Interrupt Mask */
 	u32 reserved1[(0x440-0x41C)/4];	/* 0x41C ~ 0x43C Reserved */
-	u32 hprt;			/* 0x440 R/W Host Port Control and
-					   Status Register */
+	u32 hprt;			/* 0x440 R/W Host Port Control and Status */
 	u32 reserved2[(0x500-0x444)/4];	/* 0x444 ~ 0x4FC Reserved */
 	struct nx_usb_otg_host_channel_reg hcc[16];/* 0x500 ~ 0x6FC */
 	u32 reserved3[(0x800-0x700)/4];	/* 0x700 ~ 0x7FC */
 };
 
 struct nx_usb_otg_device_epi_reg {
-	u32 diepctl;			/* 0xn00 R/W Device Control IN endpoint
-					   n Control Register */
+	u32 diepctl;			/* 0xn00 R/W Device Control IN endpoint n Control */
 	u32 reserved0;			/* 0xn04     Reserved */
-	u32 diepint;			/* 0xn08 R/W Device Endpoint-n Interrupt
-					   Register */
+	u32 diepint;			/* 0xn08 R/W Device Endpoint-n Interrupt */
 	u32 reserved1;			/* 0xn0C     Reserved */
-	u32 dieptsiz;			/* 0xn10 R/W Device Endpoint-n Transfer
-					   Size Register */
-	u32 diepdma;			/* 0xn14 R/W Device Endpoint-n DMA
-					   Address Register */
-	u32 dtxfsts;			/* 0xn18 R   Device IN Endpoint Transmit
-					   FIFO Status Register */
-	u32 diepdmab;			/* 0xn1C R   Device Endpoint-n DMA
-					   Buffer Address Register */
+	u32 dieptsiz;			/* 0xn10 R/W Device Endpoint-n Transfer Size */
+	u32 diepdma;			/* 0xn14 R/W Device Endpoint-n DMA Address */
+	u32 dtxfsts;			/* 0xn18 R   Device IN Endpoint Transmit FIFO Status */
+	u32 diepdmab;			/* 0xn1C R   Device Endpoint-n DMA Buffer Address */
 };
 
 struct nx_usb_otg_device_ep0_reg {
-	u32 doepctl;			/* 0xn00 R/W Device Control OUT endpoint
-					   n Control Register */
+	u32 doepctl;			/* 0xn00 R/W Device Control OUT endpoint n Control */
 	u32 reserved0;			/* 0xn04     Reserved */
-	u32 doepint;			/* 0xn08 R/W Device Endpoint-n Interrupt
-					   Register */
+	u32 doepint;			/* 0xn08 R/W Device Endpoint-n Interrupt */
 	u32 reserved1;			/* 0xn0C     Reserved */
-	u32 doeptsiz;			/* 0xn10 R/W Device Endpoint-n Transfer
-					   Size Register */
-	u32 doepdma;			/* 0xn14 R/W Device Endpoint-n DMA
-					   Address Register */
+	u32 doeptsiz;			/* 0xn10 R/W Device Endpoint-n Transfer	 Size */
+	u32 doepdma;			/* 0xn14 R/W Device Endpoint-n DMA Address */
 	u32 reserved2;			/* 0xn18     Reserved */
-	u32 doepdmab;			/* 0xn1C R   Device Endpoint-n DMA
-					   Buffer Address Register */
+	u32 doepdmab;			/* 0xn1C R   Device Endpoint-n DMA Buffer Address */
 };
 
 struct nx_usb_otg_dmcsr_reg {
-	u32 dcfg;			/* 0x800 R/W Device Configuration
-					   Register */
-	u32 dctl;			/* 0x804 R/W Device Control Register */
-	u32 dsts;			/* 0x808 R   Device Status Register */
+	u32 dcfg;			/* 0x800 R/W Device Configuration */
+	u32 dctl;			/* 0x804 R/W Device Control */
+	u32 dsts;			/* 0x808 R   Device Status */
 	u32 reserved0;			/* 0x80C     Reserved */
-	u32 diepmsk;			/* 0x810 R/W Device IN Endpoint Common
-					   Interrupt Mask Register */
-	u32 doepmsk;			/* 0x814 R/W Device OUT Endpoint Common
-					   Interrupt Mask Register */
-	u32 daint;			/* 0x818 R   Device All Endpoints
-					   Interrupt Register */
-	u32 daintmsk;			/* 0x81C R/W Device All Endpoints
-					   Interrupt Mask Register */
+	u32 diepmsk;			/* 0x810 R/W Device IN Endpoint Common Interrupt Mask */
+	u32 doepmsk;			/* 0x814 R/W Device OUT Endpoint Common	 Interrupt Mask */
+	u32 daint;			/* 0x818 R   Device All Endpoints Interrupt */
+	u32 daintmsk;			/* 0x81C R/W Device All Endpoints Interrupt Mask */
 	u32 reserved1;			/* 0x820     Reserved */
 	u32 reserved2;			/* 0x824     Reserved */
-	u32 dvbusdis;			/* 0x828 R/W Device VBUS Discharge Time
-					   Register */
-	u32 dvbuspulse;			/* 0x82C R/W Device VBUS Pulsing Time
-					   Register */
-	u32 dthrctl;			/* 0x830 R/W Device Threshold Control
-					   Register */
+	u32 dvbusdis;			/* 0x828 R/W Device VBUS Discharge Time	 */
+	u32 dvbuspulse;			/* 0x82C R/W Device VBUS Pulsing Time */
+	u32 dthrctl;			/* 0x830 R/W Device Threshold Control */
 	u32 diepempmsk;			/* 0x834 R/W Device IN Endpoint FIFO
-					   Empty Interrupt Mask Register */
+					   Empty Interrupt Mask */
 	u32 reserved3;			/* 0x838     Reserved */
 	u32 reserved4;			/* 0x83C     Reserved */
 	u32 reserved5[0x10];		/* 0x840 ~ 0x87C    Reserved */
@@ -243,107 +193,107 @@ struct nx_usb_otg_reg {
 	struct nx_usb_otg_hmcsr_reg hcsr;/* 0x0400 ~ 0x07FC */
 	struct nx_usb_otg_dmcsr_reg dcsr;/* 0x0800 ~ 0x0CFC */
 	u32 reserved0[(0xe00-0xd00)/4];	/* 0x0D00 ~ 0x0DFC	Reserved */
-	u32 pcgcctl;			/* 0x0E00 R/W Power and Clock Gating
-					   Control Register */
+	u32 pcgcctl;			/* 0x0E00 R/W Power and Clock Gating Control */
 	u32 reserved1[(0x1000-0xe04)/4];/* 0x0E04 ~ 0x0FFC	Reserved */
 	u32 epfifo[15][1024];		/* 0x1000 ~ 0xFFFC Endpoint Fifo */
 	/*u32 epfifo[16][1024];*/	/* 0x1000 ~ 0x10FFC Endpoint Fifo */
 	/*u32 reserved2[(0x20000-0x11000)/4];*//* 0x11000 ~ 0x20000 Reserved */
-	/*u32 debugfifo[0x8000];*/	/* 0x20000 ~ 0x3FFFC Debug Purpose
-					   Direct Fifo Acess Register */
+	/*u32 debugfifo[0x8000];*/	/* 0x20000 ~ 0x3FFFC Debug Purpose Direct Fifo Acess */
 };
 
 /* definitions related to CSR setting */
 /* USB Global Interrupt Status register(GINTSTS) setting value */
-#define WKUP_INT			(1u<<31)
-#define OEP_INT				(1<<19)
-#define IEP_INT				(1<<18)
-#define ENUM_DONE			(1<<13)
-#define USB_RST				(1<<12)
-#define USB_SUSP			(1<<11)
-#define RXF_LVL				(1<<4)
+#define WKUP_INT			(1 << 31)
+#define OEP_INT				(1 << 19)
+#define IEP_INT				(1 << 18)
+#define ENUM_DONE			(1 << 13)
+#define USB_RST				(1 << 12)
+#define USB_SUSP			(1 << 11)
+#define RXF_LVL				(1 << 4)
 
 /* NX_OTG_GOTGCTL*/
-#define B_SESSION_VALID			(0x1<<19)
-#define A_SESSION_VALID			(0x1<<18)
+#define B_SESSION_VALID			(0x1 << 19)
+#define A_SESSION_VALID			(0x1 << 18)
 
 /* NX_OTG_GAHBCFG*/
-#define PTXFE_HALF			(0<<8)
-#define PTXFE_ZERO			(1<<8)
-#define NPTXFE_HALF			(0<<7)
-#define NPTXFE_ZERO			(1<<7)
-#define MODE_SLAVE			(0<<5)
-#define MODE_DMA			(1<<5)
-#define BURST_SINGLE			(0<<1)
-#define BURST_INCR			(1<<1)
-#define BURST_INCR4			(3<<1)
-#define BURST_INCR8			(5<<1)
-#define BURST_INCR16			(7<<1)
-#define GBL_INT_UNMASK			(1<<0)
-#define GBL_INT_MASK			(0<<0)
+#define PTXFE_HALF			(0 << 8)
+#define PTXFE_ZERO			(1 << 8)
+#define NPTXFE_HALF			(0 << 7)
+#define NPTXFE_ZERO			(1 << 7)
+#define MODE_SLAVE			(0 << 5)
+#define MODE_DMA			(1 << 5)
+#define BURST_SINGLE			(0 << 1)
+#define BURST_INCR			(1 << 1)
+#define BURST_INCR4			(3 << 1)
+#define BURST_INCR8			(5 << 1)
+#define BURST_INCR16			(7 << 1)
+#define GBL_INT_UNMASK			(1 << 0)
+#define GBL_INT_MASK			(0 << 0)
 
 /* NX_OTG_GRSTCTL*/
-#define AHB_MASTER_IDLE			(1u<<31)
-#define CORE_SOFT_RESET			(0x1<<0)
+#define AHB_MASTER_IDLE			(0x1 << 31)
+#define CORE_SOFT_RESET			(0x1 << 0)
 
 /* NX_OTG_GINTSTS/NX_OTG_GINTMSK core interrupt register */
-#define INT_RESUME			(1u<<31)
-#define INT_DISCONN			(0x1<<29)
-#define INT_CONN_ID_STS_CNG		(0x1<<28)
-#define INT_OUT_EP			(0x1<<19)
-#define INT_IN_EP			(0x1<<18)
-#define INT_ENUMDONE			(0x1<<13)
-#define INT_RESET			(0x1<<12)
-#define INT_SUSPEND			(0x1<<11)
-#define INT_TX_FIFO_EMPTY		(0x1<<5)
-#define INT_RX_FIFO_NOT_EMPTY		(0x1<<4)
-#define INT_SOF				(0x1<<3)
-#define INT_DEV_MODE			(0x0<<0)
-#define INT_HOST_MODE			(0x1<<1)
+#define INT_RESUME			(0x1 << 31)
+#define INT_DISCONN			(0x1 << 29)
+#define INT_CONN_ID_STS_CNG		(0x1 << 28)
+#define INT_OUT_EP			(0x1 << 19)
+#define INT_IN_EP			(0x1 << 18)
+#define INT_ENUMDONE			(0x1 << 13)
+#define INT_RESET			(0x1 << 12)
+#define INT_SUSPEND			(0x1 << 11)
+#define INT_TX_FIFO_EMPTY		(0x1 << 5)
+#define INT_RX_FIFO_NOT_EMPTY		(0x1 << 4)
+#define INT_SOF				(0x1 << 3)
+#define INT_DEV_MODE			(0x0 << 0)
+#define INT_HOST_MODE			(0x1 << 1)
 
 /* NX_OTG_GRXSTSP STATUS*/
-#define GLOBAL_OUT_NAK			(0x1<<17)
-#define OUT_PKT_RECEIVED		(0x2<<17)
-#define OUT_TRNASFER_COMPLETED		(0x3<<17)
-#define SETUP_TRANSACTION_COMPLETED	(0x4<<17)
-#define SETUP_PKT_RECEIVED		(0x6<<17)
+#define GLOBAL_OUT_NAK			(0x1 << 17)
+#define OUT_PKT_RECEIVED		(0x2 << 17)
+#define OUT_TRNASFER_COMPLETED		(0x3 << 17)
+#define SETUP_TRANSACTION_COMPLETED	(0x4 << 17)
+#define SETUP_PKT_RECEIVED		(0x6 << 17)
 
 /* NX_OTG_DCTL device control register */
-#define NORMAL_OPERATION		(0x1<<0)
-#define SOFT_DISCONNECT			(0x1<<1)
+#define NORMAL_OPERATION		(0x1 << 0)
+#define SOFT_DISCONNECT			(0x1 << 1)
 
 /* NX_OTG_DAINT device all endpoint interrupt register */
-#define INT_IN_EP0			(0x1<<0)
-#define INT_IN_EP1			(0x1<<1)
-#define INT_IN_EP3			(0x1<<3)
-#define INT_OUT_EP0			(0x1<<16)
-#define INT_OUT_EP2			(0x1<<18)
-#define INT_OUT_EP4			(0x1<<20)
+#define INT_IN_EP0			(0x1 << 0)
+#define INT_IN_EP1			(0x1 << 1)
+#define INT_IN_EP3			(0x1 << 3)
+#define INT_OUT_EP0			(0x1 << 16)
+#define INT_OUT_EP2			(0x1 << 18)
+#define INT_OUT_EP4			(0x1 << 20)
 
 /* NX_OTG_DIEPCTL0/NX_OTG_DOEPCTL0 */
-#define DEPCTL_EPENA			(0x1u<<31)
-#define DEPCTL_EPDIS			(0x1<<30)
-#define DEPCTL_SNAK			(0x1<<27)
-#define DEPCTL_CNAK			(0x1<<26)
-#define DEPCTL_STALL			(0x1<<21)
-#define DEPCTL_ISO_TYPE			(EP_TYPE_ISOCHRONOUS<<18)
-#define DEPCTL_BULK_TYPE		(EP_TYPE_BULK<<18)
-#define DEPCTL_INTR_TYPE		(EP_TYPE_INTERRUPT<<18)
-#define DEPCTL_USBACTEP			(0x1<<15)
+#define DEPCTL_EPENA			(0x1 << 31)
+#define DEPCTL_EPDIS			(0x1 << 30)
+#define DEPCTL_SNAK			(0x1 << 27)
+#define DEPCTL_CNAK			(0x1 << 26)
+#define DEPCTL_STALL			(0x1 << 21)
+#define DEPCTL_ISO_TYPE			(EP_TYPE_ISOCHRONOUS << 18)
+#define DEPCTL_BULK_TYPE		(EP_TYPE_BULK << 18)
+#define DEPCTL_INTR_TYPE		(EP_TYPE_INTERRUPT << 18)
+#define DEPCTL_USBACTEP			(0x1 << 15)
 
 /*ep0 enable, clear nak, next ep0, max 64byte */
-#define EPEN_CNAK_EP0_64 (DEPCTL_EPENA|DEPCTL_CNAK|(CONTROL_EP<<11)|(0<<0))
+#define EPEN_CNAK_EP0_64 \
+	(DEPCTL_EPENA | DEPCTL_CNAK | (CONTROL_EP << 11) | (0 << 0))
 
 /*ep0 enable, clear nak, next ep0, 8byte */
-#define EPEN_CNAK_EP0_8 (DEPCTL_EPENA|DEPCTL_CNAK|(CONTROL_EP<<11)|(3<<0))
+#define EPEN_CNAK_EP0_8 \
+	(DEPCTL_EPENA | DEPCTL_CNAK | (CONTROL_EP << 11) | (3 << 0))
 
 /* DIEPCTLn/DOEPCTLn */
-#define BACK2BACK_SETUP_RECEIVED	(0x1<<6)
-#define INTKN_TXFEMP			(0x1<<4)
-#define NON_ISO_IN_EP_TIMEOUT		(0x1<<3)
-#define CTRL_OUT_EP_SETUP_PHASE_DONE	(0x1<<3)
-#define AHB_ERROR			(0x1<<2)
-#define TRANSFER_DONE			(0x1<<0)
+#define BACK2BACK_SETUP_RECEIVED	(0x1 << 6)
+#define INTKN_TXFEMP			(0x1 << 4)
+#define NON_ISO_IN_EP_TIMEOUT		(0x1 << 3)
+#define CTRL_OUT_EP_SETUP_PHASE_DONE	(0x1 << 3)
+#define AHB_ERROR			(0x1 << 2)
+#define TRANSFER_DONE			(0x1 << 0)
 
 struct nx_setup_packet {
 	u8 requesttype;
@@ -555,46 +505,6 @@ static const u8	gs_config_descriptor_hs[CONFIG_DESCRIPTOR_SIZE]
 						   (4ms/bit=time,500ms) */
 };
 
-/* @brief ECID Module's Register List */
-struct nx_ecid_reg {
-	u32 chipname[12];    /* 0x000 */
-	u32 _rev0;            /* 0x030 */
-	u32 guid[4];          /* 0x034 */
-	u32 ec0;              /* 0x044 */
-	u32 _rev1;            /* 0x048 */
-	u32 ec2;              /* 0x04C */
-	u32 blow[3];          /* 0x050 */
-	u32 _rev2;            /* 0x05C */
-	u32 blowd[4];         /* 0x060 */
-	u32 _rev3[36];        /* 0x070 */
-	u32 ecid[4];          /* 0x100 */
-	u32 sbootkey0[4];     /* 0x110 */
-	u32 sbootkey1[4];     /* 0x120 */
-	u32 _rev4[8];         /* 0x130 */
-	u32 sboothash0[8];    /* 0x150 */
-	u32 _rev5[8];         /* 0x170 */
-	u32 sboothash1[8];    /* 0x190 */
-	u32 sboothash2[8];    /* 0x1B0 */
-	u32 sjtag[4];         /* 0x1D0 */
-	u32 anti_rb[4];       /* 0x1E0 */
-	u32 efuse_cfg;        /* 0x1F0 */
-	u32 efuse_prot;       /* 0x1F4 */
-	u32 _rev6[2];         /* 0x1F8 */
-	u32 boot_cfg;         /* 0x200 */
-	u32 _rev7[3];         /* 0x204 */
-	u32 back_enc_ek[8];   /* 0x210 */
-	u32 root_enc_key[8];  /* 0x230 */
-	u32 cm0_sboot_key[16];/* 0x250 */
-	u32 root_priv_key[17];/* 0x290 */
-	u32 _rev8[11];        /* 0x2D4 */
-	u32 puf[136];         /* 0x300 */
-	u32 puf_cfg;          /* 0x520 */
-	u32 cm0_anti_rb;      /* 0x524 */
-	u32 cm0_anti_rb_cfg;  /* 0x528 */
-	u32 _rev9;            /* 0x52C */
-	u32 hpm_ids[4];       /* 0x530 */
-};
-
 struct nx_usbdown_priv {
 	void __iomem *reg_otg;
 	void __iomem *reg_ecid;
@@ -603,28 +513,13 @@ struct nx_usbdown_priv {
 	struct clk clk;
 };
 
-static void nx_usb_get_usbid(void __iomem *ecid, u16 *vid, u16 *pid)
-{
-	struct nx_ecid_reg *reg = ecid;
-	u32 id = readl(&reg->ecid[3]);
-
-	if (!id) {   /* ecid is not burned */
-		*vid = VENDORID;
-		*pid = PRODUCTID;
-		debug("\nECID Null!!\nVID %x, PID %x\n", *vid, *pid);
-	} else {
-		*vid = (id >> 16)&0xFFFF;
-		*pid = (id >> 0)&0xFFFF;
-		debug("VID %x, PID %x\n", *vid, *pid);
-	}
-}
-
 static void nx_usb_write_in_fifo(struct nx_usb_otg_reg *reg_otg,
 				 u32 ep, u8 *buf, s32 num)
 {
 	s32 i;
-	u32 *dwbuf = (u32 *)buf;		/* assume all data ptr is 4
-						   bytes aligned */
+	u32 *dwbuf = (u32 *)buf;
+
+	/* assume all data ptr is 4 bytes aligned */
 	for (i = 0; i < (num + 3) / 4; i++)
 		writel(dwbuf[i], &reg_otg->epfifo[ep][0]);
 }
@@ -634,6 +529,7 @@ static void nx_usb_read_out_fifo(struct nx_usb_otg_reg *reg_otg,
 {
 	s32 i;
 	u32 *dwbuf = (u32 *)buf;
+
 	for (i = 0; i < (num + 3) / 4; i++)
 		dwbuf[i] = readl(&reg_otg->epfifo[ep][0]);
 }
@@ -686,7 +582,7 @@ static void nx_usb_ep0_int_hndlr(struct nx_usbdown_priv *priv)
 
 		case STANDARD_GET_CONFIGURATION:
 			debug("STANDARD_GET_CONFIGURATION\n");
-			writel((1<<19)|(1<<0),
+			writel((1 << 19) | (1 << 0),
 			       &reg_otg->dcsr.depir[CONTROL_EP].dieptsiz);
 			/*ep0 enable, clear nak, next ep0, 8byte */
 			writel(EPEN_CNAK_EP0_8,
@@ -701,7 +597,7 @@ static void nx_usb_ep0_int_hndlr(struct nx_usbdown_priv *priv)
 			ustatus->remain_size =
 				(u32)setup_packet->length;
 			debug("0");
-			switch (setup_packet->value>>8) {
+			switch (setup_packet->value >> 8) {
 			case DESCRIPTORTYPE_DEVICE:
 				ustatus->current_ptr =
 					(u8 *)ustatus->device_descriptor;
@@ -775,16 +671,16 @@ static void nx_usb_ep0_int_hndlr(struct nx_usbdown_priv *priv)
 			break;
 		}
 	}
-	writel((1<<19) | (ustatus->ctrl_max_pktsize<<0),
+	writel((1 << 19) | (ustatus->ctrl_max_pktsize << 0),
 	       &reg_otg->dcsr.depir[CONTROL_EP].dieptsiz);
 
 	if (ustatus->speed == USB_HIGH) {
 		/*clear nak, next ep0, 64byte */
-		writel(((1<<26)|(CONTROL_EP<<11)|(0<<0)),
+		writel(((1 << 26) | (CONTROL_EP << 11) | (0 << 0)),
 		       &reg_otg->dcsr.depir[CONTROL_EP].diepctl);
 	} else {
 		/*clear nak, next ep0, 8byte */
-		writel(((1<<26)|(CONTROL_EP<<11)|(3<<0)),
+		writel(((1 << 26) | (CONTROL_EP << 11) | (3 << 0)),
 		       &reg_otg->dcsr.depir[CONTROL_EP].diepctl);
 	}
 	dmb();
@@ -797,7 +693,7 @@ static void nx_usb_transfer_ep0(struct nx_usbdown_priv *priv)
 
 	switch (ustatus->ep0_state) {
 	case EP0_STATE_INIT:
-		writel((1<<19)|(0<<0),
+		writel((1 << 19) | (0 << 0),
 		       &reg_otg->dcsr.depir[CONTROL_EP].dieptsiz);
 		/*ep0 enable, clear nak, next ep0, 8byte */
 		writel(EPEN_CNAK_EP0_8,
@@ -818,7 +714,7 @@ static void nx_usb_transfer_ep0(struct nx_usbdown_priv *priv)
 		}
 		if (ustatus->current_fifo_size
 		   >= ustatus->remain_size) {
-			writel((1<<19)|(ustatus->remain_size<<0),
+			writel((1 << 19) | (ustatus->remain_size << 0),
 			       &reg_otg->dcsr.depir[CONTROL_EP].dieptsiz);
 			nx_usb_write_in_fifo(priv->reg_otg,
 					     CONTROL_EP,
@@ -826,16 +722,14 @@ static void nx_usb_transfer_ep0(struct nx_usbdown_priv *priv)
 					     ustatus->remain_size);
 			ustatus->ep0_state = EP0_STATE_INIT;
 		} else {
-			writel((1<<19)|(ustatus->current_fifo_size<<0),
+			writel((1 << 19) | (ustatus->current_fifo_size << 0),
 			       &reg_otg->dcsr.depir[CONTROL_EP].dieptsiz);
 			nx_usb_write_in_fifo(priv->reg_otg,
 					     CONTROL_EP,
 					     ustatus->current_ptr,
 					     ustatus->current_fifo_size);
-			ustatus->remain_size -=
-				ustatus->current_fifo_size;
-			ustatus->current_ptr +=
-				ustatus->current_fifo_size;
+			ustatus->remain_size -= ustatus->current_fifo_size;
+			ustatus->current_ptr += ustatus->current_fifo_size;
 		}
 		break;
 
@@ -845,7 +739,7 @@ static void nx_usb_transfer_ep0(struct nx_usbdown_priv *priv)
 		debug("EP0_STATE_INTERFACE_GET\n");
 		debug("EP0_STATE_GET_STATUS\n");
 
-		writel((1<<19)|(1<<0),
+		writel((1 << 19) | (1 << 0),
 		       &reg_otg->dcsr.depir[CONTROL_EP].dieptsiz);
 		writel(EPEN_CNAK_EP0_8,
 		       &reg_otg->dcsr.depir[CONTROL_EP].diepctl);
@@ -877,17 +771,18 @@ static void nx_usb_int_bulkin(struct nx_usbdown_priv *priv)
 
 	bulkin_buf = (u8 *)ustatus->up_ptr;
 	remain_cnt = ustatus->up_size -
-		((u32)((ulong)(ustatus->up_ptr -
-			       ustatus->up_addr)));
+		((u32)((ulong)(ustatus->up_ptr - ustatus->up_addr)));
 
 	if (remain_cnt > ustatus->bulkin_max_pktsize) {
-		writel((1<<19) | (ustatus->bulkin_max_pktsize<<0),
+		writel((1 << 19) | (ustatus->bulkin_max_pktsize << 0),
 		       &reg_otg->dcsr.depir[BULK_IN_EP].dieptsiz);
 
-		/* ep1 enable, clear nak, bulk, usb active,
-		   next ep2, max pkt 64 */
-		writel(1u<<31 | 1<<26 | 2<<18 | 1<<15 |
-			ustatus->bulkin_max_pktsize<<0,
+		/*
+		 * ep1 enable, clear nak, bulk, usb active,
+		 * next ep2, max pkt 64
+		 */
+		writel(1u << 31 | 1 << 26 | 2 << 18 | 1 << 15 |
+			ustatus->bulkin_max_pktsize << 0,
 		       &reg_otg->dcsr.depir[BULK_IN_EP].diepctl);
 
 		nx_usb_write_in_fifo(priv->reg_otg,
@@ -897,13 +792,15 @@ static void nx_usb_int_bulkin(struct nx_usbdown_priv *priv)
 		ustatus->up_ptr += ustatus->bulkin_max_pktsize;
 
 	} else if (remain_cnt > 0) {
-		writel((1<<19)|(remain_cnt<<0),
+		writel((1 << 19) | (remain_cnt << 0),
 		       &reg_otg->dcsr.depir[BULK_IN_EP].dieptsiz);
 
-		/* ep1 enable, clear nak, bulk, usb active,
-		  next ep2, max pkt 64 */
-		writel(1u<<31 | 1<<26 | 2<<18 | 1<<15 |
-			ustatus->bulkin_max_pktsize<<0,
+		/*
+		 * ep1 enable, clear nak, bulk, usb active,
+		 * next ep2, max pkt 64
+		 */
+		writel(1u << 31 | 1 << 26 | 2 << 18 | 1 << 15 |
+			ustatus->bulkin_max_pktsize << 0,
 		       &reg_otg->dcsr.depir[BULK_IN_EP].diepctl);
 
 		nx_usb_write_in_fifo(priv->reg_otg,
@@ -912,7 +809,7 @@ static void nx_usb_int_bulkin(struct nx_usbdown_priv *priv)
 		ustatus->up_ptr += remain_cnt;
 
 	} else { /*remain_cnt = 0*/
-		writel((DEPCTL_SNAK|DEPCTL_BULK_TYPE),
+		writel((DEPCTL_SNAK | DEPCTL_BULK_TYPE),
 		       &reg_otg->dcsr.depir[BULK_IN_EP].diepctl);
 	}
 }
@@ -926,10 +823,11 @@ static void nx_usb_int_bulkout(struct nx_usbdown_priv *priv,
 	debug("Bulk Out Function\n");
 
 	nx_usb_read_out_fifo(priv->reg_otg,
-			     BULK_OUT_EP, (u8 *)ustatus->rx_buf_addr,
+			     BULK_OUT_EP,
+			     (u8 *)ustatus->rx_buf_addr,
 			     fifo_cnt_byte);
 
-	ustatus->rx_buf_addr	+= fifo_cnt_byte;
+	ustatus->rx_buf_addr += fifo_cnt_byte;
 	ustatus->rx_size -= fifo_cnt_byte;
 
 	if (ustatus->rx_size <= 0) {
@@ -938,11 +836,12 @@ static void nx_usb_int_bulkout(struct nx_usbdown_priv *priv,
 		ustatus->downloading = false;
 	}
 
-	writel((1<<19)|(ustatus->bulkout_max_pktsize<<0),
+	writel((1 << 19) | (ustatus->bulkout_max_pktsize << 0),
 	       &reg_otg->dcsr.depor[BULK_OUT_EP].doeptsiz);
 
 	/*ep2 enable, clear nak, bulk, usb active, next ep2, max pkt 64*/
-	writel(1u<<31|1<<26|2<<18|1<<15|ustatus->bulkout_max_pktsize<<0,
+	writel(1u << 31 | 1 << 26 | 2 << 18 | 1 << 15 |
+		ustatus->bulkout_max_pktsize << 0,
 	       &reg_otg->dcsr.depor[BULK_OUT_EP].doepctl);
 }
 
@@ -958,30 +857,29 @@ static void nx_usb_reset(struct nx_usbdown_priv *priv)
 		       &reg_otg->dcsr.depor[i].doepctl);
 
 	ustatus->ep0_state = EP0_STATE_INIT;
-	writel(((1<<BULK_OUT_EP)|(1<<CONTROL_EP))<<16 |
-		((1<<BULK_IN_EP)|(1<<CONTROL_EP)),
+	writel(((1 << BULK_OUT_EP) | (1 << CONTROL_EP)) << 16 |
+		((1 << BULK_IN_EP) | (1 << CONTROL_EP)),
 	       &reg_otg->dcsr.daintmsk);
-	writel(CTRL_OUT_EP_SETUP_PHASE_DONE|AHB_ERROR|TRANSFER_DONE,
+	writel(CTRL_OUT_EP_SETUP_PHASE_DONE | AHB_ERROR | TRANSFER_DONE,
 	       &reg_otg->dcsr.doepmsk);
-	writel(INTKN_TXFEMP|NON_ISO_IN_EP_TIMEOUT|AHB_ERROR|TRANSFER_DONE,
+	writel(INTKN_TXFEMP | NON_ISO_IN_EP_TIMEOUT | AHB_ERROR | TRANSFER_DONE,
 	       &reg_otg->dcsr.diepmsk);
 
 	/* Rx FIFO Size */
 	writel(RX_FIFO_SIZE, &reg_otg->gcsr.grxfsiz);
 
-
 	/* Non Periodic Tx FIFO Size */
-	writel(NPTX_FIFO_SIZE<<16 | NPTX_FIFO_START_ADDR<<0,
+	writel(NPTX_FIFO_SIZE << 16 | NPTX_FIFO_START_ADDR << 0,
 	       &reg_otg->gcsr.gnptxfsiz);
 
 	/* clear all out ep nak */
 	for (i = 0; i < 16; i++)
 		writel(readl(&reg_otg->dcsr.depor[i].doepctl) |
-		       (DEPCTL_EPENA|DEPCTL_CNAK),
+		       (DEPCTL_EPENA | DEPCTL_CNAK),
 		       &reg_otg->dcsr.depor[i].doepctl);
 
 	/*clear device address */
-	writel(readl(&reg_otg->dcsr.dcfg) & ~(0x7F<<4),
+	writel(readl(&reg_otg->dcsr.dcfg) & ~(0x7F << 4),
 	       &reg_otg->dcsr.dcfg);
 	dmb();
 }
@@ -1013,7 +911,7 @@ static bool nx_usb_set_init(struct nx_usbdown_priv *priv)
 	/*
 	 * READ ECID for Product and Vendor ID
 	 */
-	nx_usb_get_usbid(priv->reg_ecid, &VID, &PID);
+	nx_cpu_id_usbid(&VID, &PID);
 	debug("%s %x %x\n", __func__, VID, PID);
 
 	gs_device_descriptor_fs[8] = (u8)(VID & 0xff);
@@ -1041,10 +939,10 @@ static bool nx_usb_set_init(struct nx_usbdown_priv *priv)
 		ustatus->config_descriptor = gs_config_descriptor_hs;
 
 		/*MPS:64bytes */
-		writel(((1<<26)|(CONTROL_EP<<11)|(0<<0)),
+		writel(((1 << 26) | (CONTROL_EP << 11) | (0 << 0)),
 		       &reg_otg->dcsr.depir[CONTROL_EP].diepctl);
 		/*ep0 enable, clear nak */
-		writel((1u<<31)|(1<<26)|(0<<0),
+		writel((1u << 31) | (1 << 26) | (0 << 0),
 		       &reg_otg->dcsr.depor[CONTROL_EP].doepctl);
 	} else {
 		ustatus->ctrl_max_pktsize = FULL_MAX_PKT_SIZE_EP0;
@@ -1054,32 +952,34 @@ static bool nx_usb_set_init(struct nx_usbdown_priv *priv)
 		ustatus->config_descriptor = gs_config_descriptor_fs;
 
 		/*MPS:8bytes */
-		writel(((1<<26)|(CONTROL_EP<<11)|(3<<0)),
+		writel(((1 << 26) | (CONTROL_EP << 11) | (3 << 0)),
 		       &reg_otg->dcsr.depir[CONTROL_EP].diepctl);
 		/*ep0 enable, clear nak */
-		writel((1u<<31)|(1<<26)|(3<<0),
+		writel((1u << 31) | (1 << 26) | (3 << 0),
 		       &reg_otg->dcsr.depor[CONTROL_EP].doepctl);
 	}
 
 	/* set_opmode */
-	writel(INT_RESUME|INT_OUT_EP|INT_IN_EP|INT_ENUMDONE|
-	       INT_RESET|INT_SUSPEND|INT_RX_FIFO_NOT_EMPTY,
+	writel(INT_RESUME | INT_OUT_EP | INT_IN_EP | INT_ENUMDONE |
+	       INT_RESET | INT_SUSPEND | INT_RX_FIFO_NOT_EMPTY,
 	       &reg_otg->gcsr.gintmsk);
 
-	writel(MODE_SLAVE|BURST_SINGLE|GBL_INT_UNMASK,
+	writel(MODE_SLAVE | BURST_SINGLE | GBL_INT_UNMASK,
 	       &reg_otg->gcsr.gahbcfg);
 
-	writel((1<<19)|(ustatus->bulkout_max_pktsize<<0),
+	writel((1 << 19) | (ustatus->bulkout_max_pktsize << 0),
 	       &reg_otg->dcsr.depor[BULK_OUT_EP].doeptsiz);
 
-	writel((1<<19)|(0<<0), &reg_otg->dcsr.depor[BULK_IN_EP].doeptsiz);
+	writel((1 << 19) | (0 << 0), &reg_otg->dcsr.depor[BULK_IN_EP].doeptsiz);
 
 	/* bulk out ep enable, clear nak, bulk, usb active, next ep2, max pkt */
-	writel(1u<<31|1<<26|2<<18|1<<15|ustatus->bulkout_max_pktsize<<0,
+	writel(1u << 31 | 1 << 26 | 2 << 18 | 1 << 15 |
+		ustatus->bulkout_max_pktsize << 0,
 	       &reg_otg->dcsr.depor[BULK_OUT_EP].doepctl);
 
 	/* bulk in ep enable, clear nak, bulk, usb active, next ep1, max pkt */
-	writel(0u<<31|1<<26|2<<18|1<<15|ustatus->bulkin_max_pktsize<<0,
+	writel(0u << 31 | 1 << 26 | 2 << 18 | 1 << 15 |
+		ustatus->bulkin_max_pktsize << 0,
 	       &reg_otg->dcsr.depir[BULK_IN_EP].diepctl);
 
 	dmb();
@@ -1094,26 +994,27 @@ static void nx_usb_pkt_receive(struct nx_usbdown_priv *priv)
 
 	rx_status = readl(&reg_otg->gcsr.grxstsp);
 
-	if ((rx_status & (0xf<<17)) == SETUP_PKT_RECEIVED) {
+	if ((rx_status & (0xf << 17)) == SETUP_PKT_RECEIVED) {
 		debug("SETUP_PKT_RECEIVED\n");
 		nx_usb_ep0_int_hndlr(priv);
-	} else if ((rx_status & (0xf<<17)) == OUT_PKT_RECEIVED) {
-		fifo_cnt_byte = (rx_status & 0x7ff0)>>4;
+	} else if ((rx_status & (0xf << 17)) == OUT_PKT_RECEIVED) {
+		fifo_cnt_byte = (rx_status & 0x7ff0) >> 4;
 		debug("OUT_PKT_RECEIVED\n");
 
 		if ((rx_status & BULK_OUT_EP) && (fifo_cnt_byte)) {
 			nx_usb_int_bulkout(priv, fifo_cnt_byte);
-			writel(INT_RESUME|INT_OUT_EP|INT_IN_EP|INT_ENUMDONE|
-				INT_RESET|INT_SUSPEND|INT_RX_FIFO_NOT_EMPTY,
+			writel(INT_RESUME | INT_OUT_EP | INT_IN_EP |
+				INT_ENUMDONE | INT_RESET | INT_SUSPEND |
+				INT_RX_FIFO_NOT_EMPTY,
 				&reg_otg->gcsr.gintmsk);
 			dmb();
 			return;
 		}
-	} else if ((rx_status & (0xf<<17)) == GLOBAL_OUT_NAK) {
+	} else if ((rx_status & (0xf << 17)) == GLOBAL_OUT_NAK) {
 		debug("GLOBAL_OUT_NAK\n");
-	} else if ((rx_status & (0xf<<17)) == OUT_TRNASFER_COMPLETED) {
+	} else if ((rx_status & (0xf << 17)) == OUT_TRNASFER_COMPLETED) {
 		debug("OUT_TRNASFER_COMPLETED\n");
-	} else if ((rx_status & (0xf<<17)) == SETUP_TRANSACTION_COMPLETED) {
+	} else if ((rx_status & (0xf << 17)) == SETUP_TRANSACTION_COMPLETED) {
 		debug("SETUP_TRANSACTION_COMPLETED\n");
 	} else {
 		debug("Reserved\n");
@@ -1130,7 +1031,7 @@ static void nx_usb_transfer(struct nx_usbdown_priv *priv)
 
 	ep_int = readl(&reg_otg->dcsr.daint);
 
-	if (ep_int & (1<<CONTROL_EP)) {
+	if (ep_int & (1 << CONTROL_EP)) {
 		ep_int_status =
 			readl(&reg_otg->dcsr.depir[CONTROL_EP].diepint);
 
@@ -1148,21 +1049,21 @@ static void nx_usb_transfer(struct nx_usbdown_priv *priv)
 		       &reg_otg->dcsr.depir[CONTROL_EP].diepint);
 	}
 
-	if (ep_int & ((1<<CONTROL_EP)<<16)) {
+	if (ep_int & ((1 << CONTROL_EP) << 16)) {
 		ep_int_status =
 			readl(&reg_otg->dcsr.depor[CONTROL_EP].doepint);
 
-		writel((1<<29)|(1<<19)|(8<<0),
+		writel((1 << 29) | (1 << 19) | (8 << 0),
 		       &reg_otg->dcsr.depor[CONTROL_EP].doeptsiz);
 		/*ep0 enable, clear nak */
-		writel(1u<<31|1<<26,
+		writel(1u << 31 | 1 << 26,
 		       &reg_otg->dcsr.depor[CONTROL_EP].doepctl);
 		/* Interrupt Clear */
 		writel(ep_int_status,
 		       &reg_otg->dcsr.depor[CONTROL_EP].doepint);
 	}
 
-	if (ep_int & (1<<BULK_IN_EP)) {
+	if (ep_int & (1 << BULK_IN_EP)) {
 		ep_int_status =
 			readl(&reg_otg->dcsr.depir[BULK_IN_EP].diepint);
 
@@ -1174,7 +1075,7 @@ static void nx_usb_transfer(struct nx_usbdown_priv *priv)
 			nx_usb_int_bulkin(priv);
 	}
 
-	if (ep_int & ((1<<BULK_OUT_EP)<<16)) {
+	if (ep_int & ((1 << BULK_OUT_EP) << 16)) {
 		ep_int_status =
 			readl(&reg_otg->dcsr.depor[BULK_OUT_EP].doepint);
 		/* Interrupt Clear */
@@ -1217,12 +1118,12 @@ static void nx_udc_int_hndlr(struct nx_usbdown_priv *priv)
 		debug("INT_RX_FIFO_NOT_EMPTY\n");
 		/* Read only register field */
 
-		writel(INT_RESUME|INT_OUT_EP|INT_IN_EP|
-			INT_ENUMDONE|INT_RESET|INT_SUSPEND,
+		writel(INT_RESUME | INT_OUT_EP | INT_IN_EP |
+			INT_ENUMDONE | INT_RESET | INT_SUSPEND,
 		       &reg_otg->gcsr.gintmsk);
 		nx_usb_pkt_receive(priv);
-		writel(INT_RESUME|INT_OUT_EP|INT_IN_EP|
-			INT_ENUMDONE|INT_RESET|INT_SUSPEND|
+		writel(INT_RESUME | INT_OUT_EP | INT_IN_EP |
+			INT_ENUMDONE | INT_RESET | INT_SUSPEND |
 			INT_RX_FIFO_NOT_EMPTY, &reg_otg->gcsr.gintmsk);
 	}
 
@@ -1234,7 +1135,8 @@ static void nx_udc_int_hndlr(struct nx_usbdown_priv *priv)
 
 	writel(int_status, &reg_otg->gcsr.gintsts); /* Interrupt Clear */
 	debug("[GINTSTS:0x%08x:0x%08x]\n", int_status,
-	      (WKUP_INT|OEP_INT|IEP_INT|ENUM_DONE|USB_RST|USB_SUSP|RXF_LVL));
+	      (WKUP_INT | OEP_INT | IEP_INT | ENUM_DONE | USB_RST |
+	       USB_SUSP | RXF_LVL));
 }
 
 /* Nexell USBOTG PHY registers */
@@ -1310,18 +1212,18 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 	dmb();
 
 	/* init_core */
-	writel(PTXFE_HALF|NPTXFE_HALF|MODE_SLAVE|
-		BURST_SINGLE|GBL_INT_UNMASK, &reg_otg->gcsr.gahbcfg);
-	writel(0<<15		/* PHY Low Power Clock sel */
-		|1<<14		/* Non-Periodic TxFIFO Rewind Enable */
-		|5<<10		/* Turnaround time */
-		|0<<9		/* 0:HNP disable, 1:HNP enable */
-		|0<<8		/* 0:SRP disable, 1:SRP enable */
-		|0<<7		/* ULPI DDR sel */
-		|0<<6		/* 0: high speed utmi+, 1: full speed serial */
-		|0<<4		/* 0: utmi+, 1:ulpi */
-		|1<<3		/* phy i/f  0:8bit, 1:16bit */
-		|7<<0		/* HS/FS Timeout**/,
+	writel(PTXFE_HALF | NPTXFE_HALF | MODE_SLAVE |
+		BURST_SINGLE | GBL_INT_UNMASK, &reg_otg->gcsr.gahbcfg);
+	writel(0 << 15		/* PHY Low Power Clock sel */
+		| 1 << 14	/* Non-Periodic TxFIFO Rewind Enable */
+		| 5 << 10	/* Turnaround time */
+		| 0 << 9	/* 0:HNP disable, 1:HNP enable */
+		| 0 << 8	/* 0:SRP disable, 1:SRP enable */
+		| 0 << 7	/* ULPI DDR sel */
+		| 0 << 6	/* 0: high speed utmi+, 1: full speed serial */
+		| 0 << 4	/* 0: utmi+, 1:ulpi */
+		| 1 << 3	/* phy i/f  0:8bit, 1:16bit */
+		| 7 << 0	/* HS/FS Timeout**/,
 	       &reg_otg->gcsr.gusbcfg);
 
 	dmb();
@@ -1336,11 +1238,13 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 		       &reg_otg->dcsr.dctl);
 		udelay(10);
 
-		/* usb init device */
-		writel(1<<18, &reg_otg->dcsr.dcfg); /* [][1: full speed(30Mhz)
-							0:high speed] */
-		writel(INT_RESUME|INT_OUT_EP|INT_IN_EP|
-			INT_ENUMDONE|INT_RESET|INT_SUSPEND|
+		/*
+		 * usb init device
+		 * [][1: full speed(30Mhz) 0:high speed]
+		 */
+		writel(1 << 18, &reg_otg->dcsr.dcfg);
+		writel(INT_RESUME | INT_OUT_EP | INT_IN_EP |
+			INT_ENUMDONE | INT_RESET | INT_SUSPEND |
 			INT_RX_FIFO_NOT_EMPTY, &reg_otg->gcsr.gintmsk);
 		udelay(10);
 	}
@@ -1361,8 +1265,8 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 			goto _exit;
 
 		if (readl(&reg_otg->gcsr.gintsts) &
-		    (WKUP_INT|OEP_INT|IEP_INT|ENUM_DONE|USB_RST|USB_SUSP|
-		     RXF_LVL)) {
+		    (WKUP_INT | OEP_INT | IEP_INT | ENUM_DONE | USB_RST |
+		     USB_SUSP | RXF_LVL)) {
 			nx_udc_int_hndlr(priv);
 		     /*	writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts); */
 			mdelay(3);
