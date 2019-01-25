@@ -21,6 +21,12 @@ config TARGET_NXP3220_EVB
 	help
 	  Support for nxp3220 evb board.
 
+config TARGET_NXP3220_DAUDIO
+	bool "NXP3220_DAUDIO"
+	depends on ARCH_NXP3220
+	help
+	  Support for nxp3220 daudio board.
+
 endchoice
 
 config SYS_CONFIG_NAME
