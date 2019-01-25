@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3f9e9f74_d24d9f26",
+        "filename": "arch/arm/mach-nexell/Kconfig",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-25T09:16:37Z",
+      "side": 1,
+      "message": "change to Nexell",
+      "range": {
+        "startLine": 26,
+        "startChar": 7,
+        "endLine": 26,
+        "endChar": 14
+      },
+      "revId": "fe08ddf91f534bb6cee38177501f14f6ce77b343",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "950ab89a_f28ea784",
+        "filename": "arch/arm/mach-nexell/Kconfig",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-25T09:16:37Z",
+      "side": 1,
+      "message": "change to Nexell",
+      "range": {
+        "startLine": 28,
+        "startChar": 15,
+        "endLine": 28,
+        "endChar": 22
+      },
+      "revId": "fe08ddf91f534bb6cee38177501f14f6ce77b343",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dc39d044_3da1f446",
+        "filename": "arch/arm/mach-nexell/Kconfig",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-25T09:16:37Z",
+      "side": 1,
+      "message": "change to Nexell",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 14
+      },
+      "revId": "fe08ddf91f534bb6cee38177501f14f6ce77b343",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
