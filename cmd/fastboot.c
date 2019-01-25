@@ -12,15 +12,50 @@
 #include <g_dnl.h>
 #include <usb.h>
 
+#ifdef CONFIG_ARCH_NEXELL
+#include <mach/usb.h>
+#endif
+
+#ifdef CONFIG_ARCH_NEXELL
+static bool bind_nexell;
+
+int g_dnl_bind_fixup(struct usb_device_descriptor *dev, const char *name)
+{
+	u16 vid, pid;
+	int ret;
+
+	ret = nx_cpu_id_usbid(&vid, &pid);
+	if (!bind_nexell || ret) {
+		put_unaligned(__constant_cpu_to_le16(CONFIG_USB_GADGET_VENDOR_NUM),
+			&dev->idVendor);
+		put_unaligned(__constant_cpu_to_le16(CONFIG_USB_GADGET_PRODUCT_NUM),
+			&dev->idProduct);
+		return 0;
+	}
+
+	put_unaligned(vid, &dev->idVendor);
+	put_unaligned(pid, &dev->idProduct);
+
+	return 0;
+}
+#endif
+
 static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	int controller_index;
 	char *usb_controller;
 	int ret;
 
+#ifdef CONFIG_ARCH_NEXELL
+	bind_nexell = false;
+	if (argc == 3) {
+		if (!strcmp(argv[2], "nexell"))
+			 bind_nexell = true;
+	}
+#else
 	if (argc < 2)
 		return CMD_RET_USAGE;
-
+#endif
 	usb_controller = argv[1];
 	controller_index = simple_strtoul(usb_controller, NULL, 0);
 
@@ -42,8 +77,12 @@ static int do_fastboot(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 		goto exit;
 	}
 
+#ifdef CONFIG_ARCH_NEXELL
+	printf("FASTBOOT [%s] Wait for download ...\n", bind_nexell ?
+	       "Nexell" : "Google");
+#else
 	puts("FASTBOOT: Wait for download ...\n");
-
+#endif
 	while (1) {
 		if (g_dnl_detach())
 			break;
@@ -63,8 +102,17 @@ exit:
 }
 
 U_BOOT_CMD(
+#ifdef CONFIG_ARCH_NEXELL
+	fastboot, 3, 1, do_fastboot,
+	"use USB Fastboot protocol",
+	"<USB_controller> <nexell>\n"
+	"    - run as a fastboot usb device\n"
+	"    - The argument 'nexell' is optional for Nexell USBID"
+#else
 	fastboot, 2, 1, do_fastboot,
 	"use USB Fastboot protocol",
 	"<USB_controller>\n"
 	"    - run as a fastboot usb device"
+
+#endif
 );
