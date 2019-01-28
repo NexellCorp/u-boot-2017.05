@@ -125,7 +125,6 @@ static int nexell_pwm_probe(struct udevice *dev)
 	int node = dev_of_offset(dev);
 	struct clk apbclk;
 	struct clk tclk;
-	unsigned long tclk_freq;
 	u32 outputs[PWM_MAX_CHANNEL];
 	unsigned long freqs[PWM_MAX_CHANNEL];
 	int out_cnt, freq_cnt;
@@ -149,7 +148,7 @@ static int nexell_pwm_probe(struct udevice *dev)
 	}
 
 	freq_cnt = fdtdec_get_int_array_count(blob, node, "tclk_freq",
-			freqs, PWM_MAX_CHANNEL);
+			(u32 *)freqs, PWM_MAX_CHANNEL);
 	if (freq_cnt < 0 || freq_cnt != out_cnt) {
 		pr_err("tclk_freq not match pwm-outputs\n");
 		return -EINVAL;
