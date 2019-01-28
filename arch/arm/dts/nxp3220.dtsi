@@ -327,7 +327,7 @@
 	pwm: pwm@20880000 {
 		compatible = "nexell,nxp3220-pwm";
 		reg = <0x20880000 0x400>;
-		#pwm-cells = <2>;
+		#pwm-cells = <3>;
 		clocks = <&clock_sys PWM_0_APB_CLK>,
 			 <&clock_sys PWM_0_TCLK0_CLK>,
 			 <&clock_sys PWM_0_TCLK1_CLK>,
