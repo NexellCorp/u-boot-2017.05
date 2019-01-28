@@ -598,6 +598,7 @@ static int nx_display_probe(struct udevice *dev)
 
 	v_priv->xsize = ovl->width;
 	v_priv->ysize = ovl->height;
+	v_priv->flush_dcache = true; /* for mmu enable */
 
 	switch (ovl->bit_per_pixel) {
 	case 8:
