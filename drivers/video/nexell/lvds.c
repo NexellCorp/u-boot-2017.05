@@ -55,12 +55,6 @@ struct nx_lvds_reg {
 	u32 lvdsda2;		/* 0x5c */
 };
 
-enum nx_lvds_format {
-	LVDS_FORMAT_VESA = 0,
-	LVDS_FORMAT_JEIDA = 1,
-	LVDS_FORMAT_LOC = 2,
-};
-
 #define	DEF_VOLTAGE_LEVEL	(0x3f) /* 8bits width */
 #define	DEF_VOLTAGE_OFFSET	LVDS_VOL_OFFS_1_1
 #define MHZ(v)			(v * 1000000)
@@ -77,7 +71,7 @@ static void lvds_phy_reset(struct nx_lvds *lvds)
 static int lvds_prepare(struct nx_lvds *lvds)
 {
 	struct nx_lvds_reg *reg = lvds->reg;
-	enum nx_lvds_format format = lvds->format;
+	unsigned int format = lvds->format;
 	struct display_timing *timing = &lvds->dpi->timing;
 	int pixelclock = timing->pixelclock.typ;
 	u32 v_level = lvds->voltage_level;
