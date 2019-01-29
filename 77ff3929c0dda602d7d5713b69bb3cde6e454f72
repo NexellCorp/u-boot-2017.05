@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9b65ccc_36f06bc3",
+        "filename": "arch/arm/dts/nxp3220-daudio.dts",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-29T00:00:08Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 24
+      },
+      "revId": "77ff3929c0dda602d7d5713b69bb3cde6e454f72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "72ce7ca0_8c518331",
+        "filename": "arch/arm/dts/nxp3220-daudio.dts",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-01-29T00:00:08Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 24
+      },
+      "revId": "77ff3929c0dda602d7d5713b69bb3cde6e454f72",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
