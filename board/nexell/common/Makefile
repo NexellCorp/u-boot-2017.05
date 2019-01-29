@@ -8,3 +8,4 @@
 obj-y					+= boot_mode.o
 obj-$(CONFIG_ARCH_SIP_S31NX)		+= mac.o
 obj-$(CONFIG_ARTIK_OTA)			+= ota.o
+obj-$(CONFIG_CMD_BMP)			+= bmp_logo.o
