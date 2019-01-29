@@ -5,10 +5,9 @@ config SYS_BOARD
 
 endif
 
-
 if TARGET_NXP3220_DAUDIO
 
 config SYS_BOARD
-	default "nxp3220_daudio"
+	default "nxp3220_evb"
 
 endif
