@@ -47,6 +47,59 @@
 				     <GMAC_RMII_0_APB_CLK 125000000 1>,
 				     <GMAC_RMII_0_PTP_REF_CLK 25000000 1>;
 	};
+
+	clock_mm: clock-mm@25000000 {
+		clk-init-frequency = <MM_0_AXI_CLK 300000000 1>,
+				<MM_0_APB_CLK 160000000 1>,
+				<DPC_0_AXI_CLK 300000000 0>;
+        };
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 3 20000 1>;
+		brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+		default-brightness-level = <4>;
+		enable-gpios = <&gpio_e 13 GPIO_ACTIVE_HIGH>,
+				<&gpio_e 12 GPIO_ACTIVE_HIGH>,
+				<&gpio_e 14 GPIO_ACTIVE_HIGH>;
+		backlight-delay = <100>;
+	};
+};
+
+&display {
+	status = "okay";
+	display-timings {
+		timings0: timings0 {
+			clock-frequency = <51206400>;
+			hactive = <1024>;
+			vactive = <600>;
+			hfront-porch = <160>;
+			hback-porch = <140>;
+			hsync-len = <20>;
+			vfront-porch = <12>;
+			vback-porch = <20>;
+			vsync-len = <3>;
+		};
+        };
+
+        display-config {
+                out-format = <DP_OUT_FORMAT_RGB666>;
+        };
+
+        display-overlays {
+                rgb_0 {
+                        primary; /* this layer is framebuffer */
+                        width = <1024>;
+                        height = <600>;
+                        bit-per-pixel = <32>;
+			format = <DP_MLC_FORMAT_X8R8G8B8>;
+                };
+        };
+};
+
+&disp_lvds {
+	status = "okay";
+	format = <LVDS_FORMAT_VESA>;
 };
 
 &dwc2otg {
@@ -71,49 +124,6 @@
 			reg = <3>;
 		};
 	};
-};
-
-&mmc0 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
-	status = "okay";
-};
-
-&mmc1 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
-	status = "okay";
-};
-
-&mmc2 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x05>;
-	frequency = <50000000>;
-	status = "okay";
-};
-
-&pinctrl {
-	gmac0_nrst: gmac-nrst {
-		nexell,pins = "gpiod-4";
-		nexell,pin-function = <NX_PIN_FUNC0>;
-		nexell,pin-pull = <NX_PIN_PULL_UP>;
-		nexell,pin-strength = <NX_PIN_STR1>;
-	};
-};
-
-&uart2 {
-	clock-frequency = <100000000>;
-	status = "okay";
-};
-
-&udown {
-	status = "okay";
-};
-
-&usb2phy {
-	status = "okay";
 };
 
 &i2c_0 {
@@ -208,9 +218,56 @@
 	};
 };
 
+&mmc0 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	status = "okay";
+};
+
+&mmc1 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	status = "okay";
+};
+
+&mmc2 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x05>;
+	frequency = <50000000>;
+	status = "okay";
+};
+
+&pinctrl {
+	gmac0_nrst: gmac-nrst {
+		nexell,pins = "gpiod-4";
+		nexell,pin-function = <NX_PIN_FUNC0>;
+		nexell,pin-pull = <NX_PIN_PULL_UP>;
+		nexell,pin-strength = <NX_PIN_STR1>;
+	};
+};
+
+&pwm {
+	status = "okay";
+};
+
 &spi_0 {
 	status = "okay";
 	spi-max-frequency = <10000000>;
 	num-cs = <1>;
 	cs-gpio = <&gpio_c 4 0>;
+};
+
+&uart2 {
+	clock-frequency = <100000000>;
+	status = "okay";
+};
+
+&udown {
+	status = "okay";
+};
+
+&usb2phy {
+	status = "okay";
 };
