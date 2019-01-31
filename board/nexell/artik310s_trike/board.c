@@ -12,8 +12,8 @@
 #include <linux/err.h>
 #include <dm.h>
 #include <adc.h>
-#include "../common/artik_mac.h"
-#include "../common/boot_mode.h"
+#include "artik_mac.h"
+#include "boot_mode.h"
 
 #ifdef CONFIG_DM_REGULATOR
 #include <power/regulator.h>
