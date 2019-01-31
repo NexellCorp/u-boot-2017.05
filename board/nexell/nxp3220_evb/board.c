@@ -8,11 +8,7 @@
 #include <config.h>
 #include <common.h>
 #include <asm/io.h>
-
-#ifdef CONFIG_DM_PMIC_SM5011
-#include <power/pmic.h>
-#include <power/regulator.h>
-#endif
+#include "../common/common.h"
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -31,6 +27,14 @@ int board_init(void)
 #ifdef CONFIG_MISC_INIT_R
 int misc_init_r(void)
 {
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_BOARD_LATE_INIT
+int board_late_init(void)
+{
+	draw_logo();
 	return 0;
 }
 #endif
