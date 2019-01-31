@@ -38,6 +38,21 @@
 #define	KERNEL_DTB		"nxp3220-evb.dtb"
 #define LOG_STATUS		"quiet systemd.log_level=info systemd.show_status=false"
 
+/* For BMP logo */
+#define CONFIG_BOARD_LATE_INIT
+#define CONFIG_SPLASH_SOURCE
+#define CONFIG_SPLASH_SCREEN_ALIGN	/* BMP center */
+#define SPLASH_STORAGE_NAME		"mmc_fs"
+#define SPLASH_STORAGE_DEVICE		SPLASH_STORAGE_MMC
+#define SPLASH_STORAGE_FLAGS		SPLASH_STORAGE_FS
+#define SPLASH_STORAGE_DEVPART		"0:1"
+#define SPLASH_STORAGE_FILE		"logo.bmp"
+#define SPLASH_STORAGE_LOAD		0x50000000
+
+#define CONFIG_BMP_16BPP
+#define CONFIG_BMP_24BPP
+#define CONFIG_BMP_32BPP
+
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"autoboot=run boot_rootfs\0" \
 	"bootdelay="__stringify(CONFIG_BOOTDELAY) "\0" \
@@ -66,6 +81,8 @@
 	"mmc_boot_part_type="MMC_BOOT_PART_TYPE "\0" \
 	"mmc_rootfs_part="__stringify(MMC_ROOTFS_PART) "\0" \
 	"mmc_rootfs_part_type="MMC_ROOTFS_PART_TYPE "\0" \
+	"splashfile="SPLASH_STORAGE_FILE "\0" \
+	"splashimage="__stringify(SPLASH_STORAGE_LOAD) "\0" \
 	"root_rw=rw\0" \
 
 #endif
