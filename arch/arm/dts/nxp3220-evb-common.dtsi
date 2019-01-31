@@ -97,20 +97,12 @@
         };
 };
 
-&clock_usb {
-        clk-init-frequency = <USB_0_AHB_CLK 250000000 1>;
-};
-
 &disp_lvds {
 	status = "okay";
 	format = <LVDS_FORMAT_VESA>;
 };
 
 &dwc2otg {
-	status = "okay";
-};
-
-&ehci {
 	status = "okay";
 };
 
