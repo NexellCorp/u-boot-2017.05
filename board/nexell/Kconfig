@@ -5,7 +5,7 @@ choice
 
 config TARGET_ARTIK310S_TRIKE
 	bool "ARTIK310S_TRIKE"
-	depends on ARCH_SIP_S31NX
+	depends on ARCH_NXP3225
 	help
 	  Support for artik310s trike board.
 

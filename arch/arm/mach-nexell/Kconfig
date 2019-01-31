@@ -8,8 +8,8 @@ config ARCH_NXP3220
 	select CPU_V7
 	select DM
 
-config ARCH_SIP_S31NX
-	bool "SIP_S31NX"
+config ARCH_NXP3225
+	bool "NXP3225"
 	select CPU_V7
 	select DM
 
@@ -17,7 +17,7 @@ endchoice
 
 config SYS_SOC
 	default "nxp3220"
-	depends on ARCH_NXP3220 || ARCH_SIP_S31NX
+	depends on ARCH_NXP3220 || ARCH_NXP3225
 
 config SYS_VENDOR
         default "nexell"
