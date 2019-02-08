@@ -23,8 +23,17 @@ void draw_logo(void)
 	int x = BMP_ALIGN_CENTER, y = BMP_ALIGN_CENTER;
 	ulong addr = 0;
 #ifdef CONFIG_SPLASH_SOURCE
-	char *s;
+	char *s, buff[64];
 	int ret;
+
+	s = env_get("splashimage");
+	if (!s)
+		return;
+
+	if (!gd->video_bottom)
+		return;
+
+	addr = simple_strtoul(s, NULL, 16);
 
 	/* load env_get("splashfile") */
 	ret = splash_source_load(splash_loc,
@@ -32,11 +41,10 @@ void draw_logo(void)
 	if (ret)
 		return;
 
-	s = env_get("splashimage");
-	if (s)
-		addr = simple_strtoul(s, NULL, 16);
+	sprintf(buff, "0x%lx", gd->video_bottom);
+	env_set("fb_addr", buff);
 
-	printf("splashimage: 0x%lx\n", addr);
+	printf("splashimage: 0x%lx -> 0x%lx\n", addr, gd->video_bottom);
 #endif
 	if (!addr)
 		return;
