@@ -14,6 +14,10 @@
 	compatible = "nexell,nxp3220";
 };
 
+&backlight {
+	/delete-property/ backlight-delay;
+};
+
 &mmc0 {
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;

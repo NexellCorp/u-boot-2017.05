@@ -624,10 +624,12 @@ static int nx_display_probe(struct udevice *dev)
 		ovl->fb = plat->base;
 	}
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 	printf("FB: 0x%lx ~ 0x%lx (%ld), %dx%d, %dbpp screen.%d\n",
 	       gd->video_bottom, gd->video_top,
 	       gd->video_top - gd->video_bottom,
 	       ovl->width, ovl->height, ovl->bit_per_pixel, ovl->id);
+#endif
 
 	return nx_display_start(priv);
 }
