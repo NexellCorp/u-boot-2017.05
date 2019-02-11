@@ -44,7 +44,9 @@ void draw_logo(void)
 	sprintf(buff, "0x%lx", gd->video_bottom);
 	env_set("fb_addr", buff);
 
+#ifndef CONFIG_QUICKBOOT_QUIET
 	printf("splashimage: 0x%lx -> 0x%lx\n", addr, gd->video_bottom);
+#endif
 #endif
 	if (!addr)
 		return;
