@@ -30,9 +30,9 @@
 #define CONFIG_SYS_MAXARGS	16
 
 /* load address */
-#define CONFIG_SYS_LOAD_ADDR	0x48000000
-#define FDT_ADDR		0x4a000000
-#define INITRD_ADDR		0x4a100000
+#define CONFIG_SYS_LOAD_ADDR	0x41000000
+#define FDT_ADDR		0x43000000
+#define INITRD_ADDR		0x43100000
 
 #define CONFIG_BOOTCOMMAND		"run autoboot"
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS2,115200n8\0"
