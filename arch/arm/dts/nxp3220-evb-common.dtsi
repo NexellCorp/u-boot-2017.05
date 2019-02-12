@@ -250,6 +250,8 @@
 
 &pwm {
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm3_pin>;
 };
 
 &spi_0 {
