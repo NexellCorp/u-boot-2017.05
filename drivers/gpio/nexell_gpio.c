@@ -25,7 +25,10 @@ DECLARE_GLOBAL_DATA_PTR;
 #define NEXELL_GPIO_INTENB		(0x10)
 #define NEXELL_GPIO_DET			(0x14)
 #define NEXELL_GPIO_PAD			(0x18)
+#define NEXELL_GPIO_ALTFN0		(0x20) /*  0~15 */
+#define NEXELL_GPIO_ALTFN1		(0x24) /* 16~31 */
 #define NEXELL_GPIO_INPUTENB		(0x74)
+#define NEXELL_GPIO_ALTFN2		(0x7c)
 
 #define NEXELL_ALIVE_OUTENB_RST		(0x74)
 #define NEXELL_ALIVE_OUTENB_SET		(0x78)
@@ -37,6 +40,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #define NEXELL_ALIVE_INENB_RST		(0x15C)
 #define NEXELL_ALIVE_INENB_SET		(0x160)
 #define NEXELL_ALIVE_INENB_READ		(0x164)
+#define NEXELL_ALIVE_ALTFN_LOW		(0x10 - 0x800)
 
 struct nexell_gpio_platdata {
 	void __iomem *regs;
@@ -44,6 +48,21 @@ struct nexell_gpio_platdata {
 	const char *bank_name;
 	bool is_alive;
 };
+
+static int nexell_alive_request(struct udevice *dev, unsigned int pin)
+{
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+	u32 bit = 0x3 << pin;
+
+	bit = readl(base + NEXELL_ALIVE_ALTFN_LOW) & ~bit;
+
+	debug("base %p, altfn %p, bit %x\n",
+			base, base + NEXELL_ALIVE_ALTFN_LOW, bit);
+	writel(bit, base + NEXELL_ALIVE_ALTFN_LOW);
+
+	return 0;
+}
 
 static int nexell_alive_direction_input(struct udevice *dev, unsigned int pin)
 {
@@ -115,6 +134,24 @@ static int nexell_alive_get_function(struct udevice *dev, unsigned int pin)
 		return GPIOF_INPUT;
 	else
 		return GPIOF_UNKNOWN;
+
+	return 0;
+}
+
+static int nexell_gpio_request(struct udevice *dev, unsigned pin,
+			       const char *label)
+{
+	struct nexell_gpio_platdata *plat = dev_get_platdata(dev);
+	void __iomem *base = plat->regs;
+
+	debug("req base:%p pin:%u label:%s\n", base, pin, label);
+
+	if (plat->is_alive)
+		return nexell_alive_request(dev, pin);
+
+	clrbits_le32(base + NEXELL_GPIO_ALTFN0 + ((pin >> 4) * 4),
+			3 << ((pin & 0xf) * 2));
+	clrbits_le32(base + NEXELL_GPIO_ALTFN2, 1 << pin);
 
 	return 0;
 }
@@ -247,6 +284,7 @@ static int nexell_gpio_ofdata_to_platdata(struct udevice *dev)
 }
 
 static const struct dm_gpio_ops nexell_gpio_ops = {
+	.request		= nexell_gpio_request,
 	.direction_input	= nexell_gpio_direction_input,
 	.direction_output	= nexell_gpio_direction_output,
 	.get_value		= nexell_gpio_get_value,
