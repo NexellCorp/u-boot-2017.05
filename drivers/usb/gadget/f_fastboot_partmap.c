@@ -810,6 +810,10 @@ void __weak fb_partmap_add_dev_mmc(struct list_head *head)
 {
 }
 
+void __weak fb_partmap_add_dev_spi(struct list_head *head)
+{
+}
+
 void fastboot_bind_ext(void)
 {
 	char *env;
@@ -822,6 +826,7 @@ void fastboot_bind_ext(void)
 	f_dev_binded = true;
 
 	fb_partmap_add_dev_mmc(&f_dev_head);
+	fb_partmap_add_dev_spi(&f_dev_head);
 	part_lists_init_all();
 
 	env = env_get("partmap");
