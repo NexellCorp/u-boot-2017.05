@@ -53,6 +53,13 @@
 #define CONFIG_BMP_24BPP
 #define CONFIG_BMP_32BPP
 
+/* For SPI FLASH */
+#define	CONFIG_SF_DEFAULT_CS		0
+#define	CONFIG_SF_DEFAULT_SPEED		40000000
+#define	CONFIG_SF_DEFAULT_MODE		0
+#define	CONFIG_ENV_SECT_SIZE		0x4000
+
+/* For Environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"autoboot=run boot_rootfs\0" \
 	"bootdelay="__stringify(CONFIG_BOOTDELAY) "\0" \
