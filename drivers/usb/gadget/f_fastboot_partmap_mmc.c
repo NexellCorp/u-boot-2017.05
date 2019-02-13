@@ -48,8 +48,8 @@
 
 #define MB	(1024 * 1024)
 
-#ifdef CONFIG_FASTBOOT_FLASH
-static int mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2], int count)
+static int fb_mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2],
+				 int count)
 {
 	char cmd[2048];
 	int i, l, p;
@@ -75,7 +75,8 @@ static int mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2], int count)
 	return run_command(cmd, 0);
 }
 
-static int mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2], int count)
+static int fb_mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2],
+				 int count)
 {
 	char const *gpt_head[] = {
 		"uuid_disk=${uuid_gpt_disk};"
@@ -114,8 +115,8 @@ static int mmc_make_gpt_parts(int dev, char **names, u64 (*parts)[2], int count)
 	return run_command(cmd, 0);
 }
 
-static int mmc_check_part_table(struct blk_desc *dev_desc,
-				struct fb_part_par *f_part)
+static int fb_mmc_check_part_table(struct blk_desc *dev_desc,
+				   struct fb_part_par *f_part)
 {
 	struct part_driver *first_drv =
 		ll_entry_start(struct part_driver, part_driver);
@@ -150,23 +151,23 @@ static int mmc_check_part_table(struct blk_desc *dev_desc,
 	return -EINVAL;
 }
 
-static lbaint_t mmc_sparse_write(struct sparse_storage *info,
-				 lbaint_t blk, lbaint_t blkcnt,
-				 const void *buffer)
+static lbaint_t fb_mmc_sparse_write(struct sparse_storage *info,
+				    lbaint_t blk, lbaint_t blkcnt,
+				    const void *buffer)
 {
 	struct blk_desc *dev_desc = info->priv;
 
 	return blk_dwrite(dev_desc, blk, blkcnt, buffer);
 }
 
-static lbaint_t mmc_sparse_reserve(struct sparse_storage *info,
-				   lbaint_t blk, lbaint_t blkcnt)
+static lbaint_t fb_mmc_sparse_reserve(struct sparse_storage *info,
+				      lbaint_t blk, lbaint_t blkcnt)
 {
 	return blkcnt;
 }
 
 /* refer to image-sparse.c */
-static void mmc_write_block(struct blk_desc *dev_desc,
+static void fb_mmc_write_block(struct blk_desc *dev_desc,
 			    disk_partition_t *info, const char *part_name,
 			    void *buffer, u64 sz)
 {
@@ -176,8 +177,8 @@ static void mmc_write_block(struct blk_desc *dev_desc,
 		sparse.blksz = info->blksz;
 		sparse.start = info->start;
 		sparse.size = info->size;
-		sparse.write = mmc_sparse_write;
-		sparse.reserve = mmc_sparse_reserve;
+		sparse.write = fb_mmc_sparse_write;
+		sparse.reserve = fb_mmc_sparse_reserve;
 		sparse.priv = dev_desc;
 
 		printf("Flashing sparse image at offset 0x%x/0x%x\n",
@@ -213,8 +214,8 @@ static void mmc_write_block(struct blk_desc *dev_desc,
 	fastboot_okay("");
 }
 
-static int mmc_write(struct fb_part_par *f_part, void *buffer,
-		     u64 bytes)
+static int fb_mmc_write(struct fb_part_par *f_part, void *buffer,
+			u64 bytes)
 {
 	struct blk_desc *dev_desc;
 	int dev = f_part->dev_no;
@@ -268,7 +269,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	info.blksz = blksz;
 
 	if (f_part->type & PART_TYPE_PARTITION) {
-		ret = mmc_check_part_table(dev_desc, f_part);
+		ret = fb_mmc_check_part_table(dev_desc, f_part);
 		if (ret < 0)
 			return -EINVAL;
 
@@ -281,7 +282,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	debug("** part size : 0x%llx -> 0x%lx **\n", f_part->length, info.size);
 	debug("** bytes     : 0x%llx (0x%lx)  **\n", bytes, info.blksz);
 
-	mmc_write_block(dev_desc, &info, f_part->name, buffer, bytes);
+	fb_mmc_write_block(dev_desc, &info, f_part->name, buffer, bytes);
 
 	/* No access to boot partition */
 	if (f_part->type & FASTBOOT_PART_BOOT) {
@@ -292,7 +293,7 @@ static int mmc_write(struct fb_part_par *f_part, void *buffer,
 	return 0;
 }
 
-static int mmc_capacity(int dev, u64 *length)
+static int fb_mmc_capacity(int dev, u64 *length)
 {
 	struct blk_desc *dev_desc;
 	char cmd[32];
@@ -326,19 +327,19 @@ static int mmc_capacity(int dev, u64 *length)
 	return 0;
 }
 
-static int mmc_create_part(int dev, char **names, u64 (*parts)[2],
+static int fb_mmc_create_part(int dev, char **names, u64 (*parts)[2],
 			   int count, enum fb_part_type type)
 {
 	if (type == FASTBOOT_PART_GPT)
-		return mmc_make_gpt_parts(dev, names, parts, count);
+		return fb_mmc_make_gpt_parts(dev, names, parts, count);
 	else
-		return mmc_make_mbr_parts(dev, names, parts, count);
+		return fb_mmc_make_mbr_parts(dev, names, parts, count);
 }
 
 static struct fb_part_ops fb_partmap_ops_mmc = {
-	.write = mmc_write,
-	.capacity = mmc_capacity,
-	.create_part = mmc_create_part,
+	.write = fb_mmc_write,
+	.capacity = fb_mmc_capacity,
+	.create_part = fb_mmc_create_part,
 };
 
 static struct fb_part_dev fb_partmap_dev_mmc = {
@@ -358,4 +359,3 @@ void fb_partmap_add_dev_mmc(struct list_head *head)
 
 	list_add_tail(&fd->list, head);
 }
-#endif

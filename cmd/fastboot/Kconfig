@@ -78,7 +78,7 @@ config USB_FUNCTION_FASTBOOT_PARTMAP
 	  This enables the USB part of the fastboot gadget Extention.
 
 choice
-	prompt "FATBOOT Partmap 'partition' type"
+	prompt "FASTBOOT Partmap 'partition' type"
 	depends on USB_FUNCTION_FASTBOOT_PARTMAP
 
 config FASTBOOT_PARTMAP_PARTITION_MBR
@@ -90,6 +90,17 @@ config FASTBOOT_PARTMAP_PARTITION_GPT
 	select CMD_GPT
 
 endchoice
+
+config FASTBOOT_PARTMAP_FLASH_MMC
+	bool "FASTBOOT Partmap on MMC"
+	depends on USB_FUNCTION_FASTBOOT_PARTMAP
+	select FASTBOOT_FLASH
+
+config FASTBOOT_PARTMAP_FLASH_SPI
+	bool "FASTBOOT Partmap on SPI"
+	depends on USB_FUNCTION_FASTBOOT_PARTMAP
+	select FASTBOOT_FLASH
+	select CMD_SPI
 
 choice
 	prompt "Flash provider for FASTBOOT"
