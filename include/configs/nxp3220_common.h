@@ -38,8 +38,8 @@
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS2,115200n8\0"
 
 /* environments */
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_ENV_OFFSET		(0x32c400)
+#if defined(CONFIG_ENV_IS_IN_MMC) || defined(CONFIG_ENV_IS_IN_SPI_FLASH)
+#define CONFIG_ENV_OFFSET		(0x330000)
 #define CONFIG_ENV_SIZE			(0x4000) /* env size */
 #endif
 
@@ -47,7 +47,8 @@
  * Default environment organization
  */
 #if !defined(CONFIG_ENV_IS_IN_MMC) && !defined(CONFIG_ENV_IS_IN_NAND) && \
-	!defined(CONFIG_ENV_IS_IN_FLASH) && !defined(CONFIG_ENV_IS_IN_EEPROM)
+	!defined(CONFIG_ENV_IS_IN_FLASH) && !defined(CONFIG_ENV_IS_IN_EEPROM) && \
+	!defined(CONFIG_ENV_IS_IN_SPI_FLASH)
 	#define CONFIG_ENV_OFFSET	1024
 	#define CONFIG_ENV_SIZE		(16 * 1024) /* env size */
 	/* imls - list all images found in flash, default enable so disable */
