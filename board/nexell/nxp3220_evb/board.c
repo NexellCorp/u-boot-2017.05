@@ -21,6 +21,7 @@ void enable_caches(void)
 
 int board_init(void)
 {
+	boot_check_mode();
 	return 0;
 }
 
@@ -35,6 +36,7 @@ int misc_init_r(void)
 int board_late_init(void)
 {
 	draw_logo();
+	run_fastboot_update();
 	return 0;
 }
 #endif
