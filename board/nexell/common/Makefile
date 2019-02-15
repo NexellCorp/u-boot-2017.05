@@ -4,5 +4,5 @@
 #
 # SPDX-License-Identifier:	GPL-2.0+
 #
-
+obj-y := boot_mode.o
 obj-$(CONFIG_CMD_BMP)	+= bmp_logo.o
