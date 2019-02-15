@@ -92,7 +92,7 @@
                         width = <1024>;
                         height = <600>;
                         bit-per-pixel = <32>;
-			format = <DP_MLC_FORMAT_X8R8G8B8>;
+			format = <DP_MLC_FORMAT_A8R8G8B8>;
                 };
         };
 };
