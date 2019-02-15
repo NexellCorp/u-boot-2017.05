@@ -1,3 +1,9 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * (C) Copyright 2018 Nexell
+ * Junghyun, Kim <jhkim@nexell.co.kr>
+ *
+ */
 #include <config.h>
 #include <common.h>
 #include <lcd.h>
