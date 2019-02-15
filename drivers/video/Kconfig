@@ -65,6 +65,16 @@ config VIDEO_BPP32
 	  this option, such displays will not be supported and console output
 	  will be empty.
 
+config VIDEO_BPP_ALPHA
+	bool "Support Alpha displays"
+	depends on DM_VIDEO
+	default y if DM_VIDEO
+	help
+	  Support drawing text and bitmaps onto a alpha blend display.
+	  Enabling this will include code to support this display. Without
+	  this option, such displays will not be supported and console output
+	  will be empty.
+
 config VIDEO_ANSI
 	bool "Support ANSI escape sequences in video console"
 	depends on DM_VIDEO

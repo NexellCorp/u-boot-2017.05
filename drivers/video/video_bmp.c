@@ -322,7 +322,11 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 				*(fb++) = *(bmap++);
 				*(fb++) = *(bmap++);
 				*(fb++) = *(bmap++);
-				*(fb++) = 0;
+#if defined(CONFIG_VIDEO_BPP_ALPHA)
+				*(fb++) = 0xff;
+#else
+				*(fb++) = 0x0;
+#endif
 			}
 			fb -= priv->line_length + width * (bpix / 8);
 		}
