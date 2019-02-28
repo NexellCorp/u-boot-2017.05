@@ -107,6 +107,13 @@
 	status = "okay";
 };
 
+&nand {
+	nand-ecc-strength = <4>;
+	nand-ecc-step-size = <512>;
+	nand-timing-mode = <4>;
+	nexell,wp-gpio = <&gpio_c 16 GPIO_ACTIVE_LOW>;
+};
+
 &uart2 {
 	clock-frequency = <100000000>;
 	status = "okay";
