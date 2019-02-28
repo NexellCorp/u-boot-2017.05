@@ -65,4 +65,13 @@
 /* support bootsector for emmc */
 #define CONFIG_SUPPORT_EMMC_BOOT
 
+/* For NAND */
+#ifdef CONFIG_CMD_NAND
+#define CONFIG_CMD_NAND_LOCK_UNLOCK
+#define CONFIG_SYS_MAX_NAND_DEVICE     1
+#define CONFIG_SYS_NAND_ONFI_DETECTION
+#define CONFIG_MTD_PARTITIONS
+#define CONFIG_MTD_DEVICE
+#endif
+
 #endif
