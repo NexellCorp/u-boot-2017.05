@@ -107,6 +107,12 @@
 	status = "okay";
 };
 
+&nand {
+	nand-ecc-strength = <4>;
+	nand-ecc-step-size = <512>;
+	status = "disabled";
+};
+
 &uart2 {
 	clock-frequency = <100000000>;
 	status = "okay";

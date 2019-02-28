@@ -173,6 +173,21 @@
                 status = "disabled";
         };
 
+	nand: nand-controller@26180000 {
+		compatible = "nexell,nxp3220-nand";
+		reg = <0x26180000 0x1000>;
+		clocks = <&clock_sys NANDC_0_APB_CLK>,
+			 <&clock_sys NANDC_0_AXI_CLK>;
+		clock-names = "nand_apb", "nand_core";
+		core_freq = <250000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&nand_data>, <&nand_cs0>;
+		nand-bus-width = <8>;
+		nand-on-flash-bbt;
+		nand-ecc-mode = "hw_syndrome";
+		status = "disabled";
+	};
+
 	uart0: serial@20400000 {
 		compatible = "snps,dw-apb-uart";
 		reg = <0x20400000 0x1000>;
