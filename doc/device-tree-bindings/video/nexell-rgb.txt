@@ -1,0 +1,29 @@
+* Nexell NXP3220 Display RGB LCD Controller
+
+Required properties:
+ - compatible: Should be "nexell,nxp3220-rgb"
+ - reg: physical base address of the controller and length
+	 of memory mapped region.
+ - syscon: The phandle to the syscon node     
+	   which includes RGB mux and clock selection register
+ - pinctl-names: The RGB output pin control state named "default" must be defined
+ - pinctrl-0: The RGB output pin control group
+
+Optional properties:
+ - panel-mpu: support mpu type RGB LCD
+
+Example:
+        disp_rgb: disp_rgb@25140000 {
+                compatible = "nexell,nxp3220-rgb";
+                reg = <0x25140000 0x1000>;
+                syscon = <&sys_reg_sys>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&dp_vclk &dp_vsync &dp_hsync &dp_de &dp_blue
+				&dp_green &dp_red>;
+                u-boot,dm-pre-reloc;
+                status = "disabled";
+        };
+
+	&disp_rgb {
+		status = "okay";
+	};
