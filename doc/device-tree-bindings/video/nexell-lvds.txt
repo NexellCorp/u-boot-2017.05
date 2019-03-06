@@ -1,0 +1,38 @@
+* Nexell NXP3220 Display LVDS LCD Controller
+
+Required properties:
+ - compatible: Should be "nexell,nxp3220-lvds"
+ - reg: physical base address of the controller and length
+	 of memory mapped region.
+ - clocks: must include clock specifiers corresponding to entries in the
+	    clock-names property.
+ - clock-names: must contain "vclk", "phy"
+  - vclk: lvds clock name
+  - phy: lvds phy clock name
+
+Optional properties:
+ - format: lvds format 0: VESA format, 1: JEDIA foramt, 2: user location
+ - voltage-level: lvds tx driver output differential volatge level
+ - voltage-output: output offset voltage control
+   		   Valid values for voltage-output:
+		   - for the nxp3220
+		   "LVDS_VOL_OFFS_0_8" : 0.8v
+		   "LVDS_VOL_OFFS_0_9" : 0.9v
+		   "LVDS_VOL_OFFS_1_0" : 1.0v
+		   "LVDS_VOL_OFFS_1_1" : 1.0v
+                                
+Example:
+        disp_lvds: disp_lvds@25150000 {
+                compatible = "nexell,nxp3220-lvds";
+                reg = <0x25150000 0x1000>, <0x25000200 0x100>;
+                clocks = <&clock_mm LVDS_0_VCLK_CLK>,
+                        <&clock_mm LVDS_0_PHY_CLK>;
+                clock-names = "vclk", "phy";
+                u-boot,dm-pre-reloc;
+                status = "disabled";
+        };
+
+	&disp_lvds {
+	        status = "okay";
+        	format = <LVDS_FORMAT_VESA>;
+	};
