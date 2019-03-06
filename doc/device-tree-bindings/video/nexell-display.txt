@@ -1,0 +1,104 @@
+* Nexell NXP3220 Display Controller
+
+Required properties:
+ - compatible: Should be "nexell,nxp3220-display"
+ - overlays: multi layer counts 
+ - reg: physical base address of the controller and length
+	 of memory mapped region.
+ - clocks: must include clock specifiers corresponding to entries in the
+	    clock-names property.
+ - clock-names: must contain "axi", "clk_x1", "clk_x2"
+  - axi: display bus clock name
+  - clk_x1: display X1 sync clock for the operation of a pixel unit
+  - clk_x2: display X2 sync clock for for pixel output.
+
+Required subnode 'display-timings' is as follows: 
+    please refer to doc/device-tree-bindings/video/display-timing.txt
+    for display timing binding details.
+
+Required subnode 'disply-config' is as follows: Display control config parameters
+ optional properties:
+ - out-format: specifies display out data format,
+	       refer to include/dt-bindings/video/nexell.h
+ - invert-field: optional, pecifies internal field polarity, 0: normal field(low is odd),
+		 1: invert field(low is even)
+ - swap-rb: swap red and blue component for rgb output
+ - yc-order: output order for YCbCr Output
+ - delay-mask: to adjust delay (rgb_pvd, hsync_cp1, vsync_fram, de_cp2)
+    		 if 0, set defalut delays
+ - delay-rgb-pvd: the delay value for RGB/PVD signal
+ - delay-hs-cp1: the delay value for HSYNC/CP1 signal
+ - delay-vs-frame: the delay value for VSYNC/FRAM signal
+ - delay-de-cp2: the delay value for DE/CP2 signal
+ - vsync-start-offs: start veritcal sync offset
+ - vsync-end-offs: end veritcla sync offset
+ - evsync-start-offs: start even veritcal sync offset
+ - evsync-end-offs: end even veritcal sync offset
+ - evfront-porch: even veritcal sync front porch
+ - evback-porch: even veritcal sync back porch
+
+Required subnode 'display-overlays' is as follows:
+ 'screen' subnode : optional, set MLC top layer's resolution.
+		   if not set, adjust primary layer's resolution.
+ optional properties:
+ - width: top layer's screen width
+ - height: top layer's screen height
+ - back-color: background color
+ - video-prior: video priority
+	        0: video > RGB.., 1: RGB0 > video.., 2: RGB0 > RGB1 > video
+
+ 'rgb_0 or rgb_1' subnode : RGB multi layer control parameters
+ optional properties:
+ - priamry: set to framebuffer
+ - framebuffer: optional, frame buffer address
+ - left: the x-coordinate of the upper-left corner
+ - top: the y-coordinate of the upper-top corner
+ - width: the x resolution
+ - height: the y resolution
+ - bit-per-pixel: number of byte per pixel
+ - format: the multi layer control's memory format,
+	   refer to include/dt-bindings/video/nexell.h
+
+Example:
+	display: display@25140000 {
+       		compatible = "nexell,nxp3220-display";
+		reg = <0x25140000 0x1000>, <0x25140800 0x1000>;
+		overlays = <2>;
+                clocks = <&clock_mm DPC_0_AXI_CLK>,
+                        <&clock_mm DPC_0_X1_CLK>,
+                        <&clock_mm DPC_0_X2_CLK>;
+                clock-names = "axi", "clk_x1", "clk_x2";
+                u-boot,dm-pre-reloc;
+                status = "disabled";
+        };
+
+	&display {
+		status = "okay";
+		display-timings {
+                timings0: timings0 {
+                        clock-frequency = <51206400>;
+                        hactive = <1024>;
+                        vactive = <600>;
+                        hfront-porch = <160>;
+                        hback-porch = <140>;
+                        hsync-len = <20>;
+                        vfront-porch = <12>;
+                        vback-porch = <20>;
+                        vsync-len = <3>;
+                	};
+        	};
+
+	        display-config {
+        	        out-format = <DP_OUT_FORMAT_RGB666>;
+	        };
+
+        	display-overlays {
+                	rgb_0 {
+                        	primary; /* this layer is framebuffer */
+	                        width = <1024>;
+        	                height = <600>;
+                	        bit-per-pixel = <32>;
+                        	format = <DP_MLC_FORMAT_A8R8G8B8>;
+	                };
+        	};
+	};
