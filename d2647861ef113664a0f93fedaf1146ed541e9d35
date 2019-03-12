@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "589123f1_d6ab63ba",
+        "filename": "configs/nxp3220_vtk_defconfig",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-12T00:52:15Z",
+      "side": 1,
+      "message": "is it need ?",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 11
+      },
+      "revId": "d2647861ef113664a0f93fedaf1146ed541e9d35",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
