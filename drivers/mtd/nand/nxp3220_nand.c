@@ -446,11 +446,10 @@ static int nand_dev_ready(struct mtd_info *mtd)
 #define ns2cycle(ns, clk)	(int)(((ns) * (clk / 1000000)) / 1000)
 #define ns2cycle_r(ns, clk)	(int)(((ns) * (clk / 1000000) + 999) / 1000)
 
-/* sdr timing saving and setting */
-static void nxp3220_set_sdr_timings(struct nxp3220_nfc *nfc,
-				    const struct nand_sdr_timings *t)
+/* sdr timing calculation */
+static void nxp3220_calc_sdr_timings(struct nxp3220_nfc *nfc,
+				     const struct nand_sdr_timings *t)
 {
-	void __iomem *regs = nfc->regs;
 	u32 tCLH = DIV_ROUND_UP(t->tCLH_min, 1000);
 	u32 tCH = DIV_ROUND_UP(t->tCH_min, 1000);
 	u32 tWP = DIV_ROUND_UP(t->tWP_min, 1000);
@@ -461,32 +460,94 @@ static void nxp3220_set_sdr_timings(struct nxp3220_nfc *nfc,
 	u32 tRHW = DIV_ROUND_UP(t->tRHW_min, 1000);
 	u32 tWHR = DIV_ROUND_UP(t->tWHR_min, 1000);
 
+	u32 tDH = DIV_ROUND_UP(t->tDH_min, 1000);
+	u32 tRC = DIV_ROUND_UP(t->tRC_min, 1000);
+	u32 tRP = DIV_ROUND_UP(t->tRP_min, 1000);
+	u32 tREH = DIV_ROUND_UP(t->tREH_min, 1000);
+	u32 tREA = DIV_ROUND_UP(t->tREA_max, 1000);
+	u32 clk_period;
+
 	unsigned long clk_hz;
 	int cmd_setup, cmd_width, cmd_hold, rhw;
-	int data_setup, data_width, data_hold, whr;
+	int write_setup, write_width, write_hold, whr;
+	int read_setup, read_width, read_hold;
 
 	clk_hz = clk_get_rate(&nfc->core_clk);
-	cmd_setup = max_t(int, (tCLS - tWP), 0);
-	cmd_setup = ns2cycle_r(cmd_setup, clk_hz);
-	cmd_width = ns2cycle_r(tWP, clk_hz);
-	cmd_hold = max_t(int, tCLH, tCH);
-	cmd_hold = ns2cycle_r(cmd_hold, clk_hz);
 	rhw = ns2cycle_r(tRHW, clk_hz);
-
-	data_setup = max_t(int, (tALS - tWP), 0);
-	data_setup = ns2cycle_r(data_setup, clk_hz);
-	data_width = ns2cycle_r(tWC, clk_hz);
-	data_hold = max_t(int, (tWC - tWP), tWH);
-	data_hold = ns2cycle_r(data_hold, clk_hz);
 	whr = ns2cycle_r(tWHR, clk_hz);
+
+	clk_period = (u32)(1000000000UL / clk_hz);
+
+	/* command write */
+	cmd_setup = (tCLS-tWP) > tCLH ?
+		DIV_ROUND_UP((tCLS-tWP),clk_period) - 1 :
+		DIV_ROUND_UP(tCLH,clk_period) -1;
+	cmd_width = DIV_ROUND_UP(tWP,clk_period) - 1;
+	cmd_hold = tCLH > tDH ? 0 : DIV_ROUND_UP(tDH,clk_period) - 1;
+
+	/* data write */
+	write_setup = 0;
+	write_width = DIV_ROUND_UP(tWP,clk_period) - 1;
+	write_hold = (tWC-tWP) > tWH ?
+		(((tWC-tWP) > tDH) ? DIV_ROUND_UP((tWC-tWP),clk_period) - 1 :
+			DIV_ROUND_UP((tWC-tWP),clk_period)) - 1:
+		((tWH > tDH) ? DIV_ROUND_UP(tWH,clk_period) - 1 :
+			DIV_ROUND_UP(tDH,clk_period)) - 1;
+
+	/* data read */
+	read_setup = 0;
+	read_width = (tRP > (tREA+clk_period)) ?
+		DIV_ROUND_UP(tRP,clk_period) - 1 :
+		DIV_ROUND_UP((tREA+clk_period),clk_period) - 1;
+	read_hold = (tRC-tRP) > tREH ?
+		DIV_ROUND_UP((tRC-tRP),clk_period) - 1 :
+		DIV_ROUND_UP(tREH,clk_period) - 1;
+
+	nfc->time.cmd_setup = cmd_setup;
+	nfc->time.cmd_width = cmd_width;
+	nfc->time.cmd_hold = cmd_hold;
+	nfc->time.rhw = rhw;
+
+	nfc->time.rd_setup = read_setup;
+	nfc->time.rd_width = read_width;
+	nfc->time.rd_hold = read_hold;
+
+	nfc->time.wr_setup = write_setup;
+	nfc->time.wr_width = write_width;
+	nfc->time.wr_hold = write_hold;
+	nfc->time.whr = whr;
 
 	pr_debug(" clk_hz %ld cmd setup:%d width:%d hold:%d, rhw:%d\n",
 		 clk_hz, cmd_setup, cmd_width, cmd_hold, rhw);
-	pr_debug(" data setup:%d width:%d hold:%d, whr:%d\n",
-		 data_setup, data_width, data_hold, whr);
+	pr_debug(" read setup:%d width:%d hold:%d, whr:%d\n",
+		 read_setup, read_width, read_hold, whr);
+	pr_debug(" write setup:%d width:%d hold:%d, whr:%d\n",
+		 write_setup, write_width, write_hold, whr);
+}
 
-	nx_nandc_set_cmd_timing(regs, rhw, cmd_setup, cmd_width, cmd_hold);
-	nx_nandc_set_data_timing(regs, whr, data_setup, data_width, data_hold);
+/* sdr timing settings */
+static void nxp3220_set_sdr_timings(struct nxp3220_nfc *nfc,
+				    int cmd, int read, int write)
+{
+	void __iomem *regs = nfc->regs;
+
+	if (cmd) {
+		u32 rhw = nfc->time.rhw;
+		u32 setup = nfc->time.cmd_setup;
+		u32 width = nfc->time.cmd_width;
+		u32 hold = nfc->time.cmd_hold;
+
+		nx_nandc_set_cmd_timing(regs, rhw, setup, width, hold);
+	}
+
+	if (read || write) {
+		u32 whr = nfc->time.whr;
+		u32 setup = (read) ? nfc->time.rd_setup : nfc->time.wr_setup;
+		u32 width = (read) ? nfc->time.rd_width : nfc->time.wr_width;
+		u32 hold = (read) ? nfc->time.rd_hold : nfc->time.wr_hold;
+
+		nx_nandc_set_data_timing(regs, whr, setup, width, hold);
+	}
 }
 
 static int nand_hw_init_timings(struct nand_chip *chip)
@@ -507,7 +568,8 @@ static int nand_hw_init_timings(struct nand_chip *chip)
 	if (IS_ERR(timings))
 		return PTR_ERR(timings);
 
-	nxp3220_set_sdr_timings(nfc, timings);
+	nxp3220_calc_sdr_timings(nfc, timings);
+	nxp3220_set_sdr_timings(nfc, 1, 1, 0);
 
 	return 0;
 }
@@ -570,6 +632,10 @@ static int nand_hw_ecc_read_oob(struct mtd_info *mtd, struct nand_chip *chip,
 	int eccsize = chip->ecc.size;
 	u8 *bufpoi = chip->oob_poi;
 	int i, toread, sndrnd = 0, pos;
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+
+	/* setup read timing */
+	nxp3220_set_sdr_timings(nfc, 0, 1, 0);
 
 	chip->cmdfunc(mtd, NAND_CMD_READ0, chip->ecc.size, page);
 	for (i = 0; i < chip->ecc.steps; i++) {
@@ -606,6 +672,10 @@ static int nand_hw_ecc_write_oob(struct mtd_info *mtd,
 	int eccsize = chip->ecc.size, length = mtd->oobsize;
 	int i, len, pos, status = 0, sndcmd = 0, steps = chip->ecc.steps;
 	const u8 *bufpoi = chip->oob_poi;
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+
+	/* setup write timing */
+	nxp3220_set_sdr_timings(nfc, 0, 0, 1);
 
 	/*
 	 * data-ecc-data-ecc ... ecc-oob
@@ -679,6 +749,9 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_dmasize(regs, sectsize * eccsteps - 1);
 	nx_nandc_set_subpage(regs, eccsteps - 1);
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
+
+	/* setup read timing */
+	nxp3220_set_sdr_timings(nfc, 0, 1, 0);
 
 	ret = nx_nandc_run_dma(nfc);
 	if (ret < 0) {
@@ -797,6 +870,9 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_dmasize(regs, sectsize * eccsteps - 1);
 	nx_nandc_set_subpage(regs, eccsteps - 1);
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
+
+	/* setup write timing */
+	nxp3220_set_sdr_timings(nfc, 0, 0, 1);
 
 	ret = nx_nandc_run_dma(nfc);
 	if (ret < 0)
