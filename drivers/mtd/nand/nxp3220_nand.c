@@ -174,6 +174,16 @@ static u32 nx_nandc_get_ready(void __iomem *regs)
 	return readl(regs + NFC_STATUS) & BIT_MASK;
 }
 
+static void nx_nandc_set_randseed(void __iomem *regs, int seed)
+{
+	const u32 BIT_SIZE  = 16;
+	const u32 BIT_POS   = 0;
+	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
+
+	writel(seed & BIT_MASK, regs + NFC_RAND);
+	dmb();
+}
+
 static void nx_nandc_set_bchmode(void __iomem *regs, u32 bchmode)
 {
 	const u32 BIT_SIZE  = 4;
