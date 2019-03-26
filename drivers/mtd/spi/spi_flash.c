@@ -20,6 +20,58 @@
 
 #include "sf_internal.h"
 
+#define set_bit(data, loc)		((data) |= (0x1 << (loc)))
+#define set_bits(data, area, loc)	((data) |= ((area) << (loc)))
+#define get_bits(data, area, loc)	(((data) >> (loc)) & (area))
+#define clear_bit(data, loc)		((data) &= ~(0x1 << (loc)))
+
+struct n25q1024_area {
+	int index;
+	int p_sec_min;
+	int p_sec_max;
+	int u_sec_min;
+	int u_sec_max;
+};
+
+static struct n25q1024_area n25q1024_area[] = {
+	{ 0,  0,    0,    0,    2048},
+	{ 17, 0,    0,    1,    2047},
+	{ 18, 0,    1,    2,    2047},
+	{ 19, 0,    3,    4,    2047},
+	{ 20, 0,    7,    8,    2047},
+	{ 21, 0,    15,   16,   2047},
+	{ 22, 0,    31,   32,   2047},
+	{ 23, 0,    63,   64,   2047},
+	{ 24, 0,    127,  128,  2047},
+	{ 25, 0,    255,  256,  2047},
+	{ 26, 0,    511,  512,  2047},
+	{ 27, 0,    1023, 1024, 2047},
+	{ 1,  2047, 2047, 0,    2046},
+	{ 2,  2046, 2047, 0,    2045},
+	{ 3,  2044, 2047, 0,    2043},
+	{ 4,  2040, 2047, 0,    2039},
+	{ 5,  2032, 2047, 0,    2031},
+	{ 6,  2016, 2047, 0,    2015},
+	{ 7,  1984, 2047, 0,    1983},
+	{ 8,  1920, 2047, 0,    1919},
+	{ 9,  1792, 2047, 0,    1791},
+	{ 10, 1536, 2047, 0,	1535},
+	{ 11, 1024, 2047, 0,    1023},
+};
+
+#define SR_BP3	BIT(6)
+#define SR_TB	BIT(5)
+
+enum area_type {
+	area_type_sector = 0,
+	area_type_offset,
+};
+
+enum context_type {
+	ctx_register,
+	ctx_index
+};
+
 static void spi_flash_addr(u32 addr, u8 *cmd)
 {
 	/* cmd[0] is actual command */
@@ -996,6 +1048,366 @@ int stm_unlock(struct spi_flash *flash, u32 ofs, size_t len)
 
 	return 0;
 }
+
+static u8 convert_context_type(u8 val, enum context_type ctx_type)
+{
+	u8 mask = SR_BP3 | SR_TB | SR_BP2 | SR_BP1 | SR_BP0;
+	u8 ctx = 0;
+	u8 sr_idx;
+	u8 sr_tb;
+	u8 sr_bp3;
+
+	switch (ctx_type) {
+	case ctx_register:
+		sr_tb =  (((val & mask) >> 5) & 0x1) << 4;
+		sr_bp3 = (((val & mask) >> 6) & 0x1) << 3;
+		sr_idx = (val >> 2) & ~(0x18);
+		ctx = sr_tb | sr_bp3 | sr_idx;
+		break;
+	case ctx_index:
+		sr_tb =  (((val & mask) >> 4) & 0x1) << 5;
+		sr_bp3 = (((val & mask) >> 3) & 0x1) << 6;
+		sr_idx = val & ~(0x18);
+		ctx = sr_bp3 | sr_tb | (sr_idx << 2);
+		break;
+	}
+
+	return ctx;
+}
+
+static int stm_n25q1024_is_locked(struct spi_flash *flash, u32 ofs, size_t len)
+{
+	int size = ARRAY_SIZE(n25q1024_area);
+	struct n25q1024_area *area = &n25q1024_area[0];
+	int i;
+	int ofs_sector;
+	int len_sector;
+	int ret;
+	u8 sr;
+	u8 pos;
+	u8 index = -1;
+
+	ofs_sector = ofs / SZ_64K;
+	len_sector = (ofs + len) / SZ_64K;
+
+	ret = read_sr(flash, &sr);
+	if (ret < 0)
+		return ret;
+
+	pos = convert_context_type(sr, ctx_register);
+	for (i = 0 ; i < size; i++)  {
+		if (area[i].index == pos) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index < 0) {
+		printf("SF: No matching areas exist. Please check again.\n");
+		return 1;
+	}
+
+	if (area[index].u_sec_min > ofs_sector)
+		return 1;
+
+	if ((area[index].u_sec_max + 1) < len_sector)
+		return 1;
+
+	return 0;
+}
+
+static int
+get_n25q1024_protect_area(struct spi_flash *fs, u32 ofs, size_t len, u8 *reg)
+{
+	int i;
+	bool oper = true;
+	int size = ARRAY_SIZE(n25q1024_area);
+	struct n25q1024_area *area = &n25q1024_area[0];
+	u8 s_tb = 0;
+	u8 l_tb = 0;
+	u8 ni = 0;
+	u8 pos = 0;
+	u8 status_old;
+	int idx, min, max;
+	int val;
+	int ret;
+
+	if (ofs != 0 && ofs != 2047) {
+		printf("It's an invalid option value.\n");
+		printf("The option value must be 0 or 2047.\n");
+
+		return -EINVAL;
+	}
+
+	if (len < 2048) {
+		if (ofs == 0 && len > 1024) {
+			printf("It's an where protection can not be applied\n");
+			printf("Valid bottom range : 0 ~ 1024 sector.\n");
+
+			return -EINVAL;
+		}
+
+		if (ofs == 2047 && len > 1024) {
+			printf("It's an where protection can not be applied\n");
+			printf("Valid top range : 1024 ~ 2047 sector.\n");
+
+			return -EINVAL;
+		}
+
+		ret = read_sr(fs, &status_old);
+		if (ret < 0)
+			return ret;
+
+		pos = convert_context_type(status_old, ctx_register);
+		s_tb = (status_old >> 5) & 0x1;
+
+		for (i = 0 ; i < size; i++) {
+			if (ofs == 0) {
+				idx = area[i].index;
+				min = area[i].u_sec_min;
+				max = area[i].u_sec_max;
+				val = (max - min) + 1;
+
+				debug("%s: index = %d\n", __func__, idx);
+				debug("min = %d, max = %d\n", min, max);
+				debug("val = %d\n", val);
+
+				if (ofs == min && idx > 0 && val >= len) {
+					ni = area[i].index;
+					l_tb = (ni >> 4) & 0x1;
+					oper = (s_tb == l_tb && pos == ni) ?
+						false : true;
+
+					debug("get index = %d\n", ni);
+					debug("len_tb = %d\n", l_tb);
+					debug("oper = %d\n", oper);
+
+					break;
+				}
+			} else if (ofs == 2047) {
+				idx = area[i].index;
+				min = area[i].u_sec_min;
+				max = area[i].u_sec_max;
+				val = (max - min) + 1;
+
+				if (ofs == max && idx > 0 && val >= len) {
+					ni = area[i].index;
+					l_tb = (ni >> 4) & 0x1;
+					oper = (s_tb == l_tb && pos == ni) ?
+						false : true;
+
+					break;
+				}
+			}
+		}
+
+		if (!oper) {
+			debug("%s:It has already been set.\n", __func__);
+			debug("SR : 0x%02x\n", status_old);
+
+			return 1;
+		}
+
+		*reg = convert_context_type(ni, ctx_index);
+	} else if (len == 2048) {
+		*reg = 0x7c;
+	} else {
+		printf("The value is an invalied size.\n");
+		printf("Size can not exceed 2048.\n");
+
+		return -EINVAL;
+	}
+
+	debug("%s:reg = 0x%02x\n", __func__, *reg);
+
+	return 0;
+}
+
+static int stm_n25q1024_lock(struct spi_flash *flash, u32 ofs, size_t len)
+{
+	u8 status_new;
+	u8 ctx = 0;
+	int len_sector;
+	int ret;
+
+	if (ofs != 0 && ofs != 2047) {
+		printf("SF: The offset value must be 0 or 0x7ff.\n");
+		return -EINVAL;
+	}
+
+	if ((len % SZ_64K) != 0) {
+		printf("SF: The length must be a 64Kbyte alignment.\n");
+		return -EINVAL;
+	}
+
+	len_sector = len / SZ_64K;
+	ret = get_n25q1024_protect_area(flash, ofs, len_sector, &ctx);
+	if (ret < 0)
+		return -EINVAL;
+
+	if (ret == 1)
+		return 0;
+
+	status_new = ctx;
+	set_bit(status_new, 1);
+
+	write_sr(flash, status_new);
+
+#ifdef KLOG
+	u8 sr;
+
+	ret = read_sr(flash, &sr);
+	if (ret < 0)
+		return ret;
+
+	printf("status = 0x%02x\n", sr);
+#endif
+
+	return 0;
+}
+
+static int
+get_n25q1024_unprotect_area(struct spi_flash *sf, u32 ofs, size_t len, u8 *reg)
+{
+	int i;
+	bool oper = true;
+	int size = ARRAY_SIZE(n25q1024_area);
+	struct n25q1024_area *area = &n25q1024_area[0];
+	u8 s_tb = 0;
+	u8 l_tb = 0;
+	u8 ni = 0;
+	u8 pos = 0;
+	u8 status_old;
+	int idx, min, max;
+	int val;
+	int ret;
+
+	if (ofs != 0 && ofs != 2047) {
+		printf("It's an invalid option value.\n");
+		printf("The option value must be 0 or 2047.\n");
+
+		return -EINVAL;
+	}
+
+	if (len < 2048) {
+		if (ofs == 2047 && len < 1) {
+			printf("It's an where protection cann't be applied\n");
+			printf("Valid top range : 1 ~ 2047 sector.\n");
+
+			return -EINVAL;
+		}
+
+		ret = read_sr(sf, &status_old);
+		if (ret < 0)
+			return ret;
+
+		pos = convert_context_type(status_old, ctx_register);
+		s_tb = (status_old >> 5) & 0x1;
+
+		for (i = (size - 1) ; i >= 0; i--) {
+			if (ofs == 0) {
+				idx = area[i].index;
+				min = area[i].u_sec_min;
+				max = area[i].u_sec_max;
+				val = (max - min) + 1;
+
+				debug("%s: index = %d\n", __func__, idx);
+				debug("min = %d, max = %d\n", min, max);
+				debug("val = %d\n", val);
+
+				if (ofs == min && idx > 0 && val >= len) {
+					ni = area[i].index;
+					l_tb = (ni >> 4) & 0x1;
+					oper = (s_tb == l_tb && pos == ni) ?
+						false : true;
+
+					debug("get index = %d\n", ni);
+					debug("len_tb = %d\n", l_tb);
+					debug("oper = %d\n", oper);
+
+					break;
+				}
+			} else if (ofs == 2047) {
+				idx = area[i].index;
+				min = area[i].u_sec_min;
+				max = area[i].u_sec_max;
+				val = (max - min) + 1;
+
+				if (ofs == max && idx > 0 && val >= len) {
+					ni = area[i].index;
+					l_tb = (ni >> 4) & 0x1;
+					oper = (s_tb == l_tb && pos == ni) ?
+						false : true;
+					break;
+				}
+			}
+		}
+
+		if (!oper) {
+			debug("%s:It has already been set.\n", __func__);
+			debug("SR : 0x%02x\n", status_old);
+
+			return 1;
+		}
+
+		*reg = convert_context_type(ni, ctx_index);
+	} else if (len == 2048) {
+		*reg = 0;
+	} else {
+		printf("The value is an invalied size.\n");
+		printf("Size can not exceed 2048.\n");
+
+		return -EINVAL;
+	}
+
+	debug("%s:reg = 0x%02x\n", __func__, *reg);
+
+	return 0;
+}
+
+static int stm_n25q1024_unlock(struct spi_flash *flash, u32 ofs, size_t len)
+{
+	u8 status_new;
+	u8 ctx = 0;
+
+	int ret;
+	int len_sector;
+
+	if (ofs != 0 && ofs != 2047) {
+		printf("SF: The offset value must be 0 or 0x7ff.\n");
+		return -EINVAL;
+	}
+
+	if ((len % SZ_64K) != 0) {
+		printf("SF: The length must be a 64Kbyte alignment.\n");
+		return -EINVAL;
+	}
+
+	len_sector = len / SZ_64K;
+	ret = get_n25q1024_unprotect_area(flash, ofs, len_sector, &ctx);
+	if (ret < 0)
+		return -EINVAL;
+
+	if (ret == 1)
+		return 0;
+
+	status_new = ctx;
+	set_bit(status_new, 1);
+
+	write_sr(flash, status_new);
+
+#ifdef KLOG
+	u8 sr;
+
+	ret = read_sr(flash, &sr);
+	if (ret < 0)
+		return ret;
+
+	printf("status = 0x%02x\n", sr);
+#endif
+
+	return 0;
+}
 #endif
 
 
@@ -1183,9 +1595,15 @@ int spi_flash_scan(struct spi_flash *flash)
 	/* NOR protection support for STmicro/Micron chips and similar */
 	if (JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_STMICRO ||
 	    JEDEC_MFR(info) == SPI_FLASH_CFI_MFR_SST) {
-		flash->flash_lock = stm_lock;
-		flash->flash_unlock = stm_unlock;
-		flash->flash_is_locked = stm_is_locked;
+		if (!strcmp(flash->name, "n25q1024")) {
+			flash->flash_lock = stm_n25q1024_lock;
+			flash->flash_unlock = stm_n25q1024_unlock;
+			flash->flash_is_locked = stm_n25q1024_is_locked;
+		} else {
+			flash->flash_lock = stm_lock;
+			flash->flash_unlock = stm_unlock;
+			flash->flash_is_locked = stm_is_locked;
+		}
 	}
 #endif
 
