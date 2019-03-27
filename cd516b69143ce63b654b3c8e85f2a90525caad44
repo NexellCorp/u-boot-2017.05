@@ -1,0 +1,208 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c9d65a22_620ef116",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1146,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f3c0b1c_ad72e828",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1153,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff5736e8_e9586391",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1184,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6e1c0a69_e8c62466",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1198,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cb3744f3_8440aa33",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1207,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3293e176_8bc5eac8",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1217,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "467a4828_fedb0b94",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1288,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8f4c118e_51213737",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1296,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b76207ad_a0ad0a91",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1327,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2b02d1a6_13f91106",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1349,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "184ea6c1_cdc09749",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1359,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aa2e3d80_5c02b043",
+        "filename": "drivers/mtd/spi/spi_flash.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 1372,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-03-27T07:14:37Z",
+      "side": 1,
+      "message": "please, remove empty line",
+      "revId": "cd516b69143ce63b654b3c8e85f2a90525caad44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
