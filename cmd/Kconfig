@@ -226,6 +226,11 @@ config CMD_BOOTEFI
 	help
 	  Boot an EFI image from memory.
 
+config CMD_BOOTL
+	bool "bootl"
+	help
+	  Boot the Linux Image
+
 config CMD_BOOTEFI_HELLO_COMPILE
 	bool "Compile a standard EFI hello world binary for testing"
 	depends on CMD_BOOTEFI && (ARM || X86)
