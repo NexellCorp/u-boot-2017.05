@@ -571,6 +571,7 @@ static void cb_download(struct usb_ep *ep, struct usb_request *req)
 
 static void do_bootm_on_complete(struct usb_ep *ep, struct usb_request *req)
 {
+#ifdef CONFIG_CMD_BOOTM
 	char boot_addr_start[12];
 	char *bootm_args[] = { "bootm", boot_addr_start, NULL };
 
@@ -581,6 +582,7 @@ static void do_bootm_on_complete(struct usb_ep *ep, struct usb_request *req)
 
 	/* This only happens if image is somehow faulty so we start over */
 	do_reset(NULL, 0, 0, NULL);
+#endif
 }
 
 static void cb_boot(struct usb_ep *ep, struct usb_request *req)
