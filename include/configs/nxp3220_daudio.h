@@ -95,6 +95,13 @@
 	"mmc_rootfs_part_type="MMC_ROOTFS_PART_TYPE "\0" \
 	"splashfile="SPLASH_STORAGE_FILE "\0" \
 	"splashimage="__stringify(SPLASH_STORAGE_LOAD) "\0" \
+	"fb_addr=\0" \
+	"mem_resv="  \
+		"fdt addr ${fdt_addr}; " \
+		"fdt resize; "   \
+		"fdt mk /reserved-memory display_reserved; " \
+		"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x300000>; " \
+                "\0" \
 	"root_rw=rw\0" \
 
 #endif
