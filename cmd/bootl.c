@@ -13,8 +13,6 @@
 #include <image.h>
 #include <fdt_support.h>
 
-#if !defined(CONFIG_SPL_BUILD) || defined(CONFIG_SPL_CLI_FRAMEWORK)
-
 DECLARE_GLOBAL_DATA_PTR;
 
 static bootm_headers_t linux_images;
@@ -121,28 +119,7 @@ int do_boot_linux(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 U_BOOT_CMD(
 	bootl,	CONFIG_SYS_MAXARGS,	1,	do_boot_linux,
-	"boot linux image from memory",
+	"boot linux Image from memory",
 	"[addr [arg ...]]\n    - boot linux image stored in memory\n"
 	"\tuse a '-' for the DTB address\n"
 );
-#endif
-
-#if defined(CONFIG_CMD_BOOTD) && !defined(CONFIG_CMD_BOOTM)
-int do_bootd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
-	return run_command(getenv("bootcmd"), flag);
-}
-
-U_BOOT_CMD(
-	boot,	1,	1,	do_bootd,
-	"boot default, i.e., run 'bootcmd'",
-	""
-);
-
-/* keep old command name "bootd" for backward compatibility */
-U_BOOT_CMD(
-	bootd, 1,	1,	do_bootd,
-	"boot default, i.e., run 'bootcmd'",
-	""
-);
-#endif
