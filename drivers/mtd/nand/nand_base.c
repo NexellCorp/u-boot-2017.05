@@ -45,6 +45,9 @@
 #endif
 #include <asm/io.h>
 #include <linux/errno.h>
+#ifdef CONFIG_NAND_NXP3220
+#include "nxp3220_nand.h"
+#endif
 
 /* Define default oob placement schemes for large and small page devices */
 static struct nand_ecclayout nand_oob_8 = {
@@ -1700,6 +1703,14 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 	unsigned int max_bitflips = 0;
 	int retry_mode = 0;
 	bool ecc_fail = false;
+#ifdef CONFIG_NAND_NXP3220
+	int page_size;
+
+	if (get_nand_rsvblk_mode() == MODE_ECC)
+		page_size = get_datasize(chip) * get_eccsteps(chip);
+	else
+		page_size = mtd->writesize;
+#endif
 
 	chipnr = (int)(from >> chip->chip_shift);
 	chip->select_chip(mtd, chipnr);
@@ -1707,7 +1718,11 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 	realpage = (int)(from >> chip->page_shift);
 	page = realpage & chip->pagemask;
 
+#ifdef CONFIG_NAND_NXP3220
+	col = (int)(from & (page_size - 1));
+#else
 	col = (int)(from & (mtd->writesize - 1));
+#endif
 
 	buf = ops->datbuf;
 	oob = ops->oobbuf;
@@ -1717,8 +1732,13 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 		unsigned int ecc_failures = mtd->ecc_stats.failed;
 
 		WATCHDOG_RESET();
+#ifdef CONFIG_NAND_NXP3220
+		bytes = min(page_size - col, readlen);
+		aligned = (bytes == page_size);
+#else
 		bytes = min(mtd->writesize - col, readlen);
 		aligned = (bytes == mtd->writesize);
+#endif
 
 		if (!aligned)
 			use_bufpoi = 1;
@@ -1744,7 +1764,14 @@ read_retry:
 			 * Now read the page into the buffer.  Absent an error,
 			 * the read methods return max bitflips per ecc step.
 			 */
+#ifdef CONFIG_NAND_NXP3220
+			if (unlikely(get_nand_rsvblk_mode() == MODE_ECC))
+				ret = nand_hw_ecc_read_block(chip, bufpoi);
+
+			else if (unlikely(ops->mode == MTD_OPS_RAW))
+#else
 			if (unlikely(ops->mode == MTD_OPS_RAW))
+#endif
 				ret = chip->ecc.read_page_raw(mtd, chip, bufpoi,
 							      oob_required,
 							      page);
@@ -2431,7 +2458,14 @@ static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	if (nand_standard_page_accessors(&chip->ecc))
 		chip->cmdfunc(mtd, NAND_CMD_SEQIN, 0x00, page);
 
+#ifdef CONFIG_NAND_NXP3220
+	if (get_nand_rsvblk_mode() == MODE_ECC)
+		status = nand_hw_ecc_write_block(chip, buf);
+
+	else if (unlikely(raw))
+#else
 	if (unlikely(raw))
+#endif
 		status = chip->ecc.write_page_raw(mtd, chip, buf,
 						  oob_required, page);
 	else if (subpage)
@@ -2535,6 +2569,14 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 	uint8_t *buf = ops->datbuf;
 	int ret;
 	int oob_required = oob ? 1 : 0;
+#ifdef CONFIG_NAND_NXP3220
+	int page_size;
+
+	if (get_nand_rsvblk_mode() == MODE_ECC)
+		page_size = get_datasize(chip) * get_eccsteps(chip);
+	else
+		page_size = mtd->writesize;
+#endif
 
 	ops->retlen = 0;
 	if (!writelen)
@@ -2547,7 +2589,11 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_NAND_NXP3220
+	column = to & (page_size - 1);
+#else
 	column = to & (mtd->writesize - 1);
+#endif
 
 	chipnr = (int)(to >> chip->chip_shift);
 	chip->select_chip(mtd, chipnr);
@@ -2573,10 +2619,18 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 	}
 
 	while (1) {
+#ifdef CONFIG_NAND_NXP3220
+		int bytes = page_size;
+#else
 		int bytes = mtd->writesize;
+#endif
 		uint8_t *wbuf = buf;
 		int use_bufpoi;
+#ifdef CONFIG_NAND_NXP3220
+		int part_pagewr = (column || writelen < page_size);
+#else
 		int part_pagewr = (column || writelen < mtd->writesize);
+#endif
 
 		if (part_pagewr)
 			use_bufpoi = 1;

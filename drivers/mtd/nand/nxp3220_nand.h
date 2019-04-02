@@ -61,6 +61,9 @@ struct nxp3220_nfc {
 	int timing_mode;		/* onfi timing mode */
 	struct clk core_clk;
 	struct gpio_desc wp_gpio;
+	int datasize;			/* boot image */
+	int steps;			/* boot image */
+
 	struct nfc_cmd_time time;	/* calculated values */
 };
 
@@ -107,4 +110,20 @@ enum NX_NANDC_BCH {
 	NX_NANDC_BCH_1024_60 = 10
 };
 
+enum NX_RESERVED_BLOCK_MODE {
+	MODE_OFF = 0,
+	MODE_ECC = 1,
+	MODE_RAW = 2
+};
+
+int nand_hw_ecc_write_block(struct nand_chip *chip, const u8 *buf);
+int nand_hw_ecc_read_block(struct nand_chip *chip, u8 *buf);
+
+int get_datasize(struct nand_chip *chip);
+int get_eccsteps(struct nand_chip *chip);
+
+int get_nand_rsvblk_mode(void);
+void set_nand_rsvblk_ecc(void);
+void set_nand_rsvblk_raw(void);
+void set_nand_rsvblk_off(void);
 #endif /* __NXP3220_NAND_H__ */

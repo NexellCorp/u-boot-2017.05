@@ -29,6 +29,12 @@
 #include <jffs2/jffs2.h>
 #include <nand.h>
 
+#if (0)
+#define DBGOUT(msg...)		{ printf("[NAND] " msg); }
+#else
+#define DBGOUT(msg...)		do {} while (0)
+#endif
+
 #if defined(CONFIG_CMD_MTDPARTS)
 
 /* partition handling routines */
@@ -37,6 +43,12 @@ int id_parse(const char *id, const char **ret_id, u8 *dev_type, u8 *dev_num);
 int find_dev_and_part(const char *id, struct mtd_device **dev,
 		      u8 *part_num, struct part_info **part);
 #endif
+
+#ifdef CONFIG_NAND_NXP3220
+void set_nand_rsvblk_ecc(void);
+void set_nand_rsvblk_raw(void);
+void set_nand_rsvblk_off(void);
+#endif /* CONFIG_NAND_NXP3220 */
 
 static int nand_dump(struct mtd_info *mtd, ulong off, int only_oob,
 		     int repeat)
@@ -543,6 +555,59 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		return ret == 0 ? 1 : 0;
 	}
 
+#ifdef CONFIG_NAND_NXP3220
+	if (strncmp(cmd, "bread", 5) == 0 || strncmp(cmd, "bwrite", 6) == 0) {
+		size_t rwsize;
+		int read;
+
+		if (argc < 4)
+			goto usage;
+
+		addr = (ulong)simple_strtoul(argv[2], NULL, 16);
+
+		read = strncmp(cmd, "bread", 5) == 0; /* 1 = read, 0 = write */
+		printf("\nNAND %s: ", read ? "read" : "write");
+
+		s = strchr(cmd, '.');
+
+		{
+			if (mtd_arg_off_size(argc - 3, argv + 3, &dev, &off,
+					     &size, &maxsize,
+					     MTD_DEV_TYPE_NAND,
+					     mtd->size) != 0)
+				return 1;
+
+			if (set_dev(dev))
+				return 1;
+
+			/* size is unspecified */
+			if (argc < 5)
+				adjust_size_for_badblocks(&size, off, dev);
+			rwsize = size;
+		}
+
+		mtd = get_nand_dev_by_index(dev);
+
+		set_nand_rsvblk_ecc();
+
+		if (read)
+			ret = nand_read_skip_bad(mtd, off, &rwsize,
+						 NULL, maxsize,
+						 (u_char *)addr);
+		else
+			ret = nand_write_skip_bad(mtd, off, &rwsize,
+						  NULL, maxsize,
+						  (u_char *)addr, 0);
+
+		set_nand_rsvblk_off();
+
+		printf(" %zu bytes %s: %s\n", rwsize,
+		       read ? "read" : "written", ret ? "ERROR" : "OK");
+
+		return ret == 0 ? 0 : 1;
+	}
+#endif /* CONFIG_NAND_NXP3220 */
+
 	if (strncmp(cmd, "read", 4) == 0 || strncmp(cmd, "write", 5) == 0) {
 		size_t rwsize;
 		ulong pagecount = 1;
@@ -605,8 +670,15 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mtd = get_nand_dev_by_index(dev);
 
+#ifndef CONFIG_NAND_NXP3220
 		if (!s || !strcmp(s, ".jffs2") ||
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
+#else
+		if (!s || !strcmp(s, ".jffs2") || !strcmp(s, ".rsv") ||
+		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
+			if (!strcmp(s, ".rsv"))
+				set_nand_rsvblk_raw();
+#endif /* !CONFIG_NAND_NXP3220 */
 			if (read)
 				ret = nand_read_skip_bad(mtd, off, &rwsize,
 							 NULL, maxsize,
@@ -616,6 +688,10 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 							  NULL, maxsize,
 							  (u_char *)addr,
 							  WITH_WR_VERIFY);
+#ifdef CONFIG_NAND_NXP3220
+			if (!strcmp(s, ".rsv"))
+				set_nand_rsvblk_off();
+#endif /* CONFIG_NAND_NXP3220 */
 #ifdef CONFIG_CMD_NAND_TRIMFFS
 		} else if (!strcmp(s, ".trimffs")) {
 			if (read) {
@@ -1014,3 +1090,334 @@ U_BOOT_CMD(nboot, 4, 1, do_nandboot,
 	"boot from NAND device",
 	"[partition] | [[[loadAddr] dev] offset]"
 );
+
+#ifdef CONFIG_NAND_NXP3220
+int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	int i, ret = 0;
+	ulong addr, mem_pos;
+	loff_t off, size, maxsize;
+	char *cmd, *s;
+	struct mtd_info *mtd;
+#ifdef CONFIG_SYS_NAND_QUIET
+	int quiet = CONFIG_SYS_NAND_QUIET;
+#else
+	int quiet = 0;
+#endif
+	const char *quiet_str = env_get("quiet");
+	int dev = nand_curr_device;
+
+	loff_t start, end;	/* data start, data end */
+	loff_t nstart, nend;	/* rw start, rw end in block */
+	loff_t bstart, bend;	/* start of the block, end of the block */
+
+	uint64_t remain = 0;
+	uint64_t update_size = 0;
+	ulong blk_size = 0;
+	u_char *datbuf = NULL;
+
+	/* for commands */
+	char *argv_erase[5]  = { NULL, "erase", NULL, NULL, NULL, };
+	char *argv_read[6]   = { NULL, NULL, NULL, NULL, NULL, NULL, };
+	char *argv_write[6]  = { NULL, NULL, NULL, NULL, NULL, NULL, };
+
+	/* command buffer */
+	char rw_start[32] = { 0, }, rw_length[32] = { 0, };
+	char wr_buffer[32] = { 0, };
+	char wr_type[32] = { 0, };
+	char rd_type[32] = { 0, };
+
+
+	/* at least 3 arguments please */
+	if (argc < 3)
+		goto usage;
+
+	if (quiet_str)
+		quiet = simple_strtoul(quiet_str, NULL, 0) != 0;
+
+	cmd = argv[1];
+
+	/* The following commands operate on the current device, unless
+	 * overridden by a partition specifier.  Note that if somehow the
+	 * current device is invalid, it will have to be changed to a valid
+	 * one before these commands can run, even if a partition specifier
+	 * for another device is to be used.
+	 */
+	mtd = get_nand_dev_by_index(dev);
+	if (!mtd) {
+		puts("\nno devices available\n");
+		return 1;
+	}
+
+	for (i = 0; i < argc; i++)
+		DBGOUT("argv[%d]: %s\n", i, argv[i]);
+
+	/*
+	 * Syntax is:
+	 *   0           1     2
+	 *   update_nand erase [off size]
+	 *
+	 *  +---------+--------+---------+
+	 *  | partial | full   | partial |
+	 *  +---------+--------+---------+
+	 *        |_____________|
+	 *          erase range
+	 *
+	 *   - partial block
+	 *       1) Read the block
+	 *       2) Erase the block
+	 *       3) Corresponding to the deleted region 'ff' is filled.
+	 *       4) Write the block
+	 *
+	 *   - full block
+	 *       1) erase block
+	 */
+	if (strncmp(cmd, "erase", 5) == 0) {
+		if (argc < 3)
+			goto usage;
+
+		/* skip first two or three arguments, look for offset and size */
+		if (mtd_arg_off_size(argc - 2, argv + 2, &dev, &off, &size,
+				 &maxsize, MTD_DEV_TYPE_NAND, mtd->size) != 0)
+			return 1;
+
+		addr = (ulong)simple_strtoul(argv[2], NULL, 16);
+		mem_pos = addr;
+
+		blk_size = mtd->erasesize;
+		DBGOUT(" erasesize: 0x%lx\n", blk_size);
+
+		remain = (uint64_t)size;
+		DBGOUT(" remain: %llx off: 0x%llx\n",
+		       remain, (unsigned long long)off);
+
+		datbuf = memalign(ARCH_DMA_MINALIGN, blk_size);
+		if (!datbuf) {
+			puts("No memory for block buffer\n");
+			return 1;
+		}
+
+		start = off;
+		end = off + size;
+
+		bstart  = round_down(start, blk_size);
+		bend    = bstart + blk_size;
+
+		/* make command */
+		argv_erase[2] = rw_start;
+		argv_erase[3] = rw_length;
+
+		argv_read[1] = rd_type;
+		argv_read[2] = wr_buffer;
+		argv_read[3] = rw_start;
+		argv_read[4] = rw_length;
+
+		argv_write[1] = wr_type;
+		argv_write[2] = wr_buffer;
+		argv_write[3] = rw_start;
+		argv_write[4] = rw_length;
+
+		while (remain > 0) {
+			ulong offset = 0;
+
+			memset(datbuf, 0x00, blk_size);
+
+			nstart = max(bstart, start);
+			nend = min(bend, end);
+
+			update_size = (uint64_t)(nend - nstart);
+			DBGOUT("nstart: 0x%llx nend: 0x%llx\n", nstart, nend);
+			offset = nstart - bstart;
+
+			sprintf(wr_type, "write.rsv");
+			sprintf(rd_type, "read.rsv");
+
+			/* build commands */
+			sprintf(wr_buffer, "0x%lx", (ulong)datbuf);
+			sprintf(rw_start, "0x%llx", bstart);
+			sprintf(rw_length, "0x%lx", blk_size);
+
+			/* partial block */
+			if (update_size < blk_size) {
+				ret = do_nand(NULL, 0, 5, argv_read);
+				if (ret) {
+					printk("  -> read failed\n");
+					goto out;
+				}
+				do_nand(NULL, 0, 4, argv_erase);
+				memset(datbuf + offset, 0xff, update_size);
+				ret = do_nand(NULL, 0, 5, argv_write);
+				DBGOUT("offset %lx, size %llx, mem_%lx\n",
+						offset, update_size, mem_pos);
+			/* full block */
+			} else {
+				do_nand(NULL, 0, 4, argv_erase);
+			}
+
+			remain -= update_size;
+			bstart += blk_size;
+			bend = bstart + blk_size;
+			mem_pos += update_size;
+		}
+
+		goto done;
+	}
+
+	/*
+	 * Syntax is:
+	 *   0           1     2         3
+	 *   update_nand write [address] [off size]
+	 *
+	 *  +---------+--------+---------+
+	 *  | partial | full   | partial |
+	 *  +---------+--------+---------+
+	 *        |_____________|
+	 *          update range
+	 *
+	 *   if) partial block
+	 *       1) Read the block
+	 *       2) Erase the block
+	 *       3) Copy the length of the buffer
+	 *       4) Write the block
+	 *
+	 *   if) full block
+	 *       1) Erase the block
+	 *       2) Copy the length of the buffer
+	 *       3) Write the block
+	 */
+	if (strncmp(cmd, "write", 5) == 0) {
+		ulong pagecount = 1;
+		int raw;
+
+		if (argc < 4)
+			goto usage;
+
+
+		addr = (ulong)simple_strtoul(argv[2], NULL, 16);
+		mem_pos = addr;
+
+		mtd = get_nand_dev_by_index(dev);
+
+		s = strchr(cmd, '.');
+
+		if (s && !strcmp(s, ".raw")) {
+			raw = 1;
+
+			if (mtd_arg_off(argv[3], &dev, &off, &size, &maxsize,
+					MTD_DEV_TYPE_NAND, mtd->size))
+				return 1;
+
+			if (argc > 4 && !str2long(argv[4], &pagecount)) {
+				printf("'%s' is not a number\n", argv[4]);
+				return 1;
+			}
+
+			if (pagecount * mtd->writesize > size) {
+				puts("Size exceeds partition or device limit\n");
+				return -1;
+			}
+
+			remain = (uint64_t)
+				(pagecount * (mtd->writesize + mtd->oobsize));
+		} else {
+			if (mtd_arg_off_size(argc - 3, argv + 3, &dev, &off,
+					     &size, &maxsize, MTD_DEV_TYPE_NAND,
+					     mtd->size) != 0)
+				return 1;
+
+			remain = (uint64_t)size;
+		}
+
+		blk_size = mtd->erasesize;
+		DBGOUT(" erasesize: 0x%lx\n", blk_size);
+
+		DBGOUT(" remain: %llx off: 0x%llx\n",
+		       remain, (unsigned long long)off);
+
+		datbuf = memalign(ARCH_DMA_MINALIGN, blk_size);
+		if (!datbuf) {
+			puts("No memory for block buffer\n");
+			return 1;
+		}
+
+		start = off;
+		end = off + size;
+
+		bstart  = round_down(start, blk_size);
+		bend    = bstart + blk_size;
+
+		/* make command */
+		argv_erase[2] = rw_start;
+		argv_erase[3] = rw_length;
+
+		argv_read[1] = rd_type;
+		argv_read[2] = wr_buffer;
+		argv_read[3] = rw_start;
+		argv_read[4] = rw_length;
+
+		argv_write[1] = wr_type;
+		argv_write[2] = wr_buffer;
+		argv_write[3] = rw_start;
+		argv_write[4] = rw_length;
+
+		while (remain > 0) {
+			ulong offset = 0;
+
+			memset(datbuf, 0x00, blk_size);
+
+			nstart = max(bstart, start);
+			nend = min(bend, end);
+
+			update_size = (uint64_t)(nend - nstart);
+			DBGOUT("nstart: 0x%llx nend: 0x%llx\n", nstart, nend);
+			offset = nstart - bstart;
+
+			sprintf(wr_type, "write.rsv");
+			sprintf(rd_type, "read.rsv");
+
+			/* build commands */
+			sprintf(wr_buffer, "0x%lx", (ulong)datbuf);
+			sprintf(rw_start, "0x%llx", bstart);
+			sprintf(rw_length, "0x%lx", blk_size);
+
+			/* partial block */
+			if (update_size < blk_size) {
+				ret = do_nand(NULL, 0, 5, argv_read);
+				if (ret) {
+					printk("  -> write failed\n");
+					goto out;
+				}
+			}
+
+			do_nand(NULL, 0, 4, argv_erase);
+			memcpy(datbuf + offset, (void *)mem_pos, update_size);
+			ret = do_nand(NULL, 0, 5, argv_write);
+			DBGOUT("offset: %lx, update_size: %llx, mem_pos: %lx\n",
+					offset, update_size, mem_pos);
+
+			remain -= update_size;
+			bstart += blk_size;
+			bend = bstart + blk_size;
+			mem_pos += update_size;
+		}
+
+		goto done;
+	}
+
+usage:
+	return CMD_RET_USAGE;
+
+out:
+	free(datbuf);
+done:
+	return ret == 0 ? 0 : 1;
+}
+
+U_BOOT_CMD(update_nand, CONFIG_SYS_MAXARGS, 1, do_update_nand,
+	"NAND update sub-system",
+	"update_nand write - addr off|partition size\n"
+	"    update 'size' bytes starting at offset 'off'\n"
+	"    from memory address 'addr', skipping bad blocks.\n"
+	"update_nand erase off size - erase 'size' bytes\n"
+);
+#endif /* CONFIG_NAND_NXP3220 */
