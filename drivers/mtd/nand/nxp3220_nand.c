@@ -20,10 +20,11 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+static int nand_rsvblk_mode;
+
 /*
  * nand interface
  */
-
 static void nx_nandc_set_irq_enable(void __iomem *regs, int nr_int, int enable)
 {
 	const u32 IRQRDYEN_POS    = 0;
@@ -742,6 +743,12 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 	int spare, subp;
 	int uncorr = 0;
 
+	/* reserved block : read w/o syndrome and randomize */
+	if (get_nand_rsvblk_mode() == MODE_RAW) {
+		chip->read_buf(mtd, buf, mtd->writesize);
+		return 0;
+	}
+
 	/* ecc setting */
 	nx_nandc_set_bchmode(regs, nfc->bchmode);
 	nx_nandc_set_encmode(regs, 0);
@@ -851,6 +858,12 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	u8 *p = nfc->databuf;
 	int subp;
 
+	/* reserved block : write w/o syndrome and randomize */
+	if (get_nand_rsvblk_mode() == MODE_RAW) {
+		chip->write_buf(mtd, buf, mtd->writesize);
+		return 0;
+	}
+
 	memset(p, 0xff, nfc->databuf_size);
 	dmabase = (u32)p;
 
@@ -874,6 +887,192 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	ret = nx_nandc_run_dma(nfc);
 	if (ret < 0)
 		ret = -EIO;
+
+	return ret;
+}
+
+int nand_hw_ecc_read_block(struct nand_chip *chip, u8 *buf)
+{
+	int ret = 0;
+
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+	void __iomem *regs = nfc->regs;
+
+	u32 dmabase = (u32)nfc->databuf;
+	int sectsize = chip->ecc.size;
+
+	int eccsteps = chip->ecc.steps;
+	int eccbytes;
+	int eccsize = chip->ecc.size;
+
+	int spare, subp;
+
+	int bchmode;
+	int datasize = nfc->datasize;
+	int pagesize = eccsize * eccsteps;
+	int steps;
+	u8 *dst = buf;
+
+	sectsize = (pagesize == 512) ? 512 : 1024;
+	steps = pagesize / sectsize;
+
+	pr_debug("sectsize %d eccsteps %d pagesize %d\n",
+			sectsize, eccsteps, pagesize);
+
+	if (sectsize == 512) {
+		bchmode = NX_NANDC_BCH_512_24;
+		eccbytes = NX_NANDC_ECC_SZ_512_24;
+	} else {
+		bchmode = NX_NANDC_BCH_1024_60;
+		eccbytes = NX_NANDC_ECC_SZ_1024_60;
+	}
+
+	pr_debug("eccsize: %d, eccbytes: %d datasize: %d\n",
+			eccsize, eccbytes, datasize);
+
+	/* ecc setting */
+	nx_nandc_set_bchmode(regs, bchmode);
+	nx_nandc_set_encmode(regs, 0);
+
+	spare = (sectsize * 2 - (datasize + eccbytes)) * 8;
+	/* correction */
+	for (subp = 0; subp < steps; subp++) {
+		int errcnt;
+
+		u8 *p = (u8 *)dmabase;
+
+		/* setup DMA */
+		nx_nandc_set_dma_base(regs, dmabase);
+		nx_nandc_set_eccsize(regs, eccbytes - 1);
+		nx_nandc_set_dmasize(regs, sectsize - 1);
+		nx_nandc_set_subpage(regs, 1 - 1);
+		nx_nandc_set_subpage_size(regs, sectsize - 1);
+		nx_nandc_set_randseed(regs, NFC_SEED);
+
+		ret = nx_nandc_run_dma(nfc);
+		if (ret < 0) {
+			ret = -EIO;
+			goto out;
+		}
+
+		nx_nandc_sel_subpage(regs, 0/*subp*/);
+		errcnt = nx_nandc_get_errinfo(regs);
+
+		if (errcnt == 0x3f) {
+			/* data-ecc-data-ecc-...-ecc-oob */
+			int stat = 0;
+			unsigned int max_bitflips = 0;
+			int prepad = chip->ecc.prepad;
+
+			pr_debug("block uncorrectable. check erased\n");
+
+			stat = nand_check_erased_ecc_chunk(p, datasize,
+					p + prepad + datasize, eccbytes,
+					NULL, 0,
+					chip->ecc.strength);
+			if (stat < 0) {
+				pr_err("ecc uncorrectable - step %d of %d\n",
+						(subp + 1), steps);
+				break;
+			} else {
+				max_bitflips =
+					max_t(unsigned int, max_bitflips, stat);
+				ret = max_bitflips;
+
+				/* bitflip cleaning */
+				memset(p, 0xff, datasize);
+			}
+
+			break;
+		} else if (errcnt) {
+			int i;
+
+			for (i = 0; i < errcnt; i++) {
+				void __iomem *r = regs + NFC_SRAM +
+					(i * sizeof(u32));
+				int elp = readl(r) & 0x3fff;
+
+				elp -= spare;
+
+				/* correct data range only */
+				if (eccsize * 8 <= elp)
+					continue;
+
+				/* correct bit */
+				p[elp >> 3] ^= 1 << (7 - (elp & 0x7));
+			}
+		}
+
+		memcpy(dst, p, datasize);
+		dmabase += sectsize;
+		dst += datasize;
+	}
+
+out:
+	return ret;
+}
+
+int nand_hw_ecc_write_block(struct nand_chip *chip, const u8 *buf)
+{
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+	void __iomem *regs = nfc->regs;
+	int ret = 0;
+
+	u8 *p = nfc->databuf;
+	u32 dmabase = (u32)p;
+	int sectsize;
+
+	int eccsteps = chip->ecc.steps;
+	int eccbytes; /* 4,8,12,16,24 24,40,60 */
+	int eccsize = chip->ecc.size; /* 512, 1024 */
+
+	int subp;
+
+	int bchmode;
+	int datasize = nfc->datasize;
+	int pagesize = eccsize * eccsteps;
+	int steps;
+
+	sectsize = (pagesize == 512) ? 512 : 1024;
+	steps = pagesize / sectsize;
+
+	pr_debug("sectsize %d steps %d pagesize %d\n",
+			sectsize, steps, pagesize);
+
+	if (pagesize == 512) {
+		bchmode = NX_NANDC_BCH_512_24;
+		eccbytes = NX_NANDC_ECC_SZ_512_24;
+	} else {
+		bchmode = NX_NANDC_BCH_1024_60;
+		eccbytes = NX_NANDC_ECC_SZ_1024_60;
+	}
+	pr_debug("eccsize: %d, eccbytes: %d datasize: %d\n",
+			eccsize, eccbytes, datasize);
+
+	memset(p, 0xff, nfc->databuf_size);
+
+	/* ecc setting */
+	nx_nandc_set_bchmode(regs, bchmode);
+	nx_nandc_set_encmode(regs, 1);
+
+	for (subp = 0; subp < steps; subp++) {
+		memcpy((u8 *)dmabase, buf, datasize);
+
+		/* setup DMA */
+		nx_nandc_set_dma_base(regs, dmabase);
+		nx_nandc_set_eccsize(regs, eccbytes - 1);
+		nx_nandc_set_dmasize(regs, sectsize - 1);
+		nx_nandc_set_subpage(regs, 1 - 1);
+		nx_nandc_set_subpage_size(regs, sectsize - 1);
+		nx_nandc_set_randseed(regs, NFC_SEED);
+
+		ret = nx_nandc_run_dma(nfc);
+		if (ret < 0)
+			ret = -EIO;
+
+		buf += datasize;
+		dmabase += sectsize;
+	}
 
 	return ret;
 }
@@ -962,6 +1161,40 @@ static int nand_ecc_layout_hwecc(struct mtd_info *mtd)
 	return ret;
 }
 
+int get_datasize(struct nand_chip *chip)
+{
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+
+	return nfc->datasize;
+}
+
+int get_eccsteps(struct nand_chip *chip)
+{
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+
+	return nfc->steps;
+}
+
+int get_nand_rsvblk_mode(void)
+{
+	return nand_rsvblk_mode;
+}
+
+void set_nand_rsvblk_ecc(void)
+{
+	nand_rsvblk_mode = MODE_ECC;
+}
+
+void set_nand_rsvblk_raw(void)
+{
+	nand_rsvblk_mode = MODE_RAW;
+}
+
+void set_nand_rsvblk_off(void)
+{
+	nand_rsvblk_mode = MODE_OFF;
+}
+
 static int nand_hw_ecc_init_device(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
@@ -1026,6 +1259,27 @@ static int nand_hw_ecc_init_device(struct mtd_info *mtd)
 	chip->ecc.write_page = nand_hw_ecc_write_page;
 	chip->ecc.read_oob = nand_hw_ecc_read_oob;
 	chip->ecc.write_oob = nand_hw_ecc_write_oob;
+
+	/* reserved(boot) area */
+	do {
+		int datasize;
+		int sectsize;
+
+		if (mtd->writesize == 512) {
+			sectsize = 512;
+			eccbyte = NX_NANDC_ECC_SZ_512_24;
+		} else {
+			sectsize = 1024;
+			eccbyte = NX_NANDC_ECC_SZ_1024_60;
+		}
+
+		datasize = sectsize - eccbyte;
+		datasize &= ~(1);
+
+		nfc->datasize = datasize;
+		nfc->steps = mtd->writesize / sectsize;
+		pr_debug("datasize %d steps %d\n", datasize, nfc->steps);
+	} while (0);
 
 	return 0;
 
