@@ -93,7 +93,7 @@ static int lvds_prepare(struct nx_lvds *lvds)
 
 	/* lvdsctrl2 */
 	val = readl(&reg->lvdsctrl2);
-	val &= ~((1 << 14) | (0x3 << 12) | (0x3f << 6) | (0x3f << 0));
+	val &= ~((1 << 15) | (1 << 14) | (0x3 << 12) | (0x3f << 6) | (0x3f << 0));
 	if (pixelclock >= MHZ(90)) {
 		pms_v = 1 << 14;
 		pms_s = 1 << 12;
@@ -105,6 +105,7 @@ static int lvds_prepare(struct nx_lvds *lvds)
 		pms_m = 0xa << 6;
 		pms_p = 0xa << 0;
 	}
+
 	val |= pms_v | pms_s | pms_m | pms_p;
 	writel(val, &reg->lvdsctrl2);
 
