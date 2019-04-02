@@ -72,6 +72,7 @@
 		"run load_kernel;" \
 		"run load_fdt;" \
 		"run load_args;" \
+		"run mem_resv;" \
 		"bootl ${kernel_addr} - ${fdt_addr}\0" \
 	"console="CONFIG_DEFAULT_CONSOLE \
 	"fdt_addr="__stringify(FDT_ADDR) "\0" \
