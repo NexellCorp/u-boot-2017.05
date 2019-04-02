@@ -213,7 +213,11 @@ static int video_post_probe(struct udevice *dev)
 
 	/* Set up the line and display size */
 	priv->fb = map_sysmem(plat->base, plat->size);
-	priv->line_length = priv->xsize * VNBYTES(priv->bpix);
+	if (priv->bpix != 24)
+		priv->line_length = priv->xsize * VNBYTES(priv->bpix);
+	else
+		priv->line_length = priv->xsize * (priv->bpix/8);
+
 	priv->fb_size = priv->line_length * priv->ysize;
 
 	/* Set up colors  */

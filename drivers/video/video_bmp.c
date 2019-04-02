@@ -221,8 +221,10 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 	colours = 1 << bmp_bpix;
 
 	bpix = VNBITS(priv->bpix);
+	if (priv->bpix == 24)
+		bpix = 24;
 
-	if (bpix != 1 && bpix != 8 && bpix != 16 && bpix != 32) {
+	if (bpix != 1 && bpix != 8 && bpix != 16 && bpix != 24 && bpix != 32) {
 		printf("Error: %d bit/pixel mode, but BMP has %d bit/pixel\n",
 		       bpix, bmp_bpix);
 
@@ -241,8 +243,8 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 		return -EPERM;
 	}
 
-	debug("Display-bmp: %d x %d  with %d colours, display %d\n",
-	      (int)width, (int)height, (int)colours, 1 << bpix);
+	debug("Display-bmp: %d x %d  with %d colours, display %d bmp %dbpp\n",
+	      (int)width, (int)height, (int)colours, bpix, bmp_bpix);
 
 	if (bmp_bpix == 8)
 		video_set_cmap(dev, palette, colours);
@@ -317,18 +319,29 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 #endif /* CONFIG_BMP_16BPP */
 #if defined(CONFIG_BMP_24BPP)
 	case 24:
-		for (i = 0; i < height; ++i) {
-			for (j = 0; j < width; j++) {
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
-				*(fb++) = *(bmap++);
+		if (bpix == 32) {
+			for (i = 0; i < height; ++i) {
+				for (j = 0; j < width; j++) {
+					*(fb++) = *(bmap++);
+					*(fb++) = *(bmap++);
+					*(fb++) = *(bmap++);
 #if defined(CONFIG_VIDEO_BPP_ALPHA)
-				*(fb++) = 0xff;
+						*(fb++) = 0xff;
 #else
-				*(fb++) = 0x0;
+						*(fb++) = 0x0;
 #endif
+				}
+				fb -= priv->line_length + width * (bpix / 8);
 			}
-			fb -= priv->line_length + width * (bpix / 8);
+		} else {
+			for (i = 0; i < height; ++i) {
+				for (j = 0; j < width; j++) {
+					*(fb++) = *(bmap++);
+					*(fb++) = *(bmap++);
+					*(fb++) = *(bmap++);
+				}
+				fb -= priv->line_length + width * (bpix / 8);
+			}
 		}
 		break;
 #endif /* CONFIG_BMP_24BPP */
