@@ -102,6 +102,13 @@ config FASTBOOT_PARTMAP_FLASH_SPI
 	select FASTBOOT_FLASH
 	select CMD_SPI
 
+config FASTBOOT_PARTMAP_FLASH_NAND
+	bool "FASTBOOT Partmap on NAND"
+	depends on USB_FUNCTION_FASTBOOT_PARTMAP
+	select FASTBOOT_FLASH
+	select CMD_NAND
+	select CMD_UBI
+
 choice
 	prompt "Flash provider for FASTBOOT"
 	depends on FASTBOOT_FLASH

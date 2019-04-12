@@ -30,6 +30,8 @@ static struct fastboot_part_name {
 #endif
 	{ "gpt", FASTBOOT_PART_GPT },
 	{ "mbr", FASTBOOT_PART_MBR },
+	{ "ubi", FASTBOOT_PART_UBI },
+	{ "ubifs", FASTBOOT_PART_UBIFS },
 };
 
 static LIST_HEAD(f_dev_head);
@@ -814,6 +816,10 @@ void __weak fb_partmap_add_dev_spi(struct list_head *head)
 {
 }
 
+void __weak fb_partmap_add_dev_nand(struct list_head *head)
+{
+}
+
 void fastboot_bind_ext(void)
 {
 	char *env;
@@ -827,6 +833,7 @@ void fastboot_bind_ext(void)
 
 	fb_partmap_add_dev_mmc(&f_dev_head);
 	fb_partmap_add_dev_spi(&f_dev_head);
+	fb_partmap_add_dev_nand(&f_dev_head);
 	part_lists_init_all();
 
 	env = env_get("partmap");
