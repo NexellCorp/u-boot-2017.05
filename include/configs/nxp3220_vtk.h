@@ -12,7 +12,7 @@
 
 /* System memory Configuration */
 #define CONFIG_SYS_SDRAM_SIZE	0x1F000000
-#define CONFIG_SYS_MALLOC_LEN	(64 * SZ_1M)
+#define CONFIG_SYS_MALLOC_LEN	(128 * SZ_1M)
 
 /* Memory Test (up to 0x3C00000:60MB) */
 #define MEMTEST_SIZE			(32 * SZ_1M)
@@ -35,6 +35,41 @@
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
 
+#ifdef CONFIG_NAND
+#define	KERNEL_DTB		"nxp3220-vtk-nand.dtb"
+
+#define CONFIG_EXTRA_ENV_SETTINGS \
+	"autoboot=run boot_rootfs\0" \
+	"bootdelay=" __stringify(CONFIG_BOOTDELAY) "\0" \
+	"boot_rootfs=" \
+		"ubi part boot;" \
+		"ubifsmount ubi0:boot; " \
+		"run load_kernel;" \
+		"run load_fdt;" \
+		"run load_args;" \
+		"bootz ${kernel_addr} - ${fdt_addr}\0" \
+	"console=" CONFIG_DEFAULT_CONSOLE \
+	"fdt_addr=" __stringify(FDT_ADDR) "\0" \
+	"fdt_file="__stringify(KERNEL_DTB) "\0" \
+	"load_args=setenv bootargs \"" \
+		"ubi.mtd=3 rootfstype=ubifs " \
+		"root=${ubiroot} ${root_rw} " \
+		"${console} ${log_msg} ${opts}" \
+		"\"\0" \
+	"load_kernel=ubifsload ${kernel_addr} ${kernel_file}\0" \
+	"load_fdt=ubifsload ${fdt_addr} ${fdt_file}\0" \
+	"log_msg=loglevel=7 printk.time=1\0" \
+	"mtddevname=root\0" \
+	"mtddevnum=0\0" \
+	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0"				\
+	"mtdparts=" CONFIG_MTDPARTS_DEFAULT "\0"			\
+	"ubiroot=ubi0:rootfs\0" \
+	"partition=nand0,1\0" \
+	"kernel_addr=" __stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
+	"kernel_file=zImage\0" \
+	"root_rw=rw\0" \
+
+#else
 #define	KERNEL_DTB		"nxp3220-vtk.dtb"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
@@ -66,5 +101,7 @@
 	"mmc_rootfs_part=" __stringify(MMC_ROOTFS_PART) "\0" \
 	"mmc_rootfs_part_type=" MMC_ROOTFS_PART_TYPE "\0" \
 	"root_rw=rw\0" \
+
+#endif
 
 #endif
