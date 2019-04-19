@@ -35,7 +35,7 @@
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
 
-#ifdef CONFIG_NAND
+#if defined(CONFIG_ENV_IS_IN_NAND)
 #define	KERNEL_DTB		"nxp3220-vtk-nand.dtb"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
