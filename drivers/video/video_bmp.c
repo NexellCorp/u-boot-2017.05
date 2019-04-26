@@ -331,6 +331,7 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 						*(fb++) = 0x0;
 #endif
 				}
+				bmap += (padded_width - width);
 				fb -= priv->line_length + width * (bpix / 8);
 			}
 		} else {
@@ -340,6 +341,7 @@ int video_bmp_display(struct udevice *dev, ulong bmp_image, int x, int y,
 					*(fb++) = *(bmap++);
 					*(fb++) = *(bmap++);
 				}
+				bmap += (padded_width - width);
 				fb -= priv->line_length + width * (bpix / 8);
 			}
 		}
