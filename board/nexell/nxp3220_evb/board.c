@@ -35,7 +35,9 @@ int misc_init_r(void)
 #ifdef CONFIG_BOARD_LATE_INIT
 int board_late_init(void)
 {
+#ifdef CONFIG_CMD_BMP
 	draw_logo();
+#endif
 	run_fastboot_update();
 	return 0;
 }
