@@ -1,11 +1,4 @@
-if TARGET_NXP3220_EVB
-
-config SYS_BOARD
-	default "nxp3220_evb"
-
-endif
-
-if TARGET_NXP3220_DAUDIO
+if TARGET_NXP3220_EVB || TARGET_NXP3220_DAUDIO
 
 config SYS_BOARD
 	default "nxp3220_evb"

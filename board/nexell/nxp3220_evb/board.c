@@ -15,7 +15,9 @@ DECLARE_GLOBAL_DATA_PTR;
 #ifndef CONFIG_SYS_DCACHE_OFF
 void enable_caches(void)
 {
+#ifndef CONFIG_NAND_NXP3220
 	dcache_enable();
+#endif
 }
 #endif
 
