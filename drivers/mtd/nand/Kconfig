@@ -3,6 +3,11 @@ menuconfig NAND
 	bool "NAND Device Support"
 if NAND
 
+config SYS_NAND_VERIFY
+	bool "Enable verify"
+	help
+	  This option, if enabled, verify write.
+
 config SYS_NAND_SELF_INIT
 	bool
 	help
