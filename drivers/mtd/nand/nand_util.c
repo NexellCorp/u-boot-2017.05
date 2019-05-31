@@ -577,6 +577,10 @@ int nand_write_skip_bad(struct mtd_info *mtd, loff_t offset, size_t *length,
 	u_char *p_buffer = buffer;
 	int need_skip;
 
+#ifdef CONFIG_SYS_NAND_VERIFY
+	flags |= WITH_WR_VERIFY;
+#endif
+
 	if (actual)
 		*actual = 0;
 
