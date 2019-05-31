@@ -22,6 +22,10 @@ DECLARE_GLOBAL_DATA_PTR;
 
 static int nand_rsvblk_mode;
 
+#define	DRM_DIR_WRITE		1
+#define	DRM_DIR_READ		0
+#define	CHECK_RnB_INTERRUPT
+
 /*
  * nand interface
  */
@@ -29,10 +33,8 @@ static void nx_nandc_set_irq_enable(void __iomem *regs, int nr_int, int enable)
 {
 	const u32 IRQRDYEN_POS    = 0;
 	const u32 IRQRDYEN_MASK   = (1UL << IRQRDYEN_POS);
-
 	const u32 IRQDMAEN_POS    = 4;
 	const u32 IRQDMAEN_MASK   = (1UL << IRQDMAEN_POS);
-
 	u32 val;
 
 	val = readl(regs + NFC_STATUS);
@@ -48,16 +50,14 @@ static void nx_nandc_set_irq_enable(void __iomem *regs, int nr_int, int enable)
 	dmb();
 }
 
-static void nx_nandc_set_irq_mask(void __iomem *regs, int nr_int, int enable)
+static void nx_nandc_set_irq_mask(void __iomem *regs, int nr_int, int unmask)
 {
 	const u32 IRQRDYMS_POS    = 1;
 	const u32 IRQRDYMS_MASK   = (1UL << IRQRDYMS_POS);
-
 	const u32 IRQDMAMS_POS    = 5;
 	const u32 IRQDMAMS_MASK   = (1UL << IRQDMAMS_POS);
-
 	u32 val;
-	int unmasked = !enable; /* 1: unmasked, 0: masked */
+	int unmasked = !unmask; /* 1: unmasked, 0: masked */
 
 	val = readl(regs + NFC_STATUS);
 	if (nr_int == 0) {
@@ -78,7 +78,6 @@ static int nx_nandc_get_irq_pending(void __iomem *regs, int nr_int)
 	const u32 IRQDMA_POS    = 6;
 	const u32 IRQRDY_MASK   = (1UL << IRQRDY_POS);
 	const u32 IRQDMA_MASK   = (1UL << IRQDMA_POS);
-
 	u32 IRQPEND_POS, IRQPEND_MASK;
 
 	if (nr_int == NX_NANDC_INT_RDY) {
@@ -98,9 +97,7 @@ static void nx_nandc_clear_irq_pending(void __iomem *regs, int nr_int)
 	const u32 IRQDMA_POS    = 6;
 	const u32 IRQRDY_MASK   = (1UL << IRQRDY_POS);
 	const u32 IRQDMA_MASK   = (1UL << IRQDMA_POS);
-
 	u32 IRQPEND_POS, IRQPEND_MASK;
-
 	u32 val;
 
 	if (nr_int == NX_NANDC_INT_RDY) {
@@ -156,7 +153,6 @@ static void nx_nandc_set_cs_enable(void __iomem *regs, u32 chipsel,
 	const u32 BIT_SIZE  = 3;
 	const u32 BIT_POS   = 4;
 	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
-
 	u32 val;
 
 	val = readl(regs + NFC_CTRL);
@@ -168,11 +164,15 @@ static void nx_nandc_set_cs_enable(void __iomem *regs, u32 chipsel,
 
 static u32 nx_nandc_get_ready(void __iomem *regs)
 {
+#ifdef CHECK_RnB_INTERRUPT
+	return nx_nandc_get_irq_pending(regs, NX_NANDC_INT_RDY);
+#else
 	const u32 BIT_SIZE  = 1;
 	const u32 BIT_POS   = 28;
 	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
 
 	return readl(regs + NFC_STATUS) & BIT_MASK;
+#endif
 }
 
 static void nx_nandc_set_randseed(void __iomem *regs, int seed)
@@ -190,7 +190,6 @@ static void nx_nandc_set_bchmode(void __iomem *regs, u32 bchmode)
 	const u32 BIT_SIZE  = 4;
 	const u32 BIT_POS   = 0;
 	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
-
 	u32 val;
 
 	val = readl(regs + NFC_BCH_MODE);
@@ -205,7 +204,6 @@ static void nx_nandc_set_encmode(void __iomem *regs, int enable)
 	const u32 BIT_SIZE  = 1;
 	const u32 BIT_POS   = 4;
 	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
-
 	u32 val;
 
 	val = readl(regs + NFC_BCH_MODE);
@@ -259,7 +257,6 @@ static void nx_nandc_set_eccsize(void __iomem *regs, int eccsize)
 	const u32 BIT_SIZE  = 8;
 	const u32 BIT_POS   = 16;
 	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
-
 	u32 val;
 
 	val = readl(regs + NFC_DMA_SIZE);
@@ -274,7 +271,6 @@ static void nx_nandc_set_dmasize(void __iomem *regs, int dmasize)
 	const u32 BIT_SIZE  = 16;
 	const u32 BIT_POS   = 0;
 	const u32 BIT_MASK  = ((1 << BIT_SIZE) - 1) << BIT_POS;
-
 	u32 val;
 
 	val = readl(regs + NFC_DMA_SIZE);
@@ -353,22 +349,19 @@ static void nx_nandc_set_sramsleep(void __iomem *regs, int enable)
 	dmb();
 }
 
-static int nx_nandc_run_dma(struct nxp3220_nfc *nfc)
+static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int dir)
 {
 	void __iomem *regs = nfc->regs;
 
 	/* clear DMA interrupt pending */
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
-	/* dma interrupt mask enable */
-	nx_nandc_set_irq_mask(regs, NX_NANDC_INT_DMA, 1);
-	/* ready interrupt enable */
-	nx_nandc_set_irq_enable(regs, NX_NANDC_INT_DMA, 1);
 
 	/* DMA run */
 	nx_nandc_set_dmamode(regs, NX_NANDC_DMA_MODE);
 
 	while (!nx_nandc_get_irq_pending(regs, NX_NANDC_INT_DMA))
 		;
+
 	/* clear interrupt pending */
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
 
@@ -426,10 +419,8 @@ static void nand_cmd_ctrl(struct mtd_info *mtd, int cmd, unsigned int ctrl)
 	if (cmd == NAND_CMD_NONE)
 		return;
 
-	if (ctrl & NAND_CTRL_CHANGE) {
+	if (ctrl & NAND_CTRL_CHANGE)
 		nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_RDY);
-		nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
-	}
 
 	if (ctrl & NAND_CLE) {
 		dev_dbg(nfc->dev, " command: %02x\n", (unsigned char)cmd);
@@ -444,11 +435,10 @@ static int nand_dev_ready(struct mtd_info *mtd)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
-	void __iomem *regs = nfc->regs;
-	int ret = 0;
+	int ret;
 
-	ret = nx_nandc_get_ready(regs);
-	pr_debug(" nfc RnB %s\n", ret ? "READY" : "BUSY");
+	ret = nx_nandc_get_ready(nfc->regs);
+	dev_dbg(nfc->dev, " nfc RnB %s\n", ret ? "READY" : "BUSY");
 
 	return ret;
 }
@@ -609,7 +599,7 @@ static void nand_dev_init(struct mtd_info *mtd)
 	/* ready interrupt mask enable */
 	nx_nandc_set_irq_mask(regs, NX_NANDC_INT_RDY, 1);
 	/* dma interrupt mask disable */
-	nx_nandc_set_irq_mask(regs, NX_NANDC_INT_DMA, 0);
+	nx_nandc_set_irq_mask(regs, NX_NANDC_INT_DMA, 1);
 
 	nx_nandc_set_cmd_timing(regs, 45, 6, 20, 8);
 	nx_nandc_set_data_timing(regs, 45, 5, 20, 8);
@@ -727,21 +717,17 @@ static int nand_hw_ecc_write_oob(struct mtd_info *mtd,
 static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 				 u8 *buf, int oob_required, int page)
 {
-	int ret = 0;
-
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
 	void __iomem *regs = nfc->regs;
-
 	u32 dmabase = (u32)nfc->databuf;
 	int sectsize = nfc->sectsize;
-
 	int eccsteps = chip->ecc.steps;
 	int eccbytes = chip->ecc.bytes;
 	int eccsize = chip->ecc.size;
-
 	u8 *p = nfc->databuf;
 	int spare, subp;
 	int uncorr = 0;
+	int ret = 0;
 
 	/* reserved block : read w/o syndrome and randomize */
 	if (get_nand_rsvblk_mode() == MODE_RAW) {
@@ -760,7 +746,7 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_subpage(regs, eccsteps - 1);
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
 
-	ret = nx_nandc_run_dma(nfc);
+	ret = nx_nandc_run_dma(nfc, DRM_DIR_READ);
 	if (ret < 0) {
 		ret = -EIO;
 		goto out;
@@ -814,8 +800,8 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 					NULL, 0,
 					chip->ecc.strength);
 			if (stat < 0) {
-				pr_err("ecc uncorrectable - step %d of %d\n",
-						(subp + 1), eccsteps);
+				pr_err("ecc uncorrectable - step %d of %d (%d:%d:%d), stat:%d\n",
+						(subp + 1), eccsteps, eccsize, eccbytes, chip->ecc.strength, stat);
 				mtd->ecc_stats.failed++;
 				break;
 			} else {
@@ -836,7 +822,7 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 		}
 	}
 
-	pr_debug("hw ecc read page return %d\n", ret);
+	pr_debug("hw ecc read page=%d return %d\n", page, ret);
 out:
 	return ret;
 }
@@ -884,7 +870,7 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_subpage(regs, eccsteps - 1);
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
 
-	ret = nx_nandc_run_dma(nfc);
+	ret = nx_nandc_run_dma(nfc, DRM_DIR_WRITE);
 	if (ret < 0)
 		ret = -EIO;
 
@@ -949,7 +935,7 @@ int nand_hw_ecc_read_block(struct nand_chip *chip, u8 *buf)
 		nx_nandc_set_subpage_size(regs, sectsize - 1);
 		nx_nandc_set_randseed(regs, NFC_SEED);
 
-		ret = nx_nandc_run_dma(nfc);
+		ret = nx_nandc_run_dma(nfc, DRM_DIR_READ);
 		if (ret < 0) {
 			ret = -EIO;
 			goto out;
@@ -971,8 +957,8 @@ int nand_hw_ecc_read_block(struct nand_chip *chip, u8 *buf)
 					NULL, 0,
 					chip->ecc.strength);
 			if (stat < 0) {
-				pr_err("ecc uncorrectable - step %d of %d\n",
-						(subp + 1), steps);
+				pr_err("ecc uncorrectable - step %d of %d (%d:%d:%d), stat:%d\n",
+						(subp + 1), steps, datasize, eccbytes, chip->ecc.strength, stat);
 				break;
 			} else {
 				max_bitflips =
@@ -1066,7 +1052,7 @@ int nand_hw_ecc_write_block(struct nand_chip *chip, const u8 *buf)
 		nx_nandc_set_subpage_size(regs, sectsize - 1);
 		nx_nandc_set_randseed(regs, NFC_SEED);
 
-		ret = nx_nandc_run_dma(nfc);
+		ret = nx_nandc_run_dma(nfc, DRM_DIR_WRITE);
 		if (ret < 0)
 			ret = -EIO;
 
@@ -1434,10 +1420,10 @@ static int nxp3220_nfc_probe(struct udevice *dev)
 
 	ret = gpio_request_by_name(nfc->dev, "nexell,wp-gpio", 0,
 			&nfc->wp_gpio, GPIOD_IS_OUT);
-	if (ret) {
+	if (ret)
 		pr_err("nand cannot get write-protect pin\n");
-		return ret;
-	}
+	else
+		dm_gpio_set_value(&nfc->wp_gpio, 1);
 
 	return nxp3220_nfc_init(nfc);
 }
