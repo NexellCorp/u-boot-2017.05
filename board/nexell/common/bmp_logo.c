@@ -19,6 +19,8 @@ static struct splash_location splash_loc[] = {
 	.storage = SPLASH_STORAGE_DEVICE,
 	.flags = SPLASH_STORAGE_FLAGS,
 	.devpart = SPLASH_STORAGE_DEVPART,
+	.mtdpart = SPLASH_STORAGE_DEVPART,
+	.ubivol = SPLASH_STORAGE_NAME,
 	},
 };
 #endif
