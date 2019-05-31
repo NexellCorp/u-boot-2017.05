@@ -407,7 +407,7 @@ static void part_lists_print(void)
 			       fd->device, fp->dev_no, fp->name,
 			       fp->type & PART_TYPE_PARTITION ?
 			       fp->type == FASTBOOT_PART_GPT ?
-					"gpt" : "mbr" : "data",
+					"gpt" : "mbr/part" : "data",
 			       fp->start, fp->length);
 		}
 	}
@@ -417,7 +417,7 @@ static void part_lists_print(void)
 		printf("%s(%s) ", f_part_names[i].name,
 		       f_part_names[i].type & PART_TYPE_PARTITION ?
 		       f_part_names[i].type == FASTBOOT_PART_GPT ?
-		       "gpt" : "mbr" : "data");
+		       "gpt" : "mbr/part" : "data");
 	printf("\n");
 }
 

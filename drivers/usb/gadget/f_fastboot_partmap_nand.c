@@ -15,8 +15,6 @@
 
 #include "f_fastboot_partmap.h"
 
-#define debug printf
-
 static char *print_part_type(int fb_part_type)
 {
 	char *s;
@@ -37,10 +35,12 @@ static char *print_part_type(int fb_part_type)
 
 static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 {
+	struct mtd_info *mtd;
 	int dev = f_part->dev_no;
 	char cmd[128];
 	int l = 0, p = 0;
 
+	mtd = get_nand_dev_by_index(0);
 
 	/* nand standalone (bl1, bl2, bl32, u-boot)
 	 *	bingened image			// FASTBOOT_PART_BOOT
@@ -54,12 +54,9 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 	 *	"nand		write.trimffs	0x48000000 0x2000000 0x2000000"
 	 */
 
-	if (f_part->length == 0) {
-		struct mtd_info *mtd = get_nand_dev_by_index(0);
-
+	if (f_part->length == 0)
 		f_part->length = round_down(nand_size() * 1024 - f_part->start,
 				mtd->erasesize);
-	}
 
 	debug("part name:%s [0x%x]\n", f_part->name, f_part->type);
 
@@ -68,7 +65,9 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 
 	debug("** part start: 0x%llx **\n", f_part->start);
 	debug("** part size : 0x%llx **\n", f_part->length);
-	debug("** bytes     : 0x%llx **\n", bytes);
+	debug("** file size : 0x%llx **\n", bytes);
+	debug("** write size: 0x%x **\n", mtd->writesize);
+	debug("** erase size: 0x%x **\n", mtd->erasesize);
 
 	/*
 	 * erase block
