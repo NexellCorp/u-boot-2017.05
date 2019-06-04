@@ -44,7 +44,7 @@
 #endif
 
 #if defined(CONFIG_ENV_IS_IN_NAND)
-#define CONFIG_ENV_OFFSET		(0x400000) /* aligned block size */
+#define CONFIG_ENV_OFFSET		(0x500000) /* aligned block size */
 #define CONFIG_ENV_SIZE			(0x4000) /* must be equal write size when update */
 #endif
 
