@@ -352,11 +352,10 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int size, int dir)
 	void __iomem *regs = nfc->regs;
 
 #ifndef CONFIG_SYS_DCACHE_OFF
-	ulong dmabase = readl(regs + NFC_DMA_ADDR);
-
 	if (dir == DRM_DIR_WRITE)
-		flush_dcache_range(dmabase, dmabase +
-			ROUND(size, CONFIG_SYS_CACHELINE_SIZE));
+		flush_dcache_range((ulong)nfc->databuf,
+			(ulong)(nfc->databuf +
+			ROUND(nfc->databuf_size, CONFIG_SYS_CACHELINE_SIZE)));
 #endif
 	/* clear DMA interrupt pending */
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
@@ -374,8 +373,9 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int size, int dir)
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 	if (dir == DRM_DIR_READ)
-		invalidate_dcache_range(dmabase, dmabase +
-			ROUND(size, CONFIG_SYS_CACHELINE_SIZE));
+		invalidate_dcache_range((ulong)nfc->databuf,
+			(ulong)(nfc->databuf +
+			ROUND(nfc->databuf_size, CONFIG_SYS_CACHELINE_SIZE)));
 #endif
 
 	return 0;
@@ -1310,7 +1310,6 @@ static int nxp3220_nfc_init(struct nxp3220_nfc *nfc)
 	nand_dev_init(mtd);
 
 	chip->options |= NAND_NO_SUBPAGE_WRITE;
-
 	chip->IO_ADDR_R = nfc->regs + NFC_DATA_BYPASS;
 	chip->IO_ADDR_W = nfc->regs + NFC_DATA_BYPASS;
 
@@ -1320,7 +1319,6 @@ static int nxp3220_nfc_init(struct nxp3220_nfc *nfc)
 	chip->cmd_ctrl = nand_cmd_ctrl;
 	chip->dev_ready = nand_dev_ready;
 	chip->select_chip = nand_select_chip;
-
 	if (nand_scan_ident(mtd, 1, NULL)) {
 		pr_err("nand scan ident failed\n");
 		goto err;
