@@ -10,14 +10,12 @@
 enum fb_part_type {
 	FASTBOOT_PART_BOOT = (1 << 0),	/* bootable partition */
 	FASTBOOT_PART_RAW = (1 << 1),	/* raw write */
-	FASTBOOT_PART_FS = (1 << 2),	/* set partition table: ex) ext4,fat,*/
+	FASTBOOT_PART_FS = (1 << 2),	/* set partition table: ex) ext4,fat, ubi */
 };
 
 #define	PART_TYPE_PARTITION	(FASTBOOT_PART_FS)
 #define	FASTBOOT_PART_GPT	(FASTBOOT_PART_FS | (1 << 4))
 #define	FASTBOOT_PART_MBR	(FASTBOOT_PART_FS | (1 << 5))
-#define FASTBOOT_PART_UBI	(FASTBOOT_PART_FS | (1 << 6))
-#define FASTBOOT_PART_UBIFS	(FASTBOOT_PART_FS | (1 << 7))
 
 /* each device max partition max num */
 #define	FASTBOOT_DEV_PART_MAX		(16)
