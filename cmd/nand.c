@@ -29,12 +29,6 @@
 #include <jffs2/jffs2.h>
 #include <nand.h>
 
-#if (0)
-#define DBGOUT(msg...)		{ printf("[NAND] " msg); }
-#else
-#define DBGOUT(msg...)		do {} while (0)
-#endif
-
 #if defined(CONFIG_CMD_MTDPARTS)
 
 /* partition handling routines */
@@ -45,9 +39,9 @@ int find_dev_and_part(const char *id, struct mtd_device **dev,
 #endif
 
 #ifdef CONFIG_NAND_NXP3220
-void set_nand_rsvblk_ecc(void);
-void set_nand_rsvblk_raw(void);
-void set_nand_rsvblk_off(void);
+void set_nand_chip_ecc_manage_bld(void);
+void set_nand_chip_ecc_manage_raw(void);
+void set_nand_chip_ecc_manage_off(void);
 #endif /* CONFIG_NAND_NXP3220 */
 
 static int nand_dump(struct mtd_info *mtd, ulong off, int only_oob,
@@ -588,7 +582,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mtd = get_nand_dev_by_index(dev);
 
-		set_nand_rsvblk_ecc();
+		set_nand_chip_ecc_manage_bld();
 
 		if (read)
 			ret = nand_read_skip_bad(mtd, off, &rwsize,
@@ -599,7 +593,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 						  NULL, maxsize,
 						  (u_char *)addr, 0);
 
-		set_nand_rsvblk_off();
+		set_nand_chip_ecc_manage_off();
 
 		printf(" %zu bytes %s: %s\n", rwsize,
 		       read ? "read" : "written", ret ? "ERROR" : "OK");
@@ -676,8 +670,10 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #else
 		if (!s || !strcmp(s, ".jffs2") || !strcmp(s, ".rsv") ||
 		    !strcmp(s, ".e") || !strcmp(s, ".i")) {
-			if (!strcmp(s, ".rsv"))
-				set_nand_rsvblk_raw();
+			if (!strcmp(s, ".rsv")) {
+				debug("%s.rsv\n", read ? "read" : "write");
+				set_nand_chip_ecc_manage_bld();
+			}
 #endif /* !CONFIG_NAND_NXP3220 */
 			if (read)
 				ret = nand_read_skip_bad(mtd, off, &rwsize,
@@ -690,7 +686,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 							  WITH_WR_VERIFY);
 #ifdef CONFIG_NAND_NXP3220
 			if (!strcmp(s, ".rsv"))
-				set_nand_rsvblk_off();
+				set_nand_chip_ecc_manage_off();
 #endif /* CONFIG_NAND_NXP3220 */
 #ifdef CONFIG_CMD_NAND_TRIMFFS
 		} else if (!strcmp(s, ".trimffs")) {
@@ -1099,12 +1095,6 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	loff_t off, size, maxsize;
 	char *cmd, *s;
 	struct mtd_info *mtd;
-#ifdef CONFIG_SYS_NAND_QUIET
-	int quiet = CONFIG_SYS_NAND_QUIET;
-#else
-	int quiet = 0;
-#endif
-	const char *quiet_str = env_get("quiet");
 	int dev = nand_curr_device;
 
 	loff_t start, end;	/* data start, data end */
@@ -1127,13 +1117,9 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	char wr_type[32] = { 0, };
 	char rd_type[32] = { 0, };
 
-
 	/* at least 3 arguments please */
 	if (argc < 3)
 		goto usage;
-
-	if (quiet_str)
-		quiet = simple_strtoul(quiet_str, NULL, 0) != 0;
 
 	cmd = argv[1];
 
@@ -1150,7 +1136,7 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 
 	for (i = 0; i < argc; i++)
-		DBGOUT("argv[%d]: %s\n", i, argv[i]);
+		debug("argv[%d]: %s\n", i, argv[i]);
 
 	/*
 	 * Syntax is:
@@ -1185,10 +1171,10 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		mem_pos = addr;
 
 		blk_size = mtd->erasesize;
-		DBGOUT(" erasesize: 0x%lx\n", blk_size);
+		debug("erasesize: 0x%lx\n", blk_size);
 
 		remain = (uint64_t)size;
-		DBGOUT(" remain: %llx off: 0x%llx\n",
+		debug("remain: %llx off: 0x%llx\n",
 		       remain, (unsigned long long)off);
 
 		datbuf = memalign(ARCH_DMA_MINALIGN, blk_size);
@@ -1226,7 +1212,7 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			nend = min(bend, end);
 
 			update_size = (uint64_t)(nend - nstart);
-			DBGOUT("nstart: 0x%llx nend: 0x%llx\n", nstart, nend);
+			debug("nstart: 0x%llx nend: 0x%llx\n", nstart, nend);
 			offset = nstart - bstart;
 
 			sprintf(wr_type, "write.rsv");
@@ -1247,7 +1233,7 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				do_nand(NULL, 0, 4, argv_erase);
 				memset(datbuf + offset, 0xff, update_size);
 				ret = do_nand(NULL, 0, 5, argv_write);
-				DBGOUT("offset %lx, size %llx, mem_%lx\n",
+				debug("offset %lx, size %llx, mem_%lx\n",
 						offset, update_size, mem_pos);
 			/* full block */
 			} else {
@@ -1287,7 +1273,6 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	 */
 	if (strncmp(cmd, "write", 5) == 0) {
 		ulong pagecount = 1;
-		int raw;
 
 		if (argc < 4)
 			goto usage;
@@ -1301,8 +1286,6 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		s = strchr(cmd, '.');
 
 		if (s && !strcmp(s, ".raw")) {
-			raw = 1;
-
 			if (mtd_arg_off(argv[3], &dev, &off, &size, &maxsize,
 					MTD_DEV_TYPE_NAND, mtd->size))
 				return 1;
@@ -1329,9 +1312,9 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		}
 
 		blk_size = mtd->erasesize;
-		DBGOUT(" erasesize: 0x%lx\n", blk_size);
+		debug("erasesize: 0x%lx\n", blk_size);
 
-		DBGOUT(" remain: %llx off: 0x%llx\n",
+		debug("remain: %llx off: 0x%llx\n",
 		       remain, (unsigned long long)off);
 
 		datbuf = memalign(ARCH_DMA_MINALIGN, blk_size);
@@ -1343,8 +1326,8 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		start = off;
 		end = off + size;
 
-		bstart  = round_down(start, blk_size);
-		bend    = bstart + blk_size;
+		bstart = round_down(start, blk_size);
+		bend = bstart + blk_size;
 
 		/* make command */
 		argv_erase[2] = rw_start;
@@ -1369,7 +1352,7 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			nend = min(bend, end);
 
 			update_size = (uint64_t)(nend - nstart);
-			DBGOUT("nstart: 0x%llx nend: 0x%llx\n", nstart, nend);
+			debug("nstart: 0x%llx nend: 0x%llx\n", nstart, nend);
 			offset = nstart - bstart;
 
 			sprintf(wr_type, "write.rsv");
@@ -1388,11 +1371,10 @@ int do_update_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 					goto out;
 				}
 			}
-
 			do_nand(NULL, 0, 4, argv_erase);
 			memcpy(datbuf + offset, (void *)mem_pos, update_size);
 			ret = do_nand(NULL, 0, 5, argv_write);
-			DBGOUT("offset: %lx, update_size: %llx, mem_pos: %lx\n",
+			debug("offset: %lx, update_size: %llx, mem_pos: %lx\n",
 					offset, update_size, mem_pos);
 
 			remain -= update_size;
