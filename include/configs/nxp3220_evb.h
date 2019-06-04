@@ -19,35 +19,29 @@
 #define CONFIG_SYS_MEMTEST_START	(CONFIG_SYS_SDRAM_BASE + 0)
 #define CONFIG_SYS_MEMTEST_END		(CONFIG_SYS_SDRAM_BASE + MEMTEST_SIZE)
 
-#if defined(CONFIG_ENV_IS_IN_MMC)
-#define CONFIG_SYS_MMC_ENV_DEV		0
-#endif
-
-/* For SD/MMC */
-#define MMC_BOOT_DEV		0
-#define MMC_ROOT_DEV		0
-#define MMC_BOOT_PART		1
-#define MMC_ROOTFS_PART		3
-
 /* set 'mmc rst-function' in fastboot */
 #define MMC_BOOT_RESET_FUNCTION
-
-#define MMC_BOOT_PART_TYPE	"ext4"
-#define MMC_ROOTFS_PART_TYPE	"ext4"
-
-#define	KERNEL_DTB		"nxp3220-evb.dtb"
-#define LOG_STATUS		"quiet systemd.log_level=info systemd.show_status=false"
 
 /* For BMP logo */
 #define CONFIG_BOARD_LATE_INIT
 #define CONFIG_SPLASH_SOURCE
 #define CONFIG_SPLASH_SCREEN_ALIGN	/* BMP center */
-#define SPLASH_STORAGE_NAME		"mmc_fs"
-#define SPLASH_STORAGE_DEVICE		SPLASH_STORAGE_MMC
 #define SPLASH_STORAGE_FLAGS		SPLASH_STORAGE_FS
-#define SPLASH_STORAGE_DEVPART		"0:1"
 #define SPLASH_STORAGE_FILE		"logo.bmp"
 #define SPLASH_STORAGE_LOAD		0x50000000
+
+/* For SD/MMC splash image */
+#if defined(CONFIG_ENV_IS_IN_MMC)
+	#define SPLASH_STORAGE_DEVICE		SPLASH_STORAGE_MMC
+	#define SPLASH_STORAGE_DEVPART		"0:1"
+	#define SPLASH_STORAGE_NAME		"mmc_fs"
+/* For NAND splash image */
+#elif defined(CONFIG_ENV_IS_IN_NAND)
+	#define SPLASH_STORAGE_DEVICE		SPLASH_STORAGE_NAND
+	#define SPLASH_STORAGE_DEVPART		"boot"		/* ubi mtdpart */
+	#define SPLASH_STORAGE_NAME		"ubi0:boot"	/* ubivol */
+	#define SPLASH_STORAGE_NAND_UBI
+#endif
 
 #define CONFIG_BMP_16BPP
 #define CONFIG_BMP_24BPP
@@ -59,36 +53,75 @@
 #define	CONFIG_SF_DEFAULT_MODE		0
 #define	CONFIG_ENV_SECT_SIZE		0x4000
 
+/* For SD/MMC Environment */
+#if defined(CONFIG_ENV_IS_IN_MMC)
+#define CONFIG_SYS_MMC_ENV_DEV		0
+
+#define ENV_MMC_BOOT_DEV		0
+#define ENV_MMC_ROOT_DEV		0
+#define ENV_MMC_BOOT_PART		1
+#define ENV_MMC_ROOTFS_PART		3
+
+#define ENV_MMC_BOOT_PART_TYPE		"ext4"
+#define ENV_MMC_ROOTFS_PART_TYPE	"ext4"
+
+#define ENV_KERNEL_DTB		"nxp3220-evb.dtb"
+#define ENV_BOOT_PRECOMMNAD	""
+#define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
+#define ENV_ROOTFS_ARGS		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
+				"rootfstype=${mmc_rootfs_part_type} ${root_rw} "
+#define ENV_LOAD_KERNEL		"load_kernel=ext4load mmc ${mmc_root_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file}"
+#define ENV_LOAD_KERNEL_FDT	"load_fdt=ext4load mmc ${mmc_root_dev}:${mmc_boot_part} ${fdt_addr} ${fdt_file}"
+#define ENV_EXTRA_SETTINGS 	"mmc_boot_dev="__stringify(ENV_MMC_BOOT_DEV) "\0" \
+				"mmc_boot_part="__stringify(ENV_MMC_BOOT_PART) "\0" \
+				"mmc_boot_part_type="ENV_MMC_BOOT_PART_TYPE "\0" \
+				"mmc_root_dev="__stringify(ENV_MMC_ROOT_DEV) "\0" \
+				"mmc_rootfs_part="__stringify(ENV_MMC_ROOTFS_PART) "\0" \
+				"mmc_rootfs_part_type="ENV_MMC_ROOTFS_PART_TYPE "\0"
+
+/* For NAND Environment */
+#elif defined(CONFIG_ENV_IS_IN_NAND)
+#define ENV_NAND_ROOTFS_PART	2
+#define	ENV_MTDPARTS		"mtdparts=mtd-nand:6m(reserved),16m(boot),-(rootfs)"
+
+#define ENV_KERNEL_DTB		"nxp3220-evb-nand.dtb"
+#define ENV_BOOT_PRECOMMNAD	"ubi part boot;" \
+				"ubifsmount ubi0:boot; "
+#define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
+#define ENV_ROOTFS_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOTFS_PART)" rootfstype=ubifs " \
+				"root=${ubiroot} ${root_rw} "
+#define ENV_LOAD_KERNEL		"load_kernel=ubifsload ${kernel_addr} ${kernel_file}"
+#define ENV_LOAD_KERNEL_FDT	"load_fdt=ubifsload ${fdt_addr} ${fdt_file}"
+
+#define ENV_EXTRA_SETTINGS 	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
+				"mtdparts="ENV_MTDPARTS "\0" \
+				"ubiroot=ubi0:rootfs\0" \
+
+#endif
+
 /* For Environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"autoboot=run boot_rootfs\0" \
 	"bootdelay="__stringify(CONFIG_BOOTDELAY) "\0" \
 	"boot_rootfs=" \
+		ENV_BOOT_PRECOMMNAD \
 		"run load_kernel;" \
 		"run load_fdt;" \
 		"run load_args;" \
 		"run mem_resv;" \
-		"bootz ${kernel_addr} - ${fdt_addr}\0" \
+		ENV_BOOT_POSTCOMMAND "\0" \
 	"console="CONFIG_DEFAULT_CONSOLE \
 	"fdt_addr="__stringify(FDT_ADDR) "\0" \
-	"fdt_file="__stringify(KERNEL_DTB) "\0" \
+	"fdt_file="__stringify(ENV_KERNEL_DTB) "\0" \
 	"load_args=setenv bootargs \"" \
-		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
-		"rootfstype=${mmc_rootfs_part_type} ${root_rw} " \
+		ENV_ROOTFS_ARGS \
 		"${console} ${log_msg} ${opt_log} ${opts}" \
 		"\"\0" \
-	"load_kernel=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} " \
-		"${kernel_file}\0" \
-	"load_fdt=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} " \
-		"${fdt_file}\0" \
+	ENV_LOAD_KERNEL "\0"\
+	ENV_LOAD_KERNEL_FDT "\0"\
 	"log_msg=loglevel=7 printk.time=1\0" \
 	"kernel_addr="__stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"kernel_file=zImage\0" \
-	"mmc_boot_dev="__stringify(MMC_BOOT_DEV) "\0" \
-	"mmc_boot_part="__stringify(MMC_BOOT_PART) "\0" \
-	"mmc_boot_part_type="MMC_BOOT_PART_TYPE "\0" \
-	"mmc_rootfs_part="__stringify(MMC_ROOTFS_PART) "\0" \
-	"mmc_rootfs_part_type="MMC_ROOTFS_PART_TYPE "\0" \
 	"splashfile="SPLASH_STORAGE_FILE "\0" \
 	"splashimage="__stringify(SPLASH_STORAGE_LOAD) "\0" \
 	"fb_addr=\0" \
@@ -99,5 +132,6 @@
 		"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x300000>; " \
                 "\0" \
 	"root_rw=rw\0" \
+	ENV_EXTRA_SETTINGS
 
 #endif
