@@ -22,16 +22,7 @@ static struct fastboot_part_name {
 } f_part_names[] = {
 	{ "bootsector", FASTBOOT_PART_BOOT },
 	{ "raw", FASTBOOT_PART_RAW },
-	/* partition type */
-#if defined(CONFIG_FASTBOOT_PARTMAP_PARTITION_MBR)
-	{ "partition", FASTBOOT_PART_MBR },
-#elif defined (CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
-	{ "partition", FASTBOOT_PART_GPT },
-#endif
-	{ "gpt", FASTBOOT_PART_GPT },
-	{ "mbr", FASTBOOT_PART_MBR },
-	{ "ubi", FASTBOOT_PART_UBI },
-	{ "ubifs", FASTBOOT_PART_UBIFS },
+	{ "partition", PART_TYPE_PARTITION },
 };
 
 static LIST_HEAD(f_dev_head);
@@ -406,8 +397,7 @@ static void part_lists_print(void)
 			printf(" %s.%d: %s, %s : 0x%llx, 0x%llx\n",
 			       fd->device, fp->dev_no, fp->name,
 			       fp->type & PART_TYPE_PARTITION ?
-			       fp->type == FASTBOOT_PART_GPT ?
-					"gpt" : "mbr/part" : "data",
+					"partition" : "data",
 			       fp->start, fp->length);
 		}
 	}
@@ -416,8 +406,7 @@ static void part_lists_print(void)
 	for (i = 0; i < ARRAY_SIZE(f_part_names); i++)
 		printf("%s(%s) ", f_part_names[i].name,
 		       f_part_names[i].type & PART_TYPE_PARTITION ?
-		       f_part_names[i].type == FASTBOOT_PART_GPT ?
-		       "gpt" : "mbr/part" : "data");
+		       "partition" : "data");
 	printf("\n");
 }
 
