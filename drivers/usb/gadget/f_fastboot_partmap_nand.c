@@ -98,6 +98,7 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 	loff_t start = f_part->start;
 	loff_t erasesize;
 	int l, p;
+	int ret;
 
 	mtd = get_nand_dev_by_index(0);
 
@@ -140,8 +141,13 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 	p += l;
 	cmd[p] = 0;
 
-	printf("** cmd %s: %s **\n", f_part->name, cmd);
-	run_command(cmd, 0);
+	debug("** cmd %s: %s **\n", f_part->name, cmd);
+
+	ret = run_command(cmd, 0);
+	if (ret) {
+		printf("Error: cmd %s: %s\n", f_part->name, cmd);
+		return ret;
+	}
 
 	/* nand standalone (bl1, bl2, bl32, u-boot)
 	 *	bootloader image : FASTBOOT_PART_BOOT (bootsector)
@@ -171,13 +177,17 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 	p += l;
 	cmd[p] = 0;
 
-	printf("** cmd %s: %s, erase:0x%08llx **\n",
-	       f_part->name, cmd, erasesize);
-	run_command(cmd, 0);
+	debug("** cmd %s: %s, erase:0x%08llx **\n",
+	      f_part->name, cmd, erasesize);
+
+	ret = run_command(cmd, 0);
+	if (ret)
+		printf("Error: cmd %s: %s, erase:0x%08llx\n",
+		       f_part->name, cmd, erasesize);
 
 	fastboot_okay("");
 
-	return 0;
+	return ret;
 }
 
 static int fb_nand_flash_capacity(int dev, u64 *length)
