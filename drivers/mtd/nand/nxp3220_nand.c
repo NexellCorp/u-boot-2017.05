@@ -743,6 +743,7 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_dmasize(regs, sectsize * eccsteps - 1);
 	nx_nandc_set_subpage(regs, eccsteps - 1);
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
+	nx_nandc_set_randseed(regs, 0);
 
 	ret = nx_nandc_run_dma(nfc, DRM_DIR_READ);
 	if (ret < 0) {
@@ -866,6 +867,7 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_dmasize(regs, sectsize * eccsteps - 1);
 	nx_nandc_set_subpage(regs, eccsteps - 1);
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
+	nx_nandc_set_randseed(regs, 0);
 
 	ret = nx_nandc_run_dma(nfc, DRM_DIR_WRITE);
 	if (ret < 0)
