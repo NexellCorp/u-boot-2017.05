@@ -1706,8 +1706,9 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 #ifdef CONFIG_NAND_NXP3220
 	int page_size;
 
-	if (get_nand_rsvblk_mode() == MODE_ECC)
-		page_size = get_datasize(chip) * get_eccsteps(chip);
+	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BLD)
+		page_size = get_nand_chip_datasize(chip) *
+			    get_nand_chip_eccsteps(chip);
 	else
 		page_size = mtd->writesize;
 #endif
@@ -1765,8 +1766,8 @@ read_retry:
 			 * the read methods return max bitflips per ecc step.
 			 */
 #ifdef CONFIG_NAND_NXP3220
-			if (unlikely(get_nand_rsvblk_mode() == MODE_ECC))
-				ret = nand_hw_ecc_read_block(chip, bufpoi);
+			if (unlikely(get_nand_chip_ecc_manage() == ECC_MANAGE_BLD))
+				ret = nand_hw_ecc_read_bloader(mtd, chip, bufpoi, page);
 
 			else if (unlikely(ops->mode == MTD_OPS_RAW))
 #else
@@ -2459,8 +2460,8 @@ static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 		chip->cmdfunc(mtd, NAND_CMD_SEQIN, 0x00, page);
 
 #ifdef CONFIG_NAND_NXP3220
-	if (get_nand_rsvblk_mode() == MODE_ECC)
-		status = nand_hw_ecc_write_block(chip, buf);
+	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BLD)
+		status = nand_hw_ecc_write_bloader(mtd, chip, buf, page);
 
 	else if (unlikely(raw))
 #else
@@ -2572,8 +2573,9 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 #ifdef CONFIG_NAND_NXP3220
 	int page_size;
 
-	if (get_nand_rsvblk_mode() == MODE_ECC)
-		page_size = get_datasize(chip) * get_eccsteps(chip);
+	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BLD)
+		page_size = get_nand_chip_datasize(chip) *
+			    get_nand_chip_eccsteps(chip);
 	else
 		page_size = mtd->writesize;
 #endif
