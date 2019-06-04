@@ -460,7 +460,7 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 		if (s) {
 			strncat(response, s, chars_left);
 		} else {
-			printf("WARNING: unknown variable: %s\n", cmd);
+			debug("WARNING: unknown variable: %s\n", cmd);
 			strcpy(response, "FAILVariable not implemented");
 		}
 
