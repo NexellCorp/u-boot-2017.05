@@ -351,6 +351,14 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int dir)
 {
 	void __iomem *regs = nfc->regs;
 
+#ifndef CONFIG_SYS_DCACHE_OFF
+	ulong dmabase = readl(regs + NFC_DMA_ADDR);
+	int dmasize = readl(regs + NFC_DMA_SIZE) & 0xffff;
+
+	if (dir == DRM_DIR_WRITE)
+		flush_dcache_range(dmabase,
+			ALIGN(dmabase + dmasize, CONFIG_SYS_CACHELINE_SIZE));
+#endif
 	/* clear DMA interrupt pending */
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
 
@@ -364,6 +372,12 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int dir)
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
 
 	nx_nandc_set_dmamode(regs, NX_NANDC_CPU_MODE);
+
+#ifndef CONFIG_SYS_DCACHE_OFF
+	if (dir == DRM_DIR_READ)
+		invalidate_dcache_range(dmabase,
+			ALIGN(dmabase + dmasize, CONFIG_SYS_CACHELINE_SIZE));
+#endif
 
 	return 0;
 }
@@ -1323,7 +1337,7 @@ static int nxp3220_nfc_init(struct nxp3220_nfc *nfc)
 		pr_err("NAND ecc: layout hwecc error\n");
 
 	nfc->databuf_size = mtd->writesize + mtd->oobsize;
-	nfc->databuf = devm_kzalloc(nfc->dev, nfc->databuf_size, GFP_KERNEL);
+	nfc->databuf = memalign(ARCH_DMA_MINALIGN, nfc->databuf_size);
 	if (!nfc->databuf) {
 		ret = -ENOMEM;
 		goto err;
