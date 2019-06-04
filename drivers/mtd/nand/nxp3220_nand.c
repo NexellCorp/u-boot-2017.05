@@ -347,17 +347,16 @@ static void nx_nandc_set_sramsleep(void __iomem *regs, int enable)
 	dmb();
 }
 
-static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int dir)
+static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int size, int dir)
 {
 	void __iomem *regs = nfc->regs;
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 	ulong dmabase = readl(regs + NFC_DMA_ADDR);
-	int dmasize = readl(regs + NFC_DMA_SIZE) & 0xffff;
 
 	if (dir == DRM_DIR_WRITE)
-		flush_dcache_range(dmabase,
-			ALIGN(dmabase + dmasize, CONFIG_SYS_CACHELINE_SIZE));
+		flush_dcache_range(dmabase, dmabase +
+			ROUND(size, CONFIG_SYS_CACHELINE_SIZE));
 #endif
 	/* clear DMA interrupt pending */
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
@@ -375,8 +374,8 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int dir)
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 	if (dir == DRM_DIR_READ)
-		invalidate_dcache_range(dmabase,
-			ALIGN(dmabase + dmasize, CONFIG_SYS_CACHELINE_SIZE));
+		invalidate_dcache_range(dmabase, dmabase +
+			ROUND(size, CONFIG_SYS_CACHELINE_SIZE));
 #endif
 
 	return 0;
@@ -759,7 +758,7 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
 	nx_nandc_set_randseed(regs, 0);
 
-	ret = nx_nandc_run_dma(nfc, DRM_DIR_READ);
+	ret = nx_nandc_run_dma(nfc, (sectsize * eccsteps), DRM_DIR_READ);
 	if (ret < 0) {
 		ret = -EIO;
 		goto out;
@@ -883,7 +882,7 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_subpage_size(regs, sectsize - 1);
 	nx_nandc_set_randseed(regs, 0);
 
-	ret = nx_nandc_run_dma(nfc, DRM_DIR_WRITE);
+	ret = nx_nandc_run_dma(nfc, (sectsize * eccsteps), DRM_DIR_WRITE);
 	if (ret < 0)
 		ret = -EIO;
 
@@ -947,7 +946,7 @@ int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 		nx_nandc_set_subpage_size(regs, sectsize - 1);
 		nx_nandc_set_randseed(regs, NFC_SEED);
 
-		ret = nx_nandc_run_dma(nfc, DRM_DIR_READ);
+		ret = nx_nandc_run_dma(nfc, sectsize, DRM_DIR_READ);
 		if (ret < 0) {
 			ret = -EIO;
 			goto out;
@@ -1063,7 +1062,7 @@ int nand_hw_ecc_write_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 		nx_nandc_set_subpage_size(regs, sectsize - 1);
 		nx_nandc_set_randseed(regs, NFC_SEED);
 
-		ret = nx_nandc_run_dma(nfc, DRM_DIR_WRITE);
+		ret = nx_nandc_run_dma(nfc, sectsize, DRM_DIR_WRITE);
 		if (ret < 0)
 			ret = -EIO;
 
