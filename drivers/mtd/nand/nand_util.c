@@ -30,6 +30,10 @@
 #include <nand.h>
 #include <jffs2/jffs2.h>
 
+#ifdef CONFIG_NAND_NXP3220
+#include "nxp3220_nand.h"
+#endif
+
 typedef struct erase_info	erase_info_t;
 typedef struct mtd_info		mtd_info_t;
 
@@ -578,7 +582,8 @@ int nand_write_skip_bad(struct mtd_info *mtd, loff_t offset, size_t *length,
 	int need_skip;
 
 #ifdef CONFIG_SYS_NAND_VERIFY
-	flags |= WITH_WR_VERIFY;
+	if (get_nand_chip_ecc_manage() != ECC_MANAGE_BLD)
+		flags |= WITH_WR_VERIFY;
 #endif
 
 	if (actual)
