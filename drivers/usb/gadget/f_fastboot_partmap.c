@@ -22,7 +22,14 @@ static struct fastboot_part_name {
 } f_part_names[] = {
 	{ "bootsector", FASTBOOT_PART_BOOT },
 	{ "raw", FASTBOOT_PART_RAW },
-	{ "partition", PART_TYPE_PARTITION },
+	/* partition type */
+#if defined(CONFIG_FASTBOOT_PARTMAP_PARTITION_MBR)
+	{ "partition", FASTBOOT_PART_MBR },
+#elif defined (CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
+	{ "partition", FASTBOOT_PART_GPT },
+#endif
+	{ "gpt", FASTBOOT_PART_GPT },
+	{ "mbr", FASTBOOT_PART_MBR },
 };
 
 static LIST_HEAD(f_dev_head);
