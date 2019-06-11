@@ -24,12 +24,12 @@ static struct fastboot_part_name {
 	{ "raw", FASTBOOT_PART_RAW },
 	/* partition type */
 #if defined(CONFIG_FASTBOOT_PARTMAP_PARTITION_MBR)
-	{ "partition", FASTBOOT_PART_MBR },
+	{ "partition", FASTBOOT_PART_DOS },
 #elif defined (CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
 	{ "partition", FASTBOOT_PART_GPT },
 #endif
 	{ "gpt", FASTBOOT_PART_GPT },
-	{ "mbr", FASTBOOT_PART_MBR },
+	{ "dos", FASTBOOT_PART_DOS },
 };
 
 static LIST_HEAD(f_dev_head);

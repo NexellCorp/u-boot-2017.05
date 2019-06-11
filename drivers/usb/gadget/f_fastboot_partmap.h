@@ -15,7 +15,7 @@ enum fb_part_type {
 
 #define	PART_TYPE_PARTITION	(FASTBOOT_PART_FS)
 #define	FASTBOOT_PART_GPT	(FASTBOOT_PART_FS | (1 << 4))
-#define	FASTBOOT_PART_MBR	(FASTBOOT_PART_FS | (1 << 5))
+#define	FASTBOOT_PART_DOS	(FASTBOOT_PART_FS | (1 << 5))
 
 /* each device max partition max num */
 #define	FASTBOOT_DEV_PART_MAX		(16)

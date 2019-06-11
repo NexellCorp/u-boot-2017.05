@@ -276,9 +276,9 @@ int mmc_make_part_table(struct blk_desc *dev_desc,
 }
 
 /*
- * cmd : mbr 0 n, s1:size, s2:size, s3:size, s4:size
+ * cmd : dospart 0 n, s1:size, s2:size, s3:size, s4:size
  */
-static int do_mbr(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
+static int do_dospart(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 {
 	struct blk_desc *dev_desc;
 	int i = 0, ret;
@@ -329,11 +329,11 @@ static int do_mbr(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 }
 
 U_BOOT_CMD(
-	mbr, 16, 1, do_mbr,
-	"mbr list or create ms-dos partition tables (MAX TABLE 7)",
+	dospart, 16, 1, do_dospart,
+	"dospart list or create ms-dos partition tables (MAX TABLE 7)",
 	"<dev> <dev no>\n"
 	"	- list partition table info\n"
-	"mbr <dev> <dev no> [part table counts] <start:length> <start:length> ...\n"
+	"dospart <dev> <dev no> [part table counts] <start:length> <start:length> ...\n"
 	"	- Note. each arguments seperated with space\n"
 	"	- Create partition table info\n"
 	"	- All numeric parameters are assumed to be hex.\n"
