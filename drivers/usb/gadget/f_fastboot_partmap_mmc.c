@@ -48,13 +48,13 @@
 
 #define MB	(1024 * 1024)
 
-static int fb_mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2],
+static int fb_mmc_make_dos_parts(int dev, char **names, u64 (*parts)[2],
 				 int count)
 {
 	char cmd[2048];
 	int i, l, p;
 
-	l = sprintf(cmd, "mbr mmc %d %d:", dev, count);
+	l = sprintf(cmd, "dospart mmc %d %d:", dev, count);
 	p = l;
 	for (i = 0; i < count; i++) {
 		l = sprintf(&cmd[p], " 0x%llx:0x%llx",
@@ -71,7 +71,7 @@ static int fb_mmc_make_mbr_parts(int dev, char **names, u64 (*parts)[2],
 	cmd[p] = 0;
 	printf("%s\n", cmd);
 
-	/* "mbr "mmc" <dev no> [counts] <start:length> <start:length> ..\n" */
+	/* "dospart "mmc" <dev no> [counts] <start:length> <start:length> ..\n" */
 	return run_command(cmd, 0);
 }
 
@@ -333,7 +333,7 @@ static int fb_mmc_create_part(int dev, char **names, u64 (*parts)[2],
 	if (type == FASTBOOT_PART_GPT)
 		return fb_mmc_make_gpt_parts(dev, names, parts, count);
 	else
-		return fb_mmc_make_mbr_parts(dev, names, parts, count);
+		return fb_mmc_make_dos_parts(dev, names, parts, count);
 }
 
 static struct fb_part_ops fb_partmap_ops_mmc = {
@@ -346,7 +346,7 @@ static struct fb_part_dev fb_partmap_dev_mmc = {
 	.device	= "mmc",
 	.dev_max = 4,
 	.part_support = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
-		FASTBOOT_PART_FS | FASTBOOT_PART_GPT | FASTBOOT_PART_MBR,
+		FASTBOOT_PART_FS | FASTBOOT_PART_GPT | FASTBOOT_PART_DOS,
 	.ops = &fb_partmap_ops_mmc,
 };
 

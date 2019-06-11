@@ -81,9 +81,9 @@ choice
 	prompt "FASTBOOT Partmap 'partition' type"
 	depends on USB_FUNCTION_FASTBOOT_PARTMAP
 
-config FASTBOOT_PARTMAP_PARTITION_MBR
-	bool "MBR"
-	select CMD_MBR_MMC
+config FASTBOOT_PARTMAP_PARTITION_DOS
+	bool "DOS"
+	select CMD_DOS_MMC
 
 config FASTBOOT_PARTMAP_PARTITION_GPT
 	bool "GPT"
