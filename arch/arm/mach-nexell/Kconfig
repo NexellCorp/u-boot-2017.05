@@ -22,11 +22,6 @@ config SYS_SOC
 config SYS_VENDOR
         default "nexell"
 
-config QUICKBOOT
-	bool "NEXELL QUICKBOOT"
-	help
-	  Support for nexell quickboot
-
 config QUICKBOOT_QUIET
 	bool "NEXELL QUICKBOOT QUIET"
 	help

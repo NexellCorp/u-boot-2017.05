@@ -14,12 +14,7 @@
 #define CONFIG_SYS_SDRAM_SIZE	0x1F000000
 #define CONFIG_SYS_MALLOC_LEN	(64 * SZ_1M)
 
-#ifdef CONFIG_QUICKBOOT
 #define CONFIG_SYS_BOOTM_LEN    (64 << 20)
-
-#undef CONFIG_SYS_LOAD_ADDR
-#define CONFIG_SYS_LOAD_ADDR	0x40008000
-#endif
 
 /* Memory Test (up to 0x3C00000:60MB) */
 #define MEMTEST_SIZE			(32 * SZ_1M)
@@ -44,11 +39,7 @@
 
 #define	KERNEL_DTB		"nxp3220-daudio.dtb"
 
-#ifdef CONFIG_QUICKBOOT
 #define LOG_MSG			"quiet loglevel=3 printk.time=1"
-#else
-#define LOG_MSG			"loglevel=7 printk.time=1"
-#endif
 
 /* For BMP logo */
 #define CONFIG_BOARD_LATE_INIT
