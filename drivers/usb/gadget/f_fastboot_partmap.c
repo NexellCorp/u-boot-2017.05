@@ -27,6 +27,8 @@ static struct fastboot_part_name {
 	{ "partition", FASTBOOT_PART_DOS },
 #elif defined (CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
 	{ "partition", FASTBOOT_PART_GPT },
+#else
+	{ "partition", FASTBOOT_PART_FS },
 #endif
 	{ "gpt", FASTBOOT_PART_GPT },
 	{ "dos", FASTBOOT_PART_DOS },
@@ -372,6 +374,7 @@ static int part_lists_make(const char *ptable_str,
 
 		for (p_fnc_ptr = parse_part_seqs; *p_fnc_ptr; ++p_fnc_ptr) {
 			if ((*p_fnc_ptr)(p, &p, fp) != 0) {
+				list_del(&fp->link);
 				free(fp);
 				err = -EINVAL;
 				goto fail_parse;
