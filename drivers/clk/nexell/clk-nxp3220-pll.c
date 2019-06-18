@@ -329,14 +329,7 @@ static inline unsigned int pll_rate(unsigned int pllno, unsigned int xtal)
 
 static ulong nx_pll_get_rate(struct clk *clk)
 {
-	ulong rate;
-
-	rate = pll_rate(clk->id, ref_clk);
-
-	if (clk->id == 1 || clk->id >= 3)
-		return rate / 2;
-
-	return rate;
+	return pll_rate(clk->id, ref_clk);
 }
 
 static ulong nx_pll_set_rate(int pllno, ulong freq)
