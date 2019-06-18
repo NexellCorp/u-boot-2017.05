@@ -14,20 +14,12 @@
 #include "clk-nxp3220.h"
 #include "clk-init-nxp3220.c"
 
-#define SRC_MAX_DIV 256
-#define SYS_MAX_DIV 256
-
-#define T_MAX_DIV (SRC_MAX_DIV * SYS_MAX_DIV)
-
-#define PLL_NUM 5
-
 DECLARE_GLOBAL_DATA_PTR;
 
-struct nx_clk_div {
-	int mux;
-	int p_div; /* source/parent divider */
-	int d_div;
-};
+#define SRC_MAX_DIV	256
+#define SYS_MAX_DIV	256
+#define T_MAX_DIV	(SRC_MAX_DIV * SYS_MAX_DIV)
+#define PLL_NUM		5
 
 struct nx_cmu_priv {
 	struct clk_cmu_dev *cmus;
@@ -37,18 +29,66 @@ struct nx_cmu_priv {
 	int initialized;
 };
 
-static unsigned long plls[] = { 400000000, 0, 0, 0, 0};
+enum nx_pll_assign {
+	NX_PLL_ASSIGN_PLL,
+	NX_PLL_ASSIGN_NONE,
+};
+
+struct nx_pll {
+	unsigned long value;
+	int divide;
+	enum nx_pll_assign assign;
+};
+
+static struct nx_pll plls[] = {
+	{ 0, 1, NX_PLL_ASSIGN_PLL },
+	{ 0, 2, NX_PLL_ASSIGN_PLL },
+	{ 0, 1, NX_PLL_ASSIGN_NONE }, /* CPU DVFS */
+	{ 0, 2, NX_PLL_ASSIGN_PLL },
+	{ 0, 2, NX_PLL_ASSIGN_PLL },
+};
+
+struct nx_clk_div {
+	int mux;
+	int parent; /* source/parent divider */
+	int divide;
+};
+
+static char *get_cmu_type(int type)
+{
+	switch (type) {
+	case CMU_NAME_SRC:
+		return "SRC ";
+	case CMU_NAME_SYS:
+		return "SYS ";
+	case CMU_NAME_USB:
+		return "USB ";
+	case CMU_NAME_HSIF:
+		return "HSIF";
+	case CMU_NAME_MM:
+		return "MM  ";
+	case CMU_NAME_CPU:
+		return "CPU ";
+	case CMU_NAME_DDR:
+		return "DDR";
+	default:
+		return "unknown";
+	}
+
+	return NULL;
+}
 
 static int nx_pll_get_min(void)
 {
 	int min = 0, i;
 
 	for (i = 0; i < PLL_NUM; i++) {
-		if (plls[i] == 0)
+		if (!plls[i].value)
 			continue;
-		if (plls[i] < plls[min])
+		if (plls[i].value < plls[min].value)
 			min = i;
 	}
+
 	return min;
 }
 
@@ -57,140 +97,132 @@ static int nx_pll_get_max(void)
 	int max = 0, i;
 
 	for (i = 0; i < PLL_NUM; i++) {
-		if (plls[i] == 0)
+		if (!plls[i].value)
 			continue;
-		if (plls[i] > plls[max])
+		if (plls[i].value > plls[max].value)
 			max = i;
 	}
+
 	return max;
-}
-
-static int nx_pll_get_use_ddr(void)
-{
-	struct clk_cmu_reg *reg =
-		(struct clk_cmu_reg *)PHY_BASEADDR_CMU_DDR_MODULE;
-
-	return readl(&reg->clkmux_src) + 3;
 }
 
 static int nx_pll_get_rate(struct udevice *dev)
 {
 	struct clk pll;
-	int i, ddr = nx_pll_get_use_ddr();
+	int i;
 
 	clk_get_by_index(dev, 0, &pll);
 
 	for (i = 0; i < PLL_NUM; i++) {
-		if (i == ddr || i == CPU_PLL)
+		if (plls[i].assign == NX_PLL_ASSIGN_NONE)
 			continue;
 
 		pll.id = i;
-		plls[i] = clk_get_rate(&pll);
-		if (i == 3 || i == 4)
-			plls[i] = plls[i] / 2;
+		plls[i].value = clk_get_rate(&pll) / plls[i].divide;
 	}
 
 	return 0;
 }
 
-static void nx_clk_calc_divider(unsigned long req, struct nx_clk_div *cdiv)
+static void nx_clk_calc_divider(struct nx_clk_div *cdiv, unsigned long request)
 {
-	int div = 0, mux = 0, dlt = 0;
+	int divide = 0, select = 0, delta = 0;
 	int div0 = 0, div1 = 0;
-	int v, m, i, d;
+	int i, v, m, d;
 
 	for (i = 0; i < PLL_NUM; i++) {
-		if (plls[i] == 0)
+		if (!plls[i].value)
 			continue;
 
-		v = plls[i] / req;
-		m = plls[i] % req;
+		v = plls[i].value / request;
+		m = plls[i].value / v - request;
 
-		/* under the min div_val */
-		if (v == 0)
+		if (!v)
 			continue;
 
 		if (v > T_MAX_DIV) {
-			div = T_MAX_DIV + 1;
+			divide = T_MAX_DIV + 1;
 			continue;
 		}
 
-		if (m == 0) {
-			mux = i; div = v; dlt = m;
+		if (!m) {
+			select = i;
+			divide = v;
+			delta = m;
 			break;
 		}
 
-		if (dlt == 0 || m < dlt) {
-			mux = i; div = v; dlt = m;
+		if (!delta || m < delta) {
+			select = i;
+			divide = v;
+			delta = m;
 		}
 	}
 
-	if (div > T_MAX_DIV || div == 0) {
-		if (div == 0) {
-			mux = nx_pll_get_max();
+	if (divide > T_MAX_DIV || !divide) {
+		if (!divide) {
+			select = nx_pll_get_max();
 			div0 = 1;
 			div1 = 1;
 		} else {
-			mux = nx_pll_get_min();
+			select = nx_pll_get_min();
 			div0 = SRC_MAX_DIV;
 			div1 = SYS_MAX_DIV;
 		}
 
-		cdiv->mux = mux;
-		cdiv->p_div = div1;
-		cdiv->d_div = div0;
+		cdiv->mux = select;
+		cdiv->parent = div1;
+		cdiv->divide = div0;
 		return;
 	}
 
 	for (d = 1; d < 255; d++) {
-		v = div / d;
-		m = div % d;
+		v = divide / d;
+		m = divide / v - d;
 
 		if (v > SYS_MAX_DIV)
 			continue;
 
-		if (m == 0) {
-			div0 = d; div1 = v;
+		if (!m) {
+			div0 = d;
+			div1 = v;
 			break;
 		}
 
-		if (dlt == 0 || m < dlt) {
-			div0 = d; div1 = v;
+		if (!delta || m < delta) {
+			div0 = d;
+			div1 = v;
 		}
 	}
 
-	cdiv->mux = mux;
-	cdiv->p_div = div1;
-	cdiv->d_div = div0;
+	cdiv->mux = select;
+	cdiv->parent = div1;
+	cdiv->divide = div0;
 }
 
-static struct clk_cmu_dev *nx_clk_get_priv(struct nx_cmu_priv *priv, int id)
+static struct clk_cmu_dev *nx_clk_get_dev(struct nx_cmu_priv *priv,
+					  int id, bool src)
 {
+	struct clk_cmu_dev *cdev = priv->cmus;
+	int size = priv->size;
 	int i;
 
-	for (i = 0; i < priv->size; i++) {
-		if (priv->cmus[i].id == id)
-			return &priv->cmus[i];
+	if (src) {
+		cdev = priv->parent;
+		size = priv->parent_num;
+	}
+
+	for (i = 0; i < size; i++) {
+		if (cdev[i].id == id)
+			return &cdev[i];
 	}
 
 	return NULL;
 }
 
-static struct clk_cmu_dev *nx_clk_get_src_priv(struct nx_cmu_priv *priv, int id)
+static int nx_clk_enable_hw(struct nx_cmu_priv *priv, unsigned int id)
 {
-	int i;
-
-	for (i = 0; i < priv->parent_num; i++) {
-		if (priv->parent[i].id == id)
-			return &priv->parent[i];
-	}
-
-	return NULL;
-}
-
-static int nx_clk_enable_all(struct nx_cmu_priv *priv, unsigned int id)
-{
-	struct clk_cmu_dev *cmu = nx_clk_get_priv(priv, id);
+	struct clk_cmu_dev *cmu = nx_clk_get_dev(priv, id, false);
 	unsigned int idx, bit;
 
 	if (cmu->nc)
@@ -199,16 +231,22 @@ static int nx_clk_enable_all(struct nx_cmu_priv *priv, unsigned int id)
 	idx = cmu->clkenbit / 32;
 	bit = cmu->clkenbit % 32;
 
-	writel(1 << bit, &cmu->reg->clkenb_set[idx]);
+	writel(1 << bit, &cmu->reg->enb_set[idx]);
+
+	debug("%s:%3d:%p, idx:%d, bit:%d enbable\n",
+		get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 
 	if (cmu->type == CMU_TYPE_MAINDIV) {
-		cmu = nx_clk_get_src_priv(priv, cmu->p_id);
+		cmu = nx_clk_get_dev(priv, cmu->p_id, true);
 		if (!cmu)
 			return 0;
 
 		idx = cmu->clkenbit / 32;
 		bit = cmu->clkenbit % 32;
-		writel(1 << bit, &cmu->reg->clkenb_set[idx]);
+		writel(1 << bit, &cmu->reg->enb_set[idx]);
+
+		debug("%s:%3d:%p, idx:%d, bit:%d enbable\n",
+			get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 	}
 
 	return 0;
@@ -216,51 +254,60 @@ static int nx_clk_enable_all(struct nx_cmu_priv *priv, unsigned int id)
 
 static int nx_clk_enable(struct clk *clk)
 {
-	struct nx_cmu_priv *priv = dev_get_priv(clk->dev);
-
-	return nx_clk_enable_all(priv, clk->id);
+	return nx_clk_enable_hw(dev_get_priv(clk->dev), clk->id);
 }
 
 static int nx_clk_disable(struct clk *clk)
 {
 	struct nx_cmu_priv *priv = dev_get_priv(clk->dev);
-	struct clk_cmu_dev *sys = nx_clk_get_priv(priv, clk->id);
-	struct clk_cmu_dev *src = NULL;
+	struct clk_cmu_dev *cmu = nx_clk_get_dev(priv, clk->id, false);
 	unsigned int idx, bit;
 
-	if (sys->nc)
+	if (cmu->nc)
 		return 0;
 
-	idx = sys->clkenbit / 32;
-	bit = sys->clkenbit % 32;
+	idx = cmu->clkenbit / 32;
+	bit = cmu->clkenbit % 32;
 
-	writel(1 << bit, &sys->reg->clkenb_clr[idx]);
+	writel(1 << bit, &cmu->reg->enb_clr[idx]);
 
-	if (sys->type == CMU_TYPE_MAINDIV)
-		src = nx_clk_get_src_priv(priv, sys->p_id);
+	debug("%s:%3d:%p, idx:%d, bit:%d disable\n",
+		get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 
-	if (src) {
-		idx = src->clkenbit / 32;
-		bit = src->clkenbit % 32;
-		writel(1 << bit, &src->reg->clkenb_clr[idx]);
+	if (cmu->type == CMU_TYPE_MAINDIV) {
+		cmu = nx_clk_get_dev(priv, cmu->p_id, true);
+		if (!cmu)
+			return 0;
+
+		idx = cmu->clkenbit / 32;
+		bit = cmu->clkenbit % 32;
+		writel(1 << bit, &cmu->reg->enb_clr[idx]);
+
+		debug("%s:%3d:%p, idx:%d, bit:%d disable\n",
+			get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 	}
 
 	return 0;
 }
 
-static ulong nx_clk_set_reg(struct clk_cmu_dev *sys,
-			    struct clk_cmu_dev *src,
+static ulong nx_clk_set_hw(struct clk_cmu_dev *src,
+			    struct clk_cmu_dev *sys,
 			    unsigned long freq)
 {
 	struct nx_clk_div cdiv;
 
-	nx_clk_calc_divider(freq, &cdiv);
+	nx_clk_calc_divider(&cdiv, freq);
 
-	writel((cdiv.d_div - 1) & 0xFFFF, &sys->reg->div_val[0]);
-	writel((cdiv.p_div - 1) & 0xFFFF, &src->reg->div_val[0]);
+	writel((cdiv.divide - 1) & 0xFFFF, &sys->reg->div_val[0]);
+	writel((cdiv.parent - 1) & 0xFFFF, &src->reg->div_val[0]);
 	writel((cdiv.mux) & 0xFFFF, &src->reg->clkmux_src);
 
-	sys->freq = plls[cdiv.mux] / cdiv.p_div / cdiv.d_div;
+	sys->freq = plls[cdiv.mux].value / cdiv.parent / cdiv.divide;
+
+	debug("%s:%3d:%p, %s:%3d:%p mux:%d, div:%d/%d, freq:%ld\n",
+		get_cmu_type(src->cmu_id), src->id, src->reg,
+		get_cmu_type(sys->cmu_id), sys->id, sys->reg,
+		cdiv.mux, cdiv.divide, cdiv.parent, freq);
 
 	return sys->freq;
 }
@@ -268,10 +315,10 @@ static ulong nx_clk_set_reg(struct clk_cmu_dev *sys,
 static ulong nx_clk_set_rate(struct nx_cmu_priv *priv,
 			     int id, unsigned long freq)
 {
-	struct clk_cmu_dev *sys, *src, *par;
+	struct clk_cmu_dev *sys, *src, *cmu;
 	int idx, div;
 
-	sys = nx_clk_get_priv(priv, id);
+	sys = nx_clk_get_dev(priv, id, false);
 
 	switch (sys->type) {
 	case CMU_TYPE_MAINDIV:
@@ -281,8 +328,8 @@ static ulong nx_clk_set_rate(struct nx_cmu_priv *priv,
 		case CMU_NAME_SYS:
 		case CMU_NAME_MM:
 		case CMU_NAME_USB:
-			src = nx_clk_get_src_priv(priv, sys->p_id);
-			return nx_clk_set_reg(sys, src, freq);
+			src = nx_clk_get_dev(priv, sys->p_id, true);
+			return nx_clk_set_hw(src, sys, freq);
 		}
 		break;
 
@@ -291,7 +338,7 @@ static ulong nx_clk_set_rate(struct nx_cmu_priv *priv,
 	case CMU_TYPE_SUBDIV2:
 		idx = sys->type - CMU_TYPE_SUBDIV0;
 		div = 1;
-		src = nx_clk_get_priv(priv, sys->p_id);
+		src = nx_clk_get_dev(priv, sys->p_id, false);
 
 		if (src->freq && src->freq >= freq)
 			div = src->freq / freq;
@@ -302,11 +349,11 @@ static ulong nx_clk_set_rate(struct nx_cmu_priv *priv,
 		return sys->freq;
 
 	case CMU_TYPE_ONLYGATE:
-		par = nx_clk_get_priv(priv, sys->p_id);
-		src = nx_clk_get_src_priv(priv, par->p_id);
+		cmu = nx_clk_get_dev(priv, sys->p_id, false);
+		src = nx_clk_get_dev(priv, cmu->p_id, true);
 
 		if (!src->freq)
-			sys->freq = nx_clk_set_reg(par, src, freq);
+			sys->freq = nx_clk_set_hw(src, cmu, freq);
 
 		return sys->freq;
 	}
@@ -323,7 +370,7 @@ static ulong nx_cmu_set_rate(struct clk *clk, unsigned long freq)
 static ulong nx_cmu_get_rate(struct clk *clk)
 {
 	struct nx_cmu_priv *priv = dev_get_priv(clk->dev);
-	struct clk_cmu_dev *sys = nx_clk_get_priv(priv, clk->id);
+	struct clk_cmu_dev *sys = nx_clk_get_dev(priv, clk->id, false);
 	unsigned long rate = 0;
 
 	switch (sys->type) {
@@ -362,7 +409,7 @@ static int nx_cmu_parse_dt(struct udevice *dev)
 
 			nx_clk_set_rate(priv, id, rate);
 			if (on)
-				nx_clk_enable_all(priv, id);
+				nx_clk_enable_hw(priv, id);
 		}
 	}
 
@@ -377,7 +424,7 @@ static int nx_cmu_parse_dt(struct udevice *dev)
 
 			nx_clk_set_rate(priv, id, rate);
 			if (on)
-				nx_clk_enable_all(priv, id);
+				nx_clk_enable_hw(priv, id);
 		}
 	}
 
