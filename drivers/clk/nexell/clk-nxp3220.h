@@ -91,8 +91,8 @@
 struct clk_cmu_reg {
 	u32 clkmux_src;
 	u32 rsv0[3];
-	u32 clkenb_set[4];
-	u32 clkenb_clr[4];
+	u32 enb_set[4];
+	u32 enb_clr[4];
 	u32 rst_release[4];
 	u32 rst_enter[4];
 	u32 rst_mode[4];

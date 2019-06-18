@@ -29,6 +29,7 @@
 
 #define MAX_DIV		255
 
+/* CMU SRC */
 #define SRC_SYS_0_AXI_CLK			0
 #define SRC_SYS_0_HSIF_AXI_CLK			1
 #define SRC_CPU_BACKUP_0_CLK			2
@@ -92,6 +93,7 @@
 #define SRC_CODA960_0_CORE_CLK			60
 #define SRC_USB_0_AHB_CLK			61
 
+/* CMU SYS */
 #define SYS_0_AXI_CLK				0
 #define SYS_BUS_0_AXI_CLK			1
 #define ETC_BUS_0_AXI_CLK			2
@@ -243,6 +245,7 @@
 #define GMAC_RMII_0_SCAN_TRXCLK_CLK		148
 #define NANDC_0_AXI_CLK				149
 
+/* CMU MM */
 #define MM_0_AXI_CLK				0
 #define BLK_MM_BIST_CLK_0_333MHZ_CLK		1
 #define ROTATOR_0_AXI_CLK			2
@@ -264,6 +267,7 @@
 #define LVDS_0_VCLK_CLK				18
 #define CODA960_0_CORE_CLK			19
 
+/* CMU USB */
 #define USB_0_AHB_CLK				0
 #define BLK_USB_BIST_CLK_0_250MHZ_CLK		1
 #define SYSREG_USB_0_APB_CLK			2
