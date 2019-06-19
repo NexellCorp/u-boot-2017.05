@@ -130,7 +130,10 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 		printf("failed to invalud base for dwmmc.%d\n", index);
 		return -EINVAL;
 	}
-	ddr = fdtdec_get_int(blob, node, "nexell,ddr", 0);
+
+	if ((dev_read_bool(dev, "mmc-ddr-1_8v")) ||
+			(dev_read_bool(dev, "mmc-ddr-1_2v")))
+		ddr = true;
 
 	priv = malloc(sizeof(struct nx_dwmci_dat));
 	if (!priv) {
@@ -189,7 +192,7 @@ static int nx_dw_mmc_setup(const void *blob, struct udevice *dev,
 
 	priv = (struct nx_dwmci_dat *)host->priv;
 
-	nx_dw_mmc_set_clk(host, priv->frequency * 4);
+	nx_dw_mmc_set_clk(host, priv->frequency);
 	nx_dw_mmc_clk_delay(host);
 
 	return 0;
