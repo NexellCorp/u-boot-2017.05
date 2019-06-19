@@ -21,14 +21,17 @@ Required Board Specific Properties:
 
 - #address-cells: should be 1.
 - #size-cells: should be 0.
-- nexel,bus-width: The width of the bus used to interface the devices
+- bus-width: The width of the bus used to interface the devices
 	supported by DWC_mobile_storage (SD-MMC/EMMC/SDIO).
 	. Typically the bus width is 4 or 8.
-	. 8bit width support only ch2.
-- nexell,drive_shift: Output drive clock phase shift. range is 0 ~ 7
-- nexell,sample_shift: Read sample clock phase shitf. range is 0 ~ 7.
-- frequency: sdmmc clock frequency, typically 50MHz
-- nexell,ddr: use ddr transfer mode, support only ch0, 8bit bus width.
+	. 8bit width support only ch0.
+- drive_shift: Output drive clock phase shift. range is 0 ~ 7
+- sample_shift: Read sample clock phase shitf. range is 0 ~ 7.
+- frequency: sdmmc clock gen frequency, typically 400MHz
+- cap-sd-highspeed: SD high-speed timing is supported
+- cap-mmc-highspeed: MMC high-speed timing is supported
+- mmc-ddr-1_8v: eMMC high-speed DDR mode(1.8V I/O) is supported
+- mmc-ddr-1_2v: eMMC high-speed DDR mode(1.2V I/O) is supported
 
 Example:
 
@@ -43,9 +46,9 @@ mmc0: mmc@26080000 {
 };
 
 &mmc0 {
-	frequency = <50000000>;
-	exell,drive_shift = <0x03>;
-	nexell,sample_shift = <0x02>;
+	frequency = <400000000>;
+	drive_shift = <0x03>;
+	sample_shift = <0x02>;
 	status = "okay";
 };
 

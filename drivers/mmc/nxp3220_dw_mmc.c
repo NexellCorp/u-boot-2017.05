@@ -85,17 +85,18 @@ static void nx_dw_mmc_set_mode(struct dwmci_host *host)
 	struct nx_dwmci_dat *priv = host->priv;
 	int mode = 0;
 
-	switch (priv->buswidth)	{
-	case 1:
+	switch (priv->buswidth) {
+	case 0x01:
 		mode = 0;
 		break;
-	case 4:
+	case 0x04:
 		mode = 1;
 		break;
-	case 8:
+	case 0x08:
 		mode = 2;
 		break;
 	}
+
 	if (priv->ddr && priv->frequency == 200000000)
 		mode |= MODE_HS400;
 	writel(mode, (host->ioaddr + DWMCI_MODE));
@@ -113,13 +114,33 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 		struct udevice *dev, struct dwmci_host *host)
 {
 	struct nx_dwmci_dat *priv;
+	struct nx_mmc_plat *plat = dev_get_platdata(dev);
+	struct mmc_config *cfg = &plat->cfg;
 	int fifo_size = 0x20;
-	int index, bus_w;
-	int ddr, err;
+	int index = 0, bus_w = 0;
+	int ddr = 0, err = 0;
 	unsigned long base;
 
+	err = mmc_of_parse(dev, cfg);
+	if (err) {
+		printf("failed to parse for dwmmc\n");
+		return -EINVAL;
+	}
+
 	index = fdtdec_get_int(blob, node, "index", 0);
-	bus_w = fdtdec_get_int(blob, node, "nexell,bus-width", 0);
+
+	switch (cfg->host_caps >> 28) {
+	case 0x07:
+		bus_w = 8;
+		break;
+	case 0x03:
+		bus_w = 4;
+		break;
+	case 0x01:
+		bus_w = 1;
+		break;
+	}
+
 	if (0 >= bus_w) {
 		printf("failed to bus width %d for dwmmc.%d\n", bus_w, index);
 		return -EINVAL;
@@ -130,7 +151,9 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 		printf("failed to invalud base for dwmmc.%d\n", index);
 		return -EINVAL;
 	}
-	ddr = fdtdec_get_int(blob, node, "nexell,ddr", 0);
+
+	if (cfg->host_caps & MMC_CAP(MMC_DDR_52))
+		ddr = true;
 
 	priv = malloc(sizeof(struct nx_dwmci_dat));
 	if (!priv) {
@@ -148,8 +171,8 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 	if (err)
 		printf("warning! : not found sdmmc ahb clock\n");
 
-	priv->d_shift = fdtdec_get_int(blob, node, "nexell,drive_shift", 0);
-	priv->s_shift = fdtdec_get_int(blob, node, "nexell,sample_shift", 0);
+	priv->d_shift = fdtdec_get_int(blob, node, "drive_shift", 0);
+	priv->s_shift = fdtdec_get_int(blob, node, "sample_shift", 0);
 	priv->frequency = fdtdec_get_int(blob, node, "frequency", 0);
 
 	priv->buswidth = bus_w;
@@ -189,7 +212,7 @@ static int nx_dw_mmc_setup(const void *blob, struct udevice *dev,
 
 	priv = (struct nx_dwmci_dat *)host->priv;
 
-	nx_dw_mmc_set_clk(host, priv->frequency * 4);
+	nx_dw_mmc_set_clk(host, priv->frequency);
 	nx_dw_mmc_clk_delay(host);
 
 	return 0;
