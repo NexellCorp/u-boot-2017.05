@@ -89,21 +89,21 @@
 &mmc0 {
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
+	frequency = <400000000>;
 	status = "okay";
 };
 
 &mmc1 {
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
+	frequency = <400000000>;
 	status = "okay";
 };
 
 &mmc2 {
 	nexell,sample_shift = <0x04>;
 	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
+	frequency = <400000000>;
 	status = "okay";
 };
 
