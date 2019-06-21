@@ -1,0 +1,204 @@
+/*
+ * (C) Copyright 2018 Nexell
+ * JungHyun, Kim <jhkim@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:      GPL-2.0+
+ */
+
+#include "nxp3220.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "nexell,nxp3220";
+
+	aliases {
+		serial2 = &uart2;
+		i2c0    = &i2c_0;
+		spi0	= &spi_0;
+	};
+
+	chosen {
+		stdout-path = "serial2:115200n8";
+		tick-timer = &timer0;
+	};
+
+	clock_pll: clock-src@27020000 {
+		frequency = <0 1000000000>; /* for system bus */
+	};
+
+	clock_sys: clock-sys@27010000 {
+		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>,
+				     <UART_2_APB_CLK 100000000 1>,
+				     <TIMER_0_APB_CLK 100000000 1>,
+				     <TIMER_0_TCLK0_CLK 100000000 1>,
+				     <TIMER_0_TCLK1_CLK 100000000 1>,
+				     <PWM_0_TCLK0_CLK 100000000 1>,
+				     <PWM_0_TCLK1_CLK 100000000 1>,
+				     <PWM_0_TCLK2_CLK 100000000 1>,
+				     <PWM_0_TCLK3_CLK 100000000 1>,
+				     <I2C_0_APB_CLK 100000000 1>,
+				     <SPI_0_APB_CLK 100000000 1>,
+				     <GMAC_RGMII_0_AXI_CLK 250000000 1>,
+				     <GMAC_RGMII_0_APB_CLK 125000000 1>,
+				     <GMAC_RGMII_0_TX_CLK_CLK 125000000 1>,
+				     <GMAC_RGMII_0_PTP_REF_CLK 25000000 1>,
+				     <GMAC_RMII_0_AXI_CLK 250000000 1>,
+				     <GMAC_RMII_0_APB_CLK 125000000 1>,
+				     <GMAC_RMII_0_PTP_REF_CLK 25000000 1>;
+	};
+
+	clock_mm: clock-mm@25000000 {
+		clk-init-frequency = <MM_0_AXI_CLK 300000000 1>,
+				<MM_0_APB_CLK 160000000 1>,
+				<DPC_0_AXI_CLK 300000000 0>;
+        };
+
+	backlight: backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 3 25000 0>; /* 40khz=1000000000/25000(period ns) */
+		brightness-levels = <0 10 20 30 40 50 60 70 80 90 100>;
+		default-brightness-level = <4>;
+		enable-gpios = 	<&gpio_e 14 GPIO_ACTIVE_LOW>,
+				<&gpio_e 15 GPIO_ACTIVE_HIGH>;
+
+	};
+};
+
+&adc {
+	status = "okay";
+};
+
+&display {
+	status = "okay";
+	display-timings {
+		timings0: timings0 {
+			clock-frequency = <88565760>;
+			hactive = <1920>;
+			hfront-porch = <30>;
+			hback-porch = <30>;
+			hsync-len = <4>;
+			vactive = <720>;
+			vfront-porch = <10>;
+			vback-porch = <10>;
+			vsync-len = <2>;
+			hsync-active = <1>;
+			vsync-active = <1>;
+			de-active = <1>;
+		};
+        };
+
+        display-config {
+                out-format = <DP_OUT_FORMAT_RGB888>;
+        };
+
+        display-overlays {
+                rgb_0 {
+                        primary; /* this layer is framebuffer */
+                        width = <1920>;
+                        height = <720>;
+                        bit-per-pixel = <32>;
+			format = <DP_MLC_FORMAT_A8R8G8B8>;
+                };
+        };
+};
+
+&disp_rgb {
+	status = "okay";
+};
+
+&dwc2otg {
+	status = "okay";
+};
+
+&ehci {
+	status = "okay";
+};
+
+&gmac0 {
+	phy-mode = "rgmii";
+	phy-handle = <&ethphy0>;
+	status = "okay";
+
+	phy-reset-gpios = <&gpio_alv 5 GPIO_ACTIVE_LOW>;
+	pinctrl-0 = <&gmac0_txd>, <&gmac0_rxd>, <&gmac0_txen>,
+		    <&gmac0_rxen>, <&gmac0_mdc>, <&gmac0_mdio>,
+		    <&gmac0_rxclk>, <&gmac0_txclk>, <&gmac0_nrst>;
+
+	mdio@3 {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@3 {
+			reg = <3>;
+		};
+	};
+};
+
+&i2c_0 {
+	status = "okay";
+	u-boot,dm-pre-reloc;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	nxe1500: nxe1500@33 {
+		compatible = "nexell,nxe1500";
+		reg = <0x33>;
+
+		voltage-regulators {
+			ldo4: LDO4 { /* usb host power */
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-name = "ldo5";
+				regulator-boot-on = <1>;
+			};
+		}; /* voltage-regulators */
+	};
+};
+
+&mmc0 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
+	frequency = <50000000>;
+	status = "okay";
+};
+
+&mmc2 {
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x05>;
+	frequency = <50000000>;
+	status = "okay";
+};
+
+&pinctrl {
+	gmac0_nrst: gmac-nrst {
+		nexell,pins = "gpioe-11";
+		nexell,pin-function = <NX_PIN_FUNC0>;
+		nexell,pin-pull = <NX_PIN_PULL_UP>;
+	};
+};
+
+&pwm {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pwm3_pin>;
+};
+
+&spi_0 {
+	status = "okay";
+	spi-max-frequency = <10000000>;
+	num-cs = <1>;
+	cs-gpio = <&gpio_c 4 0>;
+};
+
+&uart2 {
+	clock-frequency = <100000000>;
+	status = "okay";
+};
+
+&udown {
+	status = "okay";
+};
+
+&usb2phy {
+	status = "okay";
+};
