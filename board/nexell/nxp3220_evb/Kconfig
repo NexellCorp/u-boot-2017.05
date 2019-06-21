@@ -1,6 +1,10 @@
-if TARGET_NXP3220_EVB || TARGET_NXP3220_DAUDIO
+if TARGET_NXP3220_EVB || TARGET_NXP3220_DAUDIO || \
+   TARGET_NXP3220_EVB2 || TARGET_NXP3220_DAUDIO2
 
 config SYS_BOARD
 	default "nxp3220_evb"
+
+config CHECK_REVISION
+	bool "Check board revision"
 
 endif
