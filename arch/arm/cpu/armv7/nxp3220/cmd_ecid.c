@@ -36,7 +36,7 @@ static int nx_cpu_id_string(u8 *chipname)
 
 static int ecid_show(char *entry)
 {
-	char buf[128];
+	char buf[128] = { 0, };
 	char *s = buf;
 	u32 uid[4] = { 0, };
 	u8 chipname[CHIPNAME_LEN + 1] = { 0, };
@@ -81,7 +81,7 @@ static int ecid_show(char *entry)
 	if (s != buf)
 		*(s - 1) = '\n';
 
-	printf("%s", buf);
+	printf("%s\n", buf);
 
 	return s - buf;
 }
