@@ -13,7 +13,3 @@
 	model = "Nexell nxp3220 evb2 board";
 	compatible = "nexell,nxp3220";
 };
-
-&clock_usb {
-        clk-init-frequency = <USB_0_AHB_CLK 250000000 1>;
-};
