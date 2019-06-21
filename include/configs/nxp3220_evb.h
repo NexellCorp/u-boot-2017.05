@@ -64,8 +64,14 @@
 
 #define ENV_MMC_BOOT_PART_TYPE		"ext4"
 #define ENV_MMC_ROOTFS_PART_TYPE	"ext4"
-
+#if defined(CONFIG_TARGET_NXP3220_EVB)
 #define ENV_KERNEL_DTB		"nxp3220-evb.dtb"
+#elif defined(CONFIG_TARGET_NXP3220_EVB2)
+#define ENV_KERNEL_DTB		"nxp3220-evb2-rev00.dtb"
+#else
+#error "NO TARGET !!!"
+#endif
+
 #define ENV_BOOT_PRECOMMNAD	""
 #define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
 #define ENV_ROOTFS_ARGS		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
@@ -84,7 +90,14 @@
 #define ENV_NAND_ROOTFS_PART	2
 #define	ENV_MTDPARTS		"mtdparts=mtd-nand:6m(reserved),16m(boot),-(rootfs)"
 
+#if defined(CONFIG_TARGET_NXP3220_EVB)
 #define ENV_KERNEL_DTB		"nxp3220-evb-nand.dtb"
+#elif defined(CONFIG_TARGET_NXP3220_EVB2)
+#define ENV_KERNEL_DTB		"nxp3220-evb2-nand-rev00.dtb"
+#else
+#error "NO TARGET !!!"
+#endif
+
 #define ENV_BOOT_PRECOMMNAD	"ubi part boot;" \
 				"ubifsmount ubi0:boot; "
 #define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
@@ -129,7 +142,7 @@
 		"fdt addr ${fdt_addr}; " \
 		"fdt resize; "   \
 		"fdt mk /reserved-memory display_reserved; " \
-		"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x300000>; " \
+		"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x546000>; " \
                 "\0" \
 	"root_rw=rw\0" \
 	ENV_EXTRA_SETTINGS
