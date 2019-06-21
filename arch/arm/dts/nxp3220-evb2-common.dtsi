@@ -53,6 +53,10 @@
 				<DPC_0_AXI_CLK 300000000 0>;
         };
 
+	clock_usb: clock-usb@24000000 {
+	        clk-init-frequency = <USB_0_AHB_CLK 250000000 1>;
+	};
+
 	backlight: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm 3 25000 0>; /* 40khz=1000000000/25000(period ns) */
