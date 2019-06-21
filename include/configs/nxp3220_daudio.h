@@ -37,7 +37,13 @@
 #define MMC_BOOT_PART_TYPE	"ext4"
 #define MMC_ROOTFS_PART_TYPE	"ext4"
 
+#if defined(CONFIG_TARGET_NXP3220_DAUDIO)
 #define	KERNEL_DTB		"nxp3220-daudio.dtb"
+#elif defined(CONFIG_TARGET_NXP3220_DAUDIO2)
+#define	KERNEL_DTB		"nxp3220-daudio2-rev00.dtb"
+#else
+#error "NO TARGET !!!"
+#endif
 
 #define LOG_MSG			"quiet loglevel=3 printk.time=1"
 
@@ -92,7 +98,7 @@
 		"fdt addr ${fdt_addr}; " \
 		"fdt resize; "   \
 		"fdt mk /reserved-memory display_reserved; " \
-		"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x300000>; " \
+		"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x546000>; " \
                 "\0" \
 	"root_rw=rw\0" \
 
