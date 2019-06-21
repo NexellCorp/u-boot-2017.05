@@ -56,6 +56,8 @@ static void nx_gpio_set_pad_function(void *base, u32 pin, u32 fn)
 
 	reg = GPIOX_ALTFN0 + ((pin / 16) * 4);
 	nx_gpio_set_bit2(base + reg, pin % 16, fn);
+
+	debug("%s base %p pin %u fn %u\n", __func__, base, pin, fn);
 }
 
 static void nx_gpio_set_drive_strength(void *base, u32 pin, u32 drv)
