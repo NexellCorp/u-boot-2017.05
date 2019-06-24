@@ -38,6 +38,10 @@ struct nx_usb2_phy_pdata {
 	struct clk clk_apb;
 	const struct nx_usb2_phy_config *cfg;
 	struct nx_usb2_phy *phys[MAX_PHYS];
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	struct udevice *phy_supply;
+#endif
+
 };
 
 extern const struct nx_usb2_phy_config nxp3220_usb2_phy_cfg;
