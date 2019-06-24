@@ -147,13 +147,11 @@
 	nxe1500: nxe1500@33 {
 		compatible = "nexell,nxe1500";
 		reg = <0x33>;
-
 		voltage-regulators {
-			ldo4: LDO4 { /* usb host power */
+			ldo3: LDO3 { /* usb host power */
 				regulator-min-microvolt = <3300000>;
 				regulator-max-microvolt = <3300000>;
-				regulator-name = "ldo5";
-				regulator-boot-on = <1>;
+				regulator-name = "ldo4";
 			};
 		}; /* voltage-regulators */
 	};
@@ -208,4 +206,5 @@
 
 &usb2phy {
 	status = "okay";
+	phy-supply = <&ldo3>;
 };
