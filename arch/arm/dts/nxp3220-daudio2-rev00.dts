@@ -22,19 +22,6 @@
 	status = "disabled";
 };
 
-&i2c_0 {
-	status = "disabled";
-};
-
-&mmc0 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
-	nexell,ddr = <1>;
-	mmc-ddr-3_3v;
-	status = "okay";
-};
-
 &mmc2 {
 	status = "disabled";
 };
