@@ -221,7 +221,8 @@ struct eqos_dma_regs {
  */
 #if EQOS_DESCRIPTOR_SIZE < ARCH_DMA_MINALIGN
 #if !defined(CONFIG_SYS_NONCACHED_MEMORY) && \
-	!defined(CONFIG_SYS_DCACHE_OFF) && !defined(CONFIG_X86)
+	!defined(CONFIG_SYS_DCACHE_OFF) && !defined(CONFIG_X86) && \
+	!defined(CONFIG_ARM)
 #warning Cache line size is larger than descriptor size
 #endif
 #endif
@@ -282,7 +283,11 @@ static void eqos_inval_desc(void *desc)
 static void eqos_flush_desc(void *desc)
 {
 #ifndef CONFIG_SYS_NONCACHED_MEMORY
-	flush_cache((unsigned long)desc, EQOS_DESCRIPTOR_SIZE);
+	unsigned long start = (unsigned long)desc & ~(ARCH_DMA_MINALIGN - 1);
+	unsigned long end = ALIGN(start + EQOS_DESCRIPTOR_SIZE,
+				  ARCH_DMA_MINALIGN);
+
+	flush_dcache_range(start, end);
 #endif
 }
 
@@ -963,6 +968,8 @@ int eqos_recv(struct udevice *dev, int flags, uchar **packetp)
 	debug("%s(dev=%p, flags=%x):\n", __func__, dev, flags);
 
 	rx_desc = &(eqos->rx_descs[eqos->rx_desc_idx]);
+	eqos_inval_desc(rx_desc);
+
 	if (rx_desc->des3 & EQOS_DESC3_OWN) {
 		debug("%s: RX packet not available\n", __func__);
 		return -EAGAIN;
