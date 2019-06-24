@@ -128,6 +128,12 @@ static int nx_usb2_phy_probe(struct udevice *dev)
 			return ret;
 	}
 
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	device_get_supply_regulator(dev, "phy-supply", &pdata->phy_supply);
+	if (pdata->phy_supply)
+		regulator_set_enable(pdata->phy_supply, true);
+#endif
+
 	for (i = 0; i < cfg->num_phys; i++) {
 		struct nx_usb2_phy *p = &cfg->phys[i];
 
@@ -145,7 +151,6 @@ static int nx_usb2_phy_probe(struct udevice *dev)
 			if (ret)
 				continue;
 		}
-
 		pdata->phys[i] = p;
 
 		dev_dbg(dev, "phy %s bus %d\n", p->label, p->bus_width);
