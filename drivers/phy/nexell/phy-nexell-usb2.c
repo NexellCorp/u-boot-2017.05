@@ -11,6 +11,7 @@
 #include <clk.h>
 #include <errno.h>
 #include <asm/gpio.h>
+#include <power/regulator.h>
 #include "phy-nexell-usb2.h"
 
 static int nx_usb2_phy_power_on(struct phy *phy)
