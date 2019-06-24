@@ -160,16 +160,19 @@
 };
 
 &mmc0 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x04>;
-	frequency = <50000000>;
+	sample_shift = <0x04>;
+	drive_shift = <0x04>;
+	frequency = <400000000>;
+	cap-mmc-highspeed;
+	mmc-ddr-1_8v;
 	status = "okay";
 };
 
 &mmc2 {
-	nexell,sample_shift = <0x04>;
-	nexell,drive_shift = <0x05>;
-	frequency = <50000000>;
+	sample_shift = <0x04>;
+	drive_shift = <0x05>;
+	frequency = <400000000>;
+	cap-sd-highspeed;
 	status = "okay";
 };
 
