@@ -136,7 +136,7 @@
                 #size-cells = <0>;
                 compatible = "nexell,nxp3220-dwmmc";
                 reg = <0x26080000 0x1000>;
-                nexell,bus-width = <8>;
+                bus-width = <8>;
                 index = <0>;
                 clocks = <&clock_sys SDMMC_0_CORE_CLK>,
                         <&clock_sys SDMMC_0_AHB_CLK>;
@@ -150,7 +150,7 @@
                 #size-cells = <0>;
                 compatible = "nexell,nxp3220-dwmmc";
                 reg = <0x26090000 0x1000>;
-                nexell,bus-width = <4>;
+                bus-width = <4>;
                 clocks = <&clock_sys SDMMC_1_CORE_CLK>,
                         <&clock_sys SDMMC_1_AHB_CLK>;
 		pinctrl-names = "default";
@@ -164,7 +164,7 @@
                 #size-cells = <0>;
                 compatible = "nexell,nxp3220-dwmmc";
                 reg = <0x260a0000 0x1000>;
-                nexell,bus-width = <4>;
+                bus-width = <4>;
                 clocks = <&clock_sys SDMMC_2_CORE_CLK>,
                         <&clock_sys SDMMC_2_AHB_CLK>;
 		pinctrl-names = "default";
