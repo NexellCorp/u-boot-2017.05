@@ -23,6 +23,15 @@ static int nx_usb2_phy_power_on(struct phy *phy)
 	dev_dbg(p->pdata->dev, "Request power on '%s'\n", p->label);
 
 	if (pdata->refcount == 0) {
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+		if (pdata->phy_supply) {
+			ret = regulator_set_enable(pdata->phy_supply, true);
+			if (ret) {
+				pr_err("Error enabling PHY supply!!!\n");
+				return ret;
+			}
+		}
+#endif
 		if (!IS_ERR(&pdata->clk_ahb)) {
 			ret = clk_enable(&pdata->clk_ahb);
 			if (ret)
@@ -33,10 +42,6 @@ static int nx_usb2_phy_power_on(struct phy *phy)
 			if (ret)
 				return ret;
 		}
-#if CONFIG_IS_ENABLED(DM_REGULATOR)
-	if (pdata->phy_supply)
-		regulator_set_enable(pdata->phy_supply, true);
-#endif
 	}
 
 	if (p->power_on)
@@ -72,8 +77,8 @@ static int nx_usb2_phy_power_off(struct phy *phy)
 				clk_disable(&pdata->clk_apb);
 		}
 #if CONFIG_IS_ENABLED(DM_REGULATOR)
-	if (pdata->phy_supply)
-		regulator_set_enable(pdata->phy_supply, false);
+		if (pdata->phy_supply)
+			regulator_set_enable(pdata->phy_supply, false);
 #endif
 	}
 
