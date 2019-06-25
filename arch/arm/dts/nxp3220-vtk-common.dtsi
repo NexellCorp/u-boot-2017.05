@@ -87,24 +87,24 @@
 };
 
 &mmc0 {
-	sample_shift = <0x04>;
-	drive_shift = <0x04>;
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
 	frequency = <400000000>;
 	cap-mmc-highspeed;
 	status = "okay";
 };
 
 &mmc1 {
-	sample_shift = <0x04>;
-	drive_shift = <0x04>;
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
 	frequency = <400000000>;
 	cap-sd-highspeed;
 	status = "okay";
 };
 
 &mmc2 {
-	sample_shift = <0x04>;
-	drive_shift = <0x04>;
+	nexell,sample_shift = <0x04>;
+	nexell,drive_shift = <0x04>;
 	frequency = <400000000>;
 	cap-mmc-highspeed;
 	status = "okay";
