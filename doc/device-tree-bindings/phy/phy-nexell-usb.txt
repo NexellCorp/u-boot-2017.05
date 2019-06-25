@@ -1,0 +1,30 @@
+NEXELL USB PHY controller
+
+This file documents the dt bindings for the usb PHY driver which is the PHY for
+both USB2 host and USB OTG controllers available on NEXELL SoC family from
+Nexell.co.
+
+Required properties:
+- compatible: should be "nexell,nxp3220-usb2-phy"
+- reg: physical base address of the controller and length
+	 of memory mapped region.
+- clocks: must include clock specifiers corresponding to entries in the
+	    clock-names property.
+- clock-names: must contain "ahb", "apb"
+
+Optional properties:
+ - otg,vbus-gpio: gpio for USB OTG vbus enable pin
+ - ehci,vbus-gpio: gpio for USB HOST vbus enable pin
+ - phy-supply: supply for USB phy
+ 
+Example:
+
+	usb2phy: usb2phy@24030000 {
+		compatible = "nexell,nxp3220-usb2-phy";
+		reg = <0x24030000 0x200>;
+		#phy-cells = <1>;
+		clocks = <&clock_usb USB_0_AHB_CLK>,
+		         <&clock_usb SYSREG_USB_0_APB_CLK>;
+		clock-names = "ahb", "apb";
+		status = "disabled";
+	};
