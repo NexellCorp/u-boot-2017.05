@@ -88,8 +88,10 @@ void boot_fdt_add_mem_rsv_regions(struct lmb *lmb, void *fdt_blob)
 	for (i = 0; i < total; i++) {
 		if (fdt_get_mem_rsv(fdt_blob, i, &addr, &size) != 0)
 			continue;
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("   reserving fdt memory region: addr=%llx size=%llx\n",
 		       (unsigned long long)addr, (unsigned long long)size);
+#endif
 		lmb_reserve(lmb, addr, size);
 	}
 }
