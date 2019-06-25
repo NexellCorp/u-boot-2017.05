@@ -30,6 +30,7 @@ Required Board Specific Properties:
 - frequency: sdmmc clock gen frequency, typically 400MHz
 - cap-sd-highspeed: SD high-speed timing is supported
 - cap-mmc-highspeed: MMC high-speed timing is supported
+- mmc-ddr-3_3v: eMMC high-speed DDR mode(3.3V I/O) is supported
 - mmc-ddr-1_8v: eMMC high-speed DDR mode(1.8V I/O) is supported
 - mmc-ddr-1_2v: eMMC high-speed DDR mode(1.2V I/O) is supported
 
