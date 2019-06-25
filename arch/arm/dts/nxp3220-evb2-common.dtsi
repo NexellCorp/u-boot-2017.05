@@ -162,7 +162,7 @@
 	drive_shift = <0x04>;
 	frequency = <400000000>;
 	cap-mmc-highspeed;
-	mmc-ddr-1_8v;
+	mmc-ddr-3_3v;
 	status = "okay";
 };
 
