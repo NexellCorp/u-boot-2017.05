@@ -25,8 +25,8 @@ Required Board Specific Properties:
 	supported by DWC_mobile_storage (SD-MMC/EMMC/SDIO).
 	. Typically the bus width is 4 or 8.
 	. 8bit width support only ch0.
-- drive_shift: Output drive clock phase shift. range is 0 ~ 7
-- sample_shift: Read sample clock phase shitf. range is 0 ~ 7.
+- nexell,drive_shift: Output drive clock phase shift. range is 0 ~ 7
+- nexell,sample_shift: Read sample clock phase shitf. range is 0 ~ 7.
 - frequency: sdmmc clock gen frequency, typically 400MHz
 - cap-sd-highspeed: SD high-speed timing is supported
 - cap-mmc-highspeed: MMC high-speed timing is supported
@@ -48,8 +48,8 @@ mmc0: mmc@26080000 {
 
 &mmc0 {
 	frequency = <400000000>;
-	drive_shift = <0x03>;
-	sample_shift = <0x02>;
+	nexell,drive_shift = <0x03>;
+	nexell,sample_shift = <0x02>;
 	status = "okay";
 };
 

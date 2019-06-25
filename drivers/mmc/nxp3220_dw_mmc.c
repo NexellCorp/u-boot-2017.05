@@ -174,8 +174,8 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 	if (err)
 		printf("warning! : not found sdmmc ahb clock\n");
 
-	priv->d_shift = fdtdec_get_int(blob, node, "drive_shift", 0);
-	priv->s_shift = fdtdec_get_int(blob, node, "sample_shift", 0);
+	priv->d_shift = fdtdec_get_int(blob, node, "nexell,drive_shift", 0);
+	priv->s_shift = fdtdec_get_int(blob, node, "nexell,sample_shift", 0);
 	priv->frequency = fdtdec_get_int(blob, node, "frequency", 0);
 
 	priv->buswidth = bus_w;
