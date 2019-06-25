@@ -126,6 +126,8 @@ static int nx_dw_mmc_of_platdata(const void *blob, int node,
 		printf("failed to parse for dwmmc\n");
 		return -EINVAL;
 	}
+	if (dev_read_bool(dev, "mmc-ddr-3_3v"))
+		cfg->host_caps |= MMC_CAP(MMC_DDR_52);
 
 	index = fdtdec_get_int(blob, node, "index", 0);
 
