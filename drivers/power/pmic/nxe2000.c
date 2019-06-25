@@ -31,7 +31,7 @@ static const struct pmic_child_info pmic_chg_info[] = {
 };
 
 
-#ifndef QUICKBOOT
+#ifndef CONFIG_QUICKBOOT_QUIET
 static void nxe2000_print_chgstate(struct udevice *dev)
 {
 	uint8_t value = 0;
@@ -356,7 +356,7 @@ static int nxe2000_probe(struct udevice *dev)
 	nxe2000_reg_dump(dev, "PMIC Setup Register Dump");
 #endif
 
-#ifndef QUICKBOOT
+#ifndef CONFIG_QUICKBOOT_QUIET
 	nxe2000_print_chgstate(dev);
 #endif
 

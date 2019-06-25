@@ -410,7 +410,7 @@ static int nxe2000_buck_probe(struct udevice *dev)
 	else if (pdata->on == 0)
 		nxe2000_buck_set_enable(dev, 0);
 
-#ifndef QUICKBOOT
+#ifndef CONFIG_QUICKBOOT_QUIET
 	printf("DCDC%lu: %4dmV, %s\n", (dev->driver_data+1)
 		, nxe2000_buck_get_value(dev)/1000
 		, nxe2000_buck_get_enable(dev) ? "En" : "Dis");
