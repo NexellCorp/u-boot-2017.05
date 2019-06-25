@@ -33,6 +33,10 @@ static int nx_usb2_phy_power_on(struct phy *phy)
 			if (ret)
 				return ret;
 		}
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	if (pdata->phy_supply)
+		regulator_set_enable(pdata->phy_supply, true);
+#endif
 	}
 
 	if (p->power_on)
@@ -67,6 +71,10 @@ static int nx_usb2_phy_power_off(struct phy *phy)
 			if (!IS_ERR(&pdata->clk_apb))
 				clk_disable(&pdata->clk_apb);
 		}
+#if CONFIG_IS_ENABLED(DM_REGULATOR)
+	if (pdata->phy_supply)
+		regulator_set_enable(pdata->phy_supply, false);
+#endif
 	}
 
 	return ret;
@@ -131,8 +139,6 @@ static int nx_usb2_phy_probe(struct udevice *dev)
 
 #if CONFIG_IS_ENABLED(DM_REGULATOR)
 	device_get_supply_regulator(dev, "phy-supply", &pdata->phy_supply);
-	if (pdata->phy_supply)
-		regulator_set_enable(pdata->phy_supply, true);
 #endif
 
 	for (i = 0; i < cfg->num_phys; i++) {
