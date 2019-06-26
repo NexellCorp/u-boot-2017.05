@@ -46,6 +46,7 @@
 #endif
 
 #define LOG_MSG			"quiet loglevel=3 printk.time=1"
+#define ENV_OPTS		"nexell_drm.fb_argb"
 
 /* For BMP logo */
 #define CONFIG_BOARD_LATE_INIT
@@ -84,6 +85,7 @@
 	"load_fdt=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} " \
 		"${fdt_file}\0" \
 	"log_msg="LOG_MSG "\0" \
+	"opts="ENV_OPTS "\0" \
 	"kernel_addr="__stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"kernel_file=Image\0" \
 	"mmc_boot_dev="__stringify(MMC_BOOT_DEV) "\0" \
