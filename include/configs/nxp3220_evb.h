@@ -112,6 +112,9 @@
 
 #endif
 
+#define LOG_MSG			"loglevel=7 printk.time=1"
+#define ENV_OPTS		"nexell_drm.fb_argb"
+
 /* For Environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"autoboot=run boot_rootfs\0" \
@@ -132,7 +135,8 @@
 		"\"\0" \
 	ENV_LOAD_KERNEL "\0"\
 	ENV_LOAD_KERNEL_FDT "\0"\
-	"log_msg=loglevel=7 printk.time=1\0" \
+	"log_msg="LOG_MSG "\0" \
+	"opts="ENV_OPTS "\0" \
 	"kernel_addr="__stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
 	"kernel_file=zImage\0" \
 	"splashfile="SPLASH_STORAGE_FILE "\0" \
