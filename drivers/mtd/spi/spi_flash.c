@@ -34,7 +34,8 @@ struct n25q1024_area {
 };
 
 static struct n25q1024_area n25q1024_area[] = {
-	{ 0,  0,    0,    0,    2048},
+	{ 0,  -1,   -1,   0,    2047},
+	{ 16, -1,   -1,   0,    2047},
 	{ 17, 0,    0,    1,    2047},
 	{ 18, 0,    1,    2,    2047},
 	{ 19, 0,    3,    4,    2047},
@@ -46,6 +47,10 @@ static struct n25q1024_area n25q1024_area[] = {
 	{ 25, 0,    255,  256,  2047},
 	{ 26, 0,    511,  512,  2047},
 	{ 27, 0,    1023, 1024, 2047},
+	{ 28, 0,    2047,   -1,   -1},
+	{ 29, 0,    2047,   -1,   -1},
+	{ 30, 0,    2047,   -1,   -1},
+	{ 31, 0,    2047,   -1,   -1},
 	{ 1,  2047, 2047, 0,    2046},
 	{ 2,  2046, 2047, 0,    2045},
 	{ 3,  2044, 2047, 0,    2043},
@@ -57,6 +62,10 @@ static struct n25q1024_area n25q1024_area[] = {
 	{ 9,  1792, 2047, 0,    1791},
 	{ 10, 1536, 2047, 0,	1535},
 	{ 11, 1024, 2047, 0,    1023},
+	{ 12,    0, 2047,-1,      -1},
+	{ 13,    0, 2047,-1,      -1},
+	{ 14,    0, 2047,-1,      -1},
+	{ 15,    0, 2047,-1,      -1},
 };
 
 #define SR_BP3	BIT(6)
@@ -1083,9 +1092,9 @@ static int stm_n25q1024_is_locked(struct spi_flash *flash, u32 ofs, size_t len)
 	int ofs_sector;
 	int len_sector;
 	int ret;
+	int index = -1;
 	u8 sr;
 	u8 pos;
-	u8 index = -1;
 
 	ofs_sector = ofs / SZ_64K;
 	len_sector = (ofs + len) / SZ_64K;
@@ -1202,7 +1211,6 @@ get_n25q1024_protect_area(struct spi_flash *fs, u32 ofs, size_t len, u8 *reg)
 			debug("SR : 0x%02x\n", status_old);
 			return 1;
 		}
-
 		*reg = convert_context_type(ni, ctx_index);
 	} else if (len == 2048) {
 		*reg = 0x7c;
