@@ -46,7 +46,7 @@
 #endif
 
 #define LOG_MSG			"quiet loglevel=3 printk.time=1"
-#define ENV_OPTS		"nexell_drm.fb_argb"
+#define ENV_OPTS		"nexell_drm.fb_argb init=/sbin/nx_init"
 
 /* For BMP logo */
 #define CONFIG_BOARD_LATE_INIT
