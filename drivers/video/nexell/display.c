@@ -254,10 +254,10 @@ static void nx_display_sync_mode(struct nx_display_priv *priv)
 	int efp = SYNC_VAL(dpp->evfront_porch, timing->vfront_porch.typ);
 	int ebp = SYNC_VAL(dpp->evback_porch, timing->vback_porch.typ);
 	int esw = SYNC_VAL(dpp->evsync_len, timing->vsync_len.typ);
-	int eso = SYNC_VAL(dpp->evstart_offs, 0);
-	int eeo = SYNC_VAL(dpp->evend_offs, 0);
-	int vso = SYNC_VAL(dpp->vstart_offs, 0);
-	int veo = SYNC_VAL(dpp->vend_offs, 0);
+	int eso = SYNC_VAL(dpp->evstart_offs, 1);
+	int eeo = SYNC_VAL(dpp->evend_offs, 1);
+	int vso = SYNC_VAL(dpp->vstart_offs, 1);
+	int veo = SYNC_VAL(dpp->vend_offs, 1);
 
 	nx_dpc_set_sync(reg, INTERLACE(flags),
 			timing->hactive.typ, timing->vactive.typ / div,
