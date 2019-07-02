@@ -1,0 +1,27 @@
+/*
+ * (C) Copyright 2018 Nexell
+ * JungHyun, Kim <jhkim@nexell.co.kr>
+ *
+ * SPDX-License-Identifier:      GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include "nxp3220-evb2-common.dtsi"
+
+/ {
+	model = "Nexell nxp3220 evb2:nand board";
+	compatible = "nexell,nxp3220";
+};
+
+&mmc0 {
+	status = "disabled";
+};
+
+&nand {
+	nand-ecc-strength = <4>;
+	nand-ecc-step-size = <512>;
+	nand-timing-mode = <4>;
+	nexell,wp-gpio = <&gpio_c 16 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
