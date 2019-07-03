@@ -39,14 +39,9 @@
 
 #if defined(CONFIG_TARGET_NXP3220_DAUDIO)
 #define	KERNEL_DTB		"nxp3220-daudio.dtb"
+#define ENV_DAUDIO_OPTS		""
 #elif defined(CONFIG_TARGET_NXP3220_DAUDIO2)
 #define	KERNEL_DTB		"nxp3220-daudio2-rev00.dtb"
-#else
-#error "NO TARGET !!!"
-#endif
-
-#define LOG_MSG			"quiet loglevel=3 printk.time=1"
-#define ENV_OPTS		"nexell_drm.fb_argb "
 #define ENV_DAUDIO_OPTS		"init=/sbin/nx_init " \
 				"nx_cam.m=-m0 " \
 				"nx_cam.b=-b1 " \
@@ -58,6 +53,12 @@
 				"nx_cam.P=-P0 " \
 				"nx_cam.L=-L1920x720 " \
 				"nx_cam.end"
+#else
+#error "NO TARGET !!!"
+#endif
+
+#define LOG_MSG			"quiet loglevel=3 printk.time=1"
+#define ENV_OPTS		"nexell_drm.fb_argb "
 
 /* For BMP logo */
 #define CONFIG_BOARD_LATE_INIT
