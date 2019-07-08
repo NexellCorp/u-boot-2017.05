@@ -90,11 +90,23 @@ int board_late_init(void)
 #ifdef CONFIG_DM_REGULATOR
 int power_init_board(void)
 {
+	struct udevice *regulator;
+	const char *ldo = "ldo4";
 	int ret = -ENODEV;
 
-	ret = regulators_enable_boot_on(false);
-	if (ret)
-		return ret;
+	/*
+	 * Disables LDO4 at initialization time to reset the devices
+	 * connected to LDO4 (ex USB devices)
+	 */
+	ret = regulator_get_by_platname(ldo, &regulator);
+	if (!ret) {
+		ret = regulator_set_enable(regulator, false);
+		if (ret) {
+			pr_err("Error: Regulator %s disable setting, ret:%d",
+				ldo, ret);
+			return ret;
+		}
+	}
 
 	return 0;
 }
