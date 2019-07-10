@@ -233,6 +233,10 @@ struct nx_usb_otg_reg {
 /* NX_OTG_GRSTCTL*/
 #define AHB_MASTER_IDLE			(0x1 << 31)
 #define CORE_SOFT_RESET			(0x1 << 0)
+#define TX_FIFO_FLUSH                   (0x1 << 5)
+#define RX_FIFO_FLUSH                   (0x1 << 4)
+#define TX_FIFO_NUMBER(x)               (x << 6)
+#define TX_FIFO_FLUSH_ALL               TX_FIFO_NUMBER(0x10)
 
 /* NX_OTG_GINTSTS/NX_OTG_GINTMSK core interrupt register */
 #define INT_RESUME			(0x1 << 31)
@@ -878,6 +882,17 @@ static void nx_usb_reset(struct nx_usbdown_priv *priv)
 		       (DEPCTL_EPENA | DEPCTL_CNAK),
 		       &reg_otg->dcsr.depor[i].doepctl);
 
+        /* Flush the RX FIFO */
+        writel(RX_FIFO_FLUSH, &reg_otg->gcsr.grstctl);
+        while (readl(&reg_otg->gcsr.grstctl) & RX_FIFO_FLUSH)
+                debug("%s: waiting for DWC2_UDC_OTG_GRSTCTL\n", __func__);
+
+        /* Flush all the Tx FIFO's */
+        writel(TX_FIFO_FLUSH_ALL, &reg_otg->gcsr.grstctl);
+        writel(TX_FIFO_FLUSH_ALL | TX_FIFO_FLUSH, &reg_otg->gcsr.grstctl);
+        while (readl(&reg_otg->gcsr.grstctl) & TX_FIFO_FLUSH)
+                debug("%s: waiting for DWC2_UDC_OTG_GRSTCTL\n", __func__);
+
 	/*clear device address */
 	writel(readl(&reg_otg->dcsr.dcfg) & ~(0x7F << 4),
 	       &reg_otg->dcsr.dcfg);
@@ -1244,8 +1259,8 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 		 */
 		writel(1 << 18, &reg_otg->dcsr.dcfg);
 		writel(INT_RESUME | INT_OUT_EP | INT_IN_EP |
-			INT_ENUMDONE | INT_RESET | INT_SUSPEND |
-			INT_RX_FIFO_NOT_EMPTY, &reg_otg->gcsr.gintmsk);
+			INT_ENUMDONE | INT_RESET | INT_SUSPEND,
+			&reg_otg->gcsr.gintmsk);
 		udelay(10);
 	}
 	dmb();
@@ -1261,16 +1276,13 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 	dmb();
 
 	while (ustatus->downloading) {
+		u32 gintmsk = readl(&reg_otg->gcsr.gintmsk);
+
 		if (ctrlc())
 			goto _exit;
 
-		if (readl(&reg_otg->gcsr.gintsts) &
-		    (WKUP_INT | OEP_INT | IEP_INT | ENUM_DONE | USB_RST |
-		     USB_SUSP | RXF_LVL)) {
+		if (readl(&reg_otg->gcsr.gintsts) & gintmsk)
 			nx_udc_int_hndlr(priv);
-		     /*	writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts); */
-			mdelay(3);
-		}
 	}
 
 	ustatus->rx_buf_addr -= 512;
@@ -1281,15 +1293,13 @@ static bool nx_usb_down(struct udevice *dev, ulong buffer)
 	dmb();
 
 	while (ustatus->downloading) {
+		u32 gintmsk = readl(&reg_otg->gcsr.gintmsk);
+
 		if (ctrlc())
 			goto _exit;
 
-		if (readl(&reg_otg->gcsr.gintsts) &
-		   (WKUP_INT | OEP_INT | IEP_INT | ENUM_DONE |
-		    USB_RST | USB_SUSP | RXF_LVL)) {
+		if (readl(&reg_otg->gcsr.gintsts) & gintmsk)
 			nx_udc_int_hndlr(priv);
-		    /*	writel(0xFFFFFFFF, &reg_otg->gcsr.gintsts); */
-		}
 	}
 
 _exit:
