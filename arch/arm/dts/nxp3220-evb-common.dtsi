@@ -22,11 +22,6 @@
 		tick-timer = &timer0;
 	};
 
-	clock_pll: clock-src@27020000 {
-		frequency = <0 1000000000>,
-			    <1 400000000>;
-	};
-
 	clock_sys: clock-sys@27010000 {
 		clk-init-frequency = <UART_2_CORE_CLK 100000000 1>,
 				     <UART_2_APB_CLK 100000000 1>,
