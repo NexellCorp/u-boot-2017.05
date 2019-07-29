@@ -122,16 +122,23 @@ static struct pll_pms pll_2555_pms[] = {
 };
 
 static struct pll_pms pll_2651_pms[] = {
-	{ .rate = 1000000, .P = 3, .M = 250, .S = 0, .K = 0 },
-	{ .rate =  900000, .P = 3, .M = 225, .S = 0, .K = 0 },
-	{ .rate =  800000, .P = 3, .M = 200, .S = 0, .K = 0 },
-	{ .rate =  700000, .P = 3, .M = 175, .S = 0, .K = 0 },
-	{ .rate =  600000, .P = 3, .M = 300, .S = 1, .K = 0 },
-	{ .rate =  500000, .P = 3, .M = 250, .S = 1, .K = 0 },
-	{ .rate =  400000, .P = 3, .M = 200, .S = 1, .K = 0 },
-	{ .rate =  300000, .P = 3, .M = 200, .S = 2, .K = 0 },
-	{ .rate =  200000, .P = 3, .M = 200, .S = 2, .K = 0 },
-	{ .rate =  100000, .P = 3, .M = 200, .S = 3, .K = 0 },
+	{ .rate = 2500000, .P = 6, .M = 625, .S = 0, .K = 0 },
+	{ .rate = 2200000, .P = 3, .M = 275, .S = 0, .K = 0 },
+	{ .rate = 2000000, .P = 3, .M = 250, .S = 0, .K = 0 },
+	{ .rate = 1800000, .P = 2, .M = 150, .S = 0, .K = 0 },
+	{ .rate = 1600000, .P = 3, .M = 200, .S = 0, .K = 0 },
+	{ .rate = 1400000, .P = 3, .M = 175, .S = 0, .K = 0 },
+	{ .rate = 1354752, .P = 2, .M = 113, .S = 0, .K = -6816 },
+	{ .rate = 1277952, .P = 2, .M = 106, .S = 0, .K = 32506 },
+	{ .rate = 1264434, .P = 3, .M = 158, .S = 0, .K = 3555 },
+	{ .rate = 1228800, .P = 3, .M = 154, .S = 0, .K = -26214 },
+	{ .rate = 1200000, .P = 2, .M = 100, .S = 0, .K = 0 },
+	{ .rate = 1179648, .P = 2, .M =  98, .S = 0, .K = 0 },
+	{ .rate = 1000000, .P = 3, .M = 250, .S = 1, .K = 0 },
+	{ .rate =  800000, .P = 3, .M = 200, .S = 1, .K = 0 },
+	{ .rate =  600000, .P = 2, .M = 100, .S = 1, .K = 0 },
+	{ .rate =  300000, .P = 2, .M = 100, .S = 2, .K = 0 },
+	{ .rate =  200000, .P = 3, .M = 200, .S = 3, .K = 0 },
 };
 
 static struct clk_priv cmu_pll[] = {
@@ -202,8 +209,9 @@ static unsigned long pll_round_rate(int pllno, unsigned long rate, int *p,
 	if (k)
 		*k = PMS_K(pms, l);
 
-	debug("real %ld Khz, P=%d ,M=%3d, S=%d K=%d\n", PMS_RATE(pms, l),
-	      PMS_P(pms, l), PMS_M(pms, l), PMS_S(pms, l), PMS_K(pms, l));
+	debug("PLL.%d %lu, real %ld Khz, P=%d ,M=%3d, S=%d K=%d\n",
+	      pllno, rate, PMS_RATE(pms, l), PMS_P(pms, l), PMS_M(pms, l),
+	      PMS_S(pms, l), PMS_K(pms, l));
 
 	return PMS_RATE(pms, l) * 1000;
 }
@@ -337,6 +345,8 @@ static ulong nx_pll_set_rate(int pllno, ulong freq)
 	int p = 0, m = 0, s = 0, k = 0;
 	ulong rate = 0;
 
+	debug("PLL.%d %lu\n", pllno, freq);
+
 	/* sanity check of pll number */
 	if (pllno < PLL0 || pllno > DDR4) {
 		printf("invalid pll number: %d\n", pllno);
@@ -382,6 +392,7 @@ int nx_pll_parse_dt(struct udevice *dev)
 	for (i = 0; i < length / 2; i++) {
 		init[i][0] = fdt32_to_cpu(*list++);
 		init[i][1] = fdt32_to_cpu(*list++);
+
 		nx_pll_set_rate(init[i][0], init[i][1]);
 	}
 
