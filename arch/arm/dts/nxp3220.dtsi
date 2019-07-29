@@ -12,6 +12,12 @@
 / {
 	#include "nxp3220-clk.dtsi"
 
+        clock_pll: clock-src@27020000 {
+                frequency = <0 1000000000>, /* for system bus */
+			    <1 1228800000>, /* for Audio 48Khz */
+			    <4 1354752000>; /* for Audio 44.1Khz */
+        };
+
 	pinctrl: pinctrl@20180000 {
 		compatible = "nexell,nxp3220-pinctrl";
 		reg = <0x20180000 0x1000>,
