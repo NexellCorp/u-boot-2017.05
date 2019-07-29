@@ -152,6 +152,9 @@ static void nx_clk_calc_divider(struct nx_clk_div *cdiv, unsigned long request)
 			break;
 		}
 
+		debug("CAL: %luhz, %8d (%8d) [%d]=%lu/%d\n",
+		      request, delta, m, i, plls[i].value, v);
+
 		if (!delta || m < delta) {
 			select = i;
 			divide = v;
@@ -233,7 +236,7 @@ static int nx_clk_enable_hw(struct nx_cmu_priv *priv, unsigned int id)
 
 	writel(1 << bit, &cmu->reg->enb_set[idx]);
 
-	debug("%s:%3d:%p, idx:%d, bit:%d enbable\n",
+	debug("ON : %s:%3d:%p, idx:%d, bit:%d enbable\n",
 	      get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 
 	if (cmu->type == CMU_TYPE_MAINDIV) {
@@ -245,7 +248,7 @@ static int nx_clk_enable_hw(struct nx_cmu_priv *priv, unsigned int id)
 		bit = cmu->clkenbit % 32;
 		writel(1 << bit, &cmu->reg->enb_set[idx]);
 
-		debug("%s:%3d:%p, idx:%d, bit:%d enbable\n",
+		debug("ON : %s:%3d:%p, idx:%d, bit:%d enbable\n",
 		      get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 	}
 
@@ -271,7 +274,7 @@ static int nx_clk_disable(struct clk *clk)
 
 	writel(1 << bit, &cmu->reg->enb_clr[idx]);
 
-	debug("%s:%3d:%p, idx:%d, bit:%d disable\n",
+	debug("OFF: %s:%3d:%p, idx:%d, bit:%d disable\n",
 	      get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 
 	if (cmu->type == CMU_TYPE_MAINDIV) {
@@ -283,7 +286,7 @@ static int nx_clk_disable(struct clk *clk)
 		bit = cmu->clkenbit % 32;
 		writel(1 << bit, &cmu->reg->enb_clr[idx]);
 
-		debug("%s:%3d:%p, idx:%d, bit:%d disable\n",
+		debug("OFF: %s:%3d:%p, idx:%d, bit:%d disable\n",
 		      get_cmu_type(cmu->cmu_id), cmu->id, cmu->reg, idx, bit);
 	}
 
@@ -304,7 +307,7 @@ static ulong nx_clk_set_hw(struct clk_cmu_dev *src,
 
 	sys->freq = plls[cdiv.mux].value / cdiv.parent / cdiv.divide;
 
-	debug("%s:%3d:%p, %s:%3d:%p mux:%d, div:%d/%d, freq:%ld\n",
+	debug("SET: %s:%3d:%p, %s:%3d:%p mux:%d, div:%d/%d, freq:%ld\n",
 	      get_cmu_type(src->cmu_id), src->id, src->reg,
 	      get_cmu_type(sys->cmu_id), sys->id, sys->reg,
 	      cdiv.mux, cdiv.divide, cdiv.parent, freq);
