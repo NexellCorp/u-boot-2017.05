@@ -14,10 +14,6 @@
 	compatible = "nexell,nxp3220";
 };
 
-&clock_usb {
-        clk-init-frequency = <USB_0_AHB_CLK 250000000 1>;
-};
-
 &ehci {
 	status = "okay";
 };
