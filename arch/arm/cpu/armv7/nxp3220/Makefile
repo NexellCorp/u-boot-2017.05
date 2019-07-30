@@ -5,5 +5,5 @@
 # SPDX-License-Identifier:      GPL-2.0+
 #
 
-obj-y 	+= cpu.o
+obj-y 	+= cpu.o boot.o
 obj-y	+= ecid.o cmd_ecid.o

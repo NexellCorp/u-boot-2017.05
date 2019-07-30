@@ -8,6 +8,7 @@
 #include <config.h>
 #include <common.h>
 #include <asm/io.h>
+#include <mach/cpu.h>
 #ifdef CONFIG_CHECK_REVISION
 #include <adc.h>
 #endif
