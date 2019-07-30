@@ -13,18 +13,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define GPIO_OFFS_OUT		(0x0)
-#define GPIO_OFFS_OUTENB	(0x4)
-#define GPIO_OFFS_PAD		(0x18)
-
-enum gpio_group {
-	GPIO_A,	GPIO_B, GPIO_C, GPIO_D, GPIO_E,
-};
-
-struct boot_gpio {
-	int group, pin, function;
-};
-
 struct boot_mode {
 	char *mode;
 	enum boot_device dev;
@@ -32,11 +20,12 @@ struct boot_mode {
 };
 
 #if defined(CONFIG_ARCH_NXP3220) || defined(CONFIG_ARCH_NXP3225)
+#define	ALIVE_BASE	(0x20080000)
+#define	BOOT_OPTION	(ALIVE_BASE + 0xC86C)
 
-#define	GPIO_BASE(x)		(0x20180000 + (x * 0x10000))
-#define PHY_BASEADDR_VDDPWR	(0x20080000 + 0xc800)
-#define SCRATCH_BASE(x)         (PHY_BASEADDR_VDDPWR + 0x100 + (4 * (x)))
-#define SCRATCH_OFFSET		7
+#define VDDPWR_BASE	(0x20080000 + 0xc800)
+#define SCRATCH_BASE(x) (VDDPWR_BASE + 0x100 + (4 * (x)))
+#define SCRATCH_OFFSET	7
 
 struct nsih_sbi_header {
 	u32 RESV[0x098 / 4];	/* 0x010 ~ 0x094 */
@@ -45,19 +34,6 @@ struct nsih_sbi_header {
 };
 
 #define BL2_NSIH_DEV_BASE_ADDR		0x18000
-
-static struct boot_gpio boot_main_pin[] = {
-	[0] = { GPIO_C, 13, },
-	[1] = { GPIO_B, 17, },
-	[2] = { GPIO_D, 25, },
-};
-
-static struct boot_gpio boot_sub_pin[] = {
-	[0] = { GPIO_D, 16, },
-	[1] = { GPIO_D, 22, },
-	[2] = { GPIO_D, 26, },
-	[3] = { GPIO_C, 8, },
-};
 
 static struct boot_mode boot_main_mode[] = {
 	{ "EMMC", BOOT_DEV_EMMC, 0 },
@@ -74,33 +50,15 @@ static struct boot_mode boot_main_mode[] = {
 
 static struct boot_mode *current_bootmode;
 
-static int read_gpio(struct boot_gpio *desc)
-{
-	void __iomem *base = (void __iomem *)GPIO_BASE(desc->group);
-	int pin = desc->pin;
-	unsigned int mask = 1UL << pin;
-	unsigned int val, out;
-
-	out = readl(base + GPIO_OFFS_OUTENB) & mask;
-
-	if (out)
-		val = (readl(base + GPIO_OFFS_OUT) & mask) >> pin;
-	else
-		val = (readl(base + GPIO_OFFS_PAD) & mask) >> pin;
-
-	return val;
-}
-
 int boot_check_mode(void)
 {
-	unsigned int mode = 0;
+	unsigned int mode;
 	int i;
 
 	if (current_bootmode)
 		return 0;
 
-	for (i = 0; i < ARRAY_SIZE(boot_main_pin); i++)
-		mode |= read_gpio(&boot_main_pin[i]) << i;
+	mode = readl(BOOT_OPTION) & 0x7;
 
 	debug("boot mode value:0x%x\n", mode);
 
@@ -151,8 +109,7 @@ static int boot_ddr_cal_config(void)
 		return 0;
 	}
 
-	for (i = 0; i < ARRAY_SIZE(boot_sub_pin); i++)
-		mode |= read_gpio(&boot_sub_pin[i]) << i;
+	mode = (readl(BOOT_OPTION) >> 3) & 0xFF;
 
 	if (bootmode->dev == BOOT_DEV_SD) {
 		port = abs(((mode & 0xc) >> 2) - 2);
