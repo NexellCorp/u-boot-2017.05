@@ -394,7 +394,7 @@ static ulong nx_cmu_get_rate(struct clk *clk)
 	return rate;
 }
 
-static int nx_cmu_parse_dt(struct udevice *dev)
+static int nx_cmu_parse_dt(struct udevice *dev, char *type)
 {
 	struct nx_cmu_priv *priv = dev_get_priv(dev);
 	const fdt32_t *list;
@@ -409,6 +409,8 @@ static int nx_cmu_parse_dt(struct udevice *dev)
 			id = fdt32_to_cpu(*list++);
 			rate = fdt32_to_cpu(*list++);
 			on = fdt32_to_cpu(*list++);
+			debug("BUS: %s: id.%d rate:%d, %s\n",
+			      type, id, rate, on ? "on" : "off");
 
 			nx_clk_set_rate(priv, id, rate);
 			if (on)
@@ -424,6 +426,8 @@ static int nx_cmu_parse_dt(struct udevice *dev)
 			id = fdt32_to_cpu(*list++);
 			rate = fdt32_to_cpu(*list++);
 			on = fdt32_to_cpu(*list++);
+			debug("CLK: %s: id.%d rate:%d, %s\n",
+			      type, id, rate, on ? "on" : "off");
 
 			nx_clk_set_rate(priv, id, rate);
 			if (on)
@@ -453,7 +457,7 @@ static int clk_cmu_mm_probe(struct udevice *dev)
 		priv->cmus[i].reg = (void *)priv->cmus[i].reg + reg;
 
 	clk_get_by_index(dev, 0, &src);
-	nx_cmu_parse_dt(dev);
+	nx_cmu_parse_dt(dev, "MM ");
 	priv->initialized = 1;
 
 	return 0;
@@ -478,7 +482,7 @@ static int clk_cmu_usb_probe(struct udevice *dev)
 		priv->cmus[i].reg = (void *)priv->cmus[i].reg + reg;
 
 	clk_get_by_index(dev, 0, &src);
-	nx_cmu_parse_dt(dev);
+	nx_cmu_parse_dt(dev, "USB");
 	priv->initialized = 1;
 
 	return 0;
@@ -503,7 +507,7 @@ static int clk_cmu_sys_probe(struct udevice *dev)
 		priv->cmus[i].reg = (void *)priv->cmus[i].reg + reg;
 
 	clk_get_by_index(dev, 0, &src);
-	nx_cmu_parse_dt(dev);
+	nx_cmu_parse_dt(dev, "SYS");
 	priv->initialized = 1;
 
 	return 0;
