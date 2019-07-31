@@ -342,10 +342,12 @@ static int dwmci_setup_bus(struct dwmci_host *host, u32 freq)
 		return -EINVAL;
 	}
 
-	if (sclk == freq)
-		div = 0;	/* bypass mode */
-	else
-		div = DIV_ROUND_UP(sclk, 2 * freq);
+	div = sclk / freq;
+	div = (freq != sclk) ? DIV_ROUND_UP(div, 2) : 0;
+
+	debug("Bus speed (slot %d) = %dHz (slot req %ldHz, actual %dHZ div = %d)\n",
+               host->dev_index, sclk, freq,
+		div ? ((sclk / div) >> 1) : sclk, div);
 
 	dwmci_writel(host, DWMCI_CLKENA, 0);
 	dwmci_writel(host, DWMCI_CLKSRC, 0);
