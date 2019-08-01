@@ -13,27 +13,24 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define	ALIVE_BASE	(0x20080000)
+#define	BOOT_OPTION	(ALIVE_BASE + 0xC86C)
+#define VDDPWR_BASE	(0x20080000 + 0xc800)
+#define SCRATCH_BASE(x) (VDDPWR_BASE + 0x100 + (4 * (x)))
+#define SCRATCH_OFFSET	7
+#define BL2_NSIH_DEV_BASE_ADDR	0x18000
+
 struct boot_mode {
 	char *mode;
 	enum boot_device dev;
 	unsigned int mask;
 };
 
-#if defined(CONFIG_ARCH_NXP3220) || defined(CONFIG_ARCH_NXP3225)
-#define	ALIVE_BASE	(0x20080000)
-#define	BOOT_OPTION	(ALIVE_BASE + 0xC86C)
-
-#define VDDPWR_BASE	(0x20080000 + 0xc800)
-#define SCRATCH_BASE(x) (VDDPWR_BASE + 0x100 + (4 * (x)))
-#define SCRATCH_OFFSET	7
-
 struct nsih_sbi_header {
 	u32 RESV[0x098 / 4];	/* 0x010 ~ 0x094 */
 	u8  R_cal[16];		/* 0x098 ~ 0x0A7 */
 	u8  W_cal[16];		/* 0x0A8 ~ 0x0B7 */
 };
-
-#define BL2_NSIH_DEV_BASE_ADDR		0x18000
 
 static struct boot_mode boot_main_mode[] = {
 	{ "EMMC", BOOT_DEV_EMMC, 0 },
@@ -43,10 +40,6 @@ static struct boot_mode boot_main_mode[] = {
 	{ "SPI" , BOOT_DEV_SPI , BIT(0) | BIT(2) },
 	{ "UART", BOOT_DEV_UART, BIT(1) | BIT(2) },
 };
-
-#else
-#error "Not defined bootmode configs"
-#endif
 
 static struct boot_mode *current_bootmode;
 
@@ -84,7 +77,7 @@ enum boot_device boot_current_device(void)
 	return current_bootmode->dev;
 }
 
-static int boot_ddr_cal_config(void)
+static int memory_calibration(void)
 {
 #ifdef CONFIG_MMC
 	struct blk_desc *dev_desc;
@@ -201,10 +194,10 @@ exit:
 #if defined(CONFIG_ARCH_MISC_INIT)
 int arch_misc_init(void)
 {
-	int ret = boot_ddr_cal_config();
+	int ret = memory_calibration();
 
 	if (ret < 0)
-		pr_err("%s: Failed drr config !!!\n", __func__);
+		pr_err("%s: Failed memory calibration !!!\n", __func__);
 
 	return 0;
 }
