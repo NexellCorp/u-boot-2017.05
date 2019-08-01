@@ -93,7 +93,7 @@ static int boot_ddr_cal_config(void)
 	lbaint_t start = BL2_NSIH_DEV_BASE_ADDR / 512, blkcnt = 1, blks;
 	unsigned int mode = 0;
 	void *buffer = NULL;
-	u32 *p;
+	u32 *pr, *pw;
 	char cmd[128];
 	int port = 0, ret, i;
 
@@ -104,7 +104,7 @@ static int boot_ddr_cal_config(void)
 
 	if (readl(SCRATCH_BASE(SCRATCH_OFFSET - 1)) != 0x4d656d43) {
 #ifndef CONFIG_QUICKBOOT_QUIET
-		printf("MEM: DONE calibration\n");
+		printf("MEM: DONE calibration -> %s\n", bootmode->mode);
 #endif
 		return 0;
 	}
@@ -113,6 +113,12 @@ static int boot_ddr_cal_config(void)
 
 	if (bootmode->dev == BOOT_DEV_SD) {
 		port = abs(((mode & 0xc) >> 2) - 2);
+
+		sprintf(cmd, "mmc dev %d", port);
+		ret = run_command(cmd, 0);
+		if (ret < 0)
+			return ret;
+
 	} else if (bootmode->dev == BOOT_DEV_EMMC) {
 		port = (mode & 0xc) >> 2;
 		sprintf(cmd, "mmc bootbus %d %d %d %d",
@@ -121,7 +127,7 @@ static int boot_ddr_cal_config(void)
 		if (ret < 0)
 			return ret;
 
-		/* R/W boot partition 1 */
+		/* switch to boot partition */
 		sprintf(cmd, "mmc partconf %d 0 1 1", port);
 		ret = run_command(cmd, 0);
 		if (ret < 0)
@@ -131,18 +137,9 @@ static int boot_ddr_cal_config(void)
 	debug("%s: %s.%d mode:0x%x\n",
 	      __func__, bootmode->mode, port, mode);
 
-	/* set mmc devicee */
-	sprintf(cmd, "mmc dev %d", port);
 	ret = blk_get_device_by_str("mmc", simple_itoa(port), &dev_desc);
-	if (ret < 0) {
-		ret = run_command(cmd, 0);
-		if (ret < 0)
-			goto exit;
-
-		ret = run_command("mmc rescan", 0);
-		if (ret < 0)
-			goto exit;
-	}
+	if (ret < 0)
+		goto exit;
 
 	buffer = calloc(1, 512);
 	if (!buffer) {
@@ -150,6 +147,7 @@ static int boot_ddr_cal_config(void)
 		ret = -ENOMEM;
 		goto exit;
 	}
+	psbi = buffer;
 
 	blks = blk_dread(dev_desc, start, blkcnt, buffer);
 	if (blks != blkcnt) {
@@ -157,24 +155,23 @@ static int boot_ddr_cal_config(void)
 		ret = -EIO;
 		goto exit;
 	}
-	psbi = buffer;
 
-	/* clear */
+	/* clear scratch signature */
 	writel(0, SCRATCH_BASE(SCRATCH_OFFSET - 1));
 
-	debug("RC: ");
-	for (p = (u32 *)psbi->R_cal, i = 0; i < 4; i++) {
-		p[i] = readl(SCRATCH_BASE(i + SCRATCH_OFFSET));
-		debug("%08x ", p[i]);
+	printf("MEM: rc [ ");
+	for (pr = (u32 *)psbi->R_cal, i = 0; i < 4; i++) {
+		pr[i] = readl(SCRATCH_BASE(i + SCRATCH_OFFSET));
+		printf("%08x ", pr[i]);
 	}
-	debug("\n");
+	printf("]\n");
 
-	debug("WC: ");
-	for (p = (u32 *)psbi->W_cal, i = 0; i < 4; i++) {
-		p[i] = readl(SCRATCH_BASE(i + 4 + SCRATCH_OFFSET));
-		debug("%08x ", p[i]);
+	printf("MEM: wc [ ");
+	for (pw = (u32 *)psbi->W_cal, i = 0; i < 4; i++) {
+		pw[i] = readl(SCRATCH_BASE(i + 4 + SCRATCH_OFFSET));
+		printf("%08x ", pw[i]);
 	}
-	debug("\n");
+	printf("]\n");
 
 	blks = blk_dwrite(dev_desc, start, blkcnt, buffer);
 	if (blks != blkcnt)
@@ -184,15 +181,13 @@ exit:
 	if (ret < 0)
 		pr_err("%s: Failed memory calibration:%d\n", __func__, ret);
 	else
-#ifndef CONFIG_QUICKBOOT_QUIET
-		printf("MEM: OK calibration\n");
-#endif
+		printf("MEM: OK calibration -> %s.%d\n", bootmode->mode, port);
 
 	if (buffer)
 		free(buffer);
 
 	if (bootmode->dev == BOOT_DEV_EMMC) {
-		/* No access to boot partition */
+		/* switch data partition */
 		sprintf(cmd, "mmc partconf %d 0 1 0", port);
 		run_command(cmd, 0);
 	}
@@ -208,7 +203,7 @@ int arch_misc_init(void)
 {
 	int ret = boot_ddr_cal_config();
 
-	if (ret)
+	if (ret < 0)
 		pr_err("%s: Failed drr config !!!\n", __func__);
 
 	return 0;
