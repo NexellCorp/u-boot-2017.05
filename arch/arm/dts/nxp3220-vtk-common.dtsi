@@ -41,6 +41,10 @@
 				     <GMAC_RMII_0_APB_CLK 125000000 1>,
 				     <GMAC_RMII_0_PTP_REF_CLK 25000000 1>;
 	};
+
+	clock_usb: clock-usb@24000000 {
+		clk-init-frequency = <USB_0_AHB_CLK 250000000 1>;
+	};
 };
 
 &dwc2otg {
