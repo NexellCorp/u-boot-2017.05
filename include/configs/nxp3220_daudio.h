@@ -88,7 +88,7 @@
 	"fdt_addr="__stringify(FDT_ADDR) "\0" \
 	"fdt_file="__stringify(KERNEL_DTB) "\0" \
 	"load_args=setenv bootargs \"" \
-		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
+		"root=/dev/mmcblk${mmc_root_dev}p${mmc_rootfs_part} " \
 		"rootfstype=${mmc_rootfs_part_type} ${root_rw} " \
 		"${console} ${log_msg} ${opts}" \
 		"\"\0" \
@@ -103,6 +103,7 @@
 	"mmc_boot_dev="__stringify(MMC_BOOT_DEV) "\0" \
 	"mmc_boot_part="__stringify(MMC_BOOT_PART) "\0" \
 	"mmc_boot_part_type="MMC_BOOT_PART_TYPE "\0" \
+	"mmc_root_dev="__stringify(MMC_ROOT_DEV) "\0" \
 	"mmc_rootfs_part="__stringify(MMC_ROOTFS_PART) "\0" \
 	"mmc_rootfs_part_type="MMC_ROOTFS_PART_TYPE "\0" \
 	"splashfile="SPLASH_STORAGE_FILE "\0" \
