@@ -74,10 +74,10 @@
 
 #define ENV_BOOT_PRECOMMNAD	""
 #define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
-#define ENV_ROOTFS_ARGS		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
+#define ENV_ROOTFS_ARGS		"root=/dev/mmcblk${mmc_root_dev}p${mmc_rootfs_part} " \
 				"rootfstype=${mmc_rootfs_part_type} ${root_rw} "
-#define ENV_LOAD_KERNEL		"load_kernel=ext4load mmc ${mmc_root_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file}"
-#define ENV_LOAD_KERNEL_FDT	"load_fdt=ext4load mmc ${mmc_root_dev}:${mmc_boot_part} ${fdt_addr} ${fdt_file}"
+#define ENV_LOAD_KERNEL		"load_kernel=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file}"
+#define ENV_LOAD_KERNEL_FDT	"load_fdt=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} ${fdt_file}"
 #define ENV_EXTRA_SETTINGS 	"mmc_boot_dev="__stringify(ENV_MMC_BOOT_DEV) "\0" \
 				"mmc_boot_part="__stringify(ENV_MMC_BOOT_PART) "\0" \
 				"mmc_boot_part_type="ENV_MMC_BOOT_PART_TYPE "\0" \
