@@ -132,7 +132,7 @@ static int fb_mmc_check_part_table(struct blk_desc *dev_desc,
 			if (ret)
 				continue;
 
-			if (info.start * info.blksz != f_part->start)
+			if ((u64)info.start * (u64)info.blksz != f_part->start)
 				continue;
 
 			/*
