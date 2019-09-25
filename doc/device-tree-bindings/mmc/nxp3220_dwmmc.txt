@@ -33,7 +33,8 @@ Required Board Specific Properties:
 - mmc-ddr-3_3v: eMMC high-speed DDR mode(3.3V I/O) is supported
 - mmc-ddr-1_8v: eMMC high-speed DDR mode(1.8V I/O) is supported
 - mmc-ddr-1_2v: eMMC high-speed DDR mode(1.2V I/O) is supported
-
+	       note: set ddr, the io voltage of the mmc block in pmic must be
+	      	    corrected for the voltage.
 Example:
 
 mmc0: mmc@26080000 {
