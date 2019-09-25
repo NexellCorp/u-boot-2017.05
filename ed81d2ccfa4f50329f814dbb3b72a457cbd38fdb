@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a4da785_5dcde023",
+        "filename": "doc/device-tree-bindings/clock/nexell,nxp3220-cmu.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1015645
+      },
+      "writtenOn": "2019-09-25T06:14:25Z",
+      "side": 1,
+      "message": "add comments -\u003e \u003c\u0027clock id\u0027 \u0027frequency\u0027 \u0027en/disable\u0027\u003e",
+      "range": {
+        "startLine": 18,
+        "startChar": 2,
+        "endLine": 18,
+        "endChar": 57
+      },
+      "revId": "ed81d2ccfa4f50329f814dbb3b72a457cbd38fdb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": true
+    }
+  ]
+}
