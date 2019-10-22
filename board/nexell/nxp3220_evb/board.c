@@ -35,6 +35,20 @@ int board_init(void)
 #ifdef CONFIG_MISC_INIT_R
 int misc_init_r(void)
 {
+#ifdef CONFIG_REBOOT_MODE
+	unsigned int boot_mode = boot_check_reboot_mode();
+
+	switch (boot_mode) {
+	case BOOT_FASTBOOT:
+		debug("goto fastboot ...\n");
+		env_set("preboot", "fastboot 0");
+		break;
+	case BOOT_RECOVERY:
+		debug("goto recovery boot ...\n");
+		env_set("preboot", "recovery");
+		break;
+	}
+#endif
 	return 0;
 }
 #endif
