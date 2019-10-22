@@ -45,7 +45,7 @@ static struct boot_mode boot_main_mode[] = {
 
 static struct boot_mode *current_bootmode;
 
-int boot_check_mode(void)
+int boot_check_bootup_mode(void)
 {
 	u32 mode, main, sub;
 	struct boot_mode *bmode = NULL;
@@ -93,7 +93,7 @@ int boot_check_mode(void)
 enum boot_device boot_current_device(void)
 {
 	if (!current_bootmode)
-		boot_check_mode();
+		boot_check_bootup_mode();
 
 	return current_bootmode->dev;
 }
@@ -197,7 +197,7 @@ static int ddr_cal_save(void)
 	u32 *p;
 	int ret, i;
 
-	boot_check_mode();
+	boot_check_bootup_mode();
 
 	env = env_get("ignore_cal");
 	if (env) {
@@ -269,7 +269,7 @@ static int ddr_cal_clear(void)
 	struct boot_mode *bmode = current_bootmode;
 	int ret;
 
-	boot_check_mode();
+	boot_check_bootup_mode();
 
 	if (bmode->dev != BOOT_DEV_EMMC && bmode->dev != BOOT_DEV_SD)
 		return 0;

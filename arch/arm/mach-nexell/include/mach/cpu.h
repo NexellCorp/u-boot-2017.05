@@ -16,7 +16,7 @@ enum boot_device {
 	BOOT_DEV_UART,
 };
 
-int boot_check_mode(void);
+int boot_check_bootup_mode(void);
 enum boot_device boot_current_device(void);
 
 #endif
