@@ -6,8 +6,11 @@
  */
 
 #include <common.h>
+#include <dm.h>
 #include <command.h>
 #include <malloc.h>
+#include <regmap.h>
+#include <syscon.h>
 #include <asm/io.h>
 #include <mach/cpu.h>
 
@@ -339,4 +342,83 @@ U_BOOT_CMD(
 	"- Ex> setenv ignore_cal 1",
 	"clear"
 );
+
+#ifdef CONFIG_REBOOT_MODE
+static struct regmap *get_boot_mode_regmap(unsigned int *offset)
+{
+	int node, ret;
+	struct fdtdec_phandle_args args;
+	struct udevice *syscon;
+	struct regmap *regmap;
+
+	node = fdt_node_offset_by_compatible(gd->fdt_blob, 0,
+					     "nexell,boot-mode");
+	if (node < 0)
+		return NULL;
+
+	ret = fdtdec_parse_phandle_with_args(gd->fdt_blob, node, "syscon",
+					     NULL, 0, 0, &args);
+	if (ret) {
+		pr_err("%s: Cannot get syscon phandle: ret=%d\n", __func__,
+		       ret);
+		return NULL;
+	}
+
+	ret = uclass_get_device_by_of_offset(UCLASS_SYSCON, args.node,
+					     &syscon);
+	if (ret) {
+		pr_err("%s: Cannot get SYSCON: ret=%d\n", __func__, ret);
+		return NULL;
+	}
+
+	regmap = syscon_get_regmap(syscon);
+	if (!regmap) {
+		pr_err("unable to find regmap\n");
+		return NULL;
+	}
+
+	*offset = ofnode_read_u32_default(offset_to_ofnode(node), "offset", 0);
+
+	return regmap;
+}
+
+unsigned int boot_check_reboot_mode(void)
+{
+	int ret;
+	struct regmap *regmap;
+	unsigned int offset;
+	unsigned int boot_mode;
+
+	regmap = get_boot_mode_regmap(&offset);
+	if (!regmap) {
+		pr_err("unable to retrieve regmap\n");
+		return -ENODEV;
+	}
+
+	ret = regmap_read(regmap, offset, &boot_mode);
+	if (ret) {
+		pr_err("unable to read regmap\n");
+		return -ENODEV;
+	}
+
+	/* Clear boot mode once read */
+	regmap_write(regmap, offset, BOOT_NORMAL);
+
+	return boot_mode;
+}
+
+static int do_reboot_recovery(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	char *p = env_get("recovery-boot");
+
+	if (!p)
+		return 0;
+
+	run_command_list(p, -1, 0);
+
+	return 0;
+}
+
+U_BOOT_CMD(recovery, 1, 1, do_reboot_recovery, "run 'recovery-boot'", "");
+#endif
 

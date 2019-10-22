@@ -27,6 +27,12 @@ config QUICKBOOT_QUIET
 	help
 	  Support for nexell quickboot quiet
 
+config REBOOT_MODE
+	bool "Support reboot mode"
+        default y
+	help
+	  Support for nexell reboot mode (reboot bootloader, reboot recovery)
+
 source "board/nexell/Kconfig"
 
 endif
