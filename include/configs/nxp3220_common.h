@@ -29,6 +29,8 @@
 /* max number of command args   */
 #define CONFIG_SYS_MAXARGS	16
 
+#define	CONFIG_PREBOOT
+
 /* load address */
 #define CONFIG_SYS_LOAD_ADDR	0x40008000
 #define FDT_ADDR		0x43000000
