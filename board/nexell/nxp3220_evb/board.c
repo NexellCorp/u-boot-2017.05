@@ -28,7 +28,7 @@ void enable_caches(void)
 
 int board_init(void)
 {
-	boot_check_mode();
+	boot_check_bootup_mode();
 	return 0;
 }
 
