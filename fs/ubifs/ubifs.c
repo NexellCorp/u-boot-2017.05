@@ -952,8 +952,10 @@ int ubifs_load(char *filename, u32 addr, u32 size)
 void uboot_ubifs_umount(void)
 {
 	if (ubifs_sb) {
+#ifndef CONFIG_QUICKBOOT_QUIET
 		printf("Unmounting UBIFS volume %s!\n",
 		       ((struct ubifs_info *)(ubifs_sb->s_fs_info))->vi.name);
+#endif
 		ubifs_umount(ubifs_sb->s_fs_info);
 		ubifs_sb = NULL;
 	}
