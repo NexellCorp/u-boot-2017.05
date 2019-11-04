@@ -33,8 +33,8 @@
 
 /* load address */
 #define CONFIG_SYS_LOAD_ADDR	0x40008000
-#define FDT_ADDR		0x43000000
-#define INITRD_ADDR		0x43100000
+#define ENV_FDT_ADDR		0x43000000
+#define ENV_INITRD_ADDR		0x43100000
 
 #define CONFIG_BOOTCOMMAND		"run autoboot"
 #define CONFIG_DEFAULT_CONSOLE		"console=ttyS2,115200n8\0"
