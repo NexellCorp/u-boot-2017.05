@@ -30,8 +30,7 @@
 #define ENV_SPLASH_MEM_RESERVE		"fdt addr ${fdt_addr}; " \
 					"fdt resize; "   \
 					"fdt mk /reserved-memory display_reserved; " \
-					"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x546000>; " \
-			                "\0" \
+					"fdt set /reserved-memory/display_reserved reg <${fb_addr} 0x546000>; "
 
 /* For SD/MMC splash image */
 #if defined(CONFIG_ENV_IS_IN_MMC)
@@ -82,11 +81,10 @@
 #define ENV_MMC_ROOTFS_PART_TYPE	"ext4"
 #define ENV_BOOT_PRECOMMNAD	""
 #define ENV_BOOT_POSTCOMMAND	"bootl ${kernel_addr} - ${fdt_addr}"
-#define ENV_ROOTFS_ARGS		"root=/dev/mmcblk${mmc_root_dev}p${mmc_rootfs_part} " \
+#define ENV_BOOT_ARGS		"root=/dev/mmcblk${mmc_root_dev}p${mmc_rootfs_part} " \
 				"rootfstype=${mmc_rootfs_part_type} ${root_rw} "
-#define ENV_LOAD_KERNEL_COMMAND	"load_kernel=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file}"
+#define ENV_LOAD_KERNEL_FILE	"load_kernel=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${kernel_addr} ${kernel_file}"
 #define ENV_LOAD_KERNEL_FDT	"load_fdt=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${fdt_addr} ${fdt_file}"
-#define ENV_LOAD_KERNEL_IMAGE	"Image"
 #define ENV_EXTRA_SETTINGS 	"mmc_boot_dev="__stringify(ENV_MMC_BOOT_DEV) "\0" \
 				"mmc_boot_part="__stringify(ENV_MMC_BOOT_PART) "\0" \
 				"mmc_boot_part_type="ENV_MMC_BOOT_PART_TYPE "\0" \
@@ -94,6 +92,7 @@
 				"mmc_rootfs_part="__stringify(ENV_MMC_ROOTFS_PART) "\0" \
 				"mmc_rootfs_part_type="ENV_MMC_ROOTFS_PART_TYPE "\0"
 
+/* For NAND Environment */
 #elif defined(CONFIG_ENV_IS_IN_NAND)
 #if defined(CONFIG_TARGET_NXP3220_DAUDIO)
 #define	ENV_KERNEL_DTB		"nxp3220-daudio-nand.dtb"
@@ -120,17 +119,17 @@
 #define	ENV_MTDPARTS		"mtdparts=mtd-nand:"ENV_NAND_RESV_PART_SIZE"(reserved),"ENV_NAND_BOOT_PART_SIZE"(boot),-(rootfs)"
 #define ENV_BOOT_PRECOMMNAD	"ubifsmount ubi0:boot; " /* ubi part boot;ubifsmount ubi0:boot; */
 #define ENV_BOOT_POSTCOMMAND	"bootl ${kernel_addr} - ${fdt_addr}"
-#define ENV_ROOTFS_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOTFS_PART)" rootfstype=ubifs " \
+#define ENV_BOOT_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOTFS_PART)" rootfstype=ubifs " \
 				"root=${ubiroot} ${root_rw} "
-#define ENV_LOAD_KERNEL_COMMAND	"load_kernel=ubifsload ${kernel_addr} ${kernel_file}"
+#define ENV_LOAD_KERNEL_FILE	"load_kernel=ubifsload ${kernel_addr} ${kernel_file}"
 #define ENV_LOAD_KERNEL_FDT	"load_fdt=ubifsload ${fdt_addr} ${fdt_file}"
-#define ENV_LOAD_KERNEL_IMAGE	"Image"
 #define ENV_EXTRA_SETTINGS 	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
 				"mtdparts="ENV_MTDPARTS "\0" \
 				"ubiroot=ubi0:rootfs\0"
 
 #endif /* CONFIG_ENV_IS_IN_NAND */
 
+#define ENV_KERNEL_FILE		"Image"
 #define ENV_LOG_MSG		"quiet loglevel=3 printk.time=1"
 #define ENV_OPTS		"nexell_drm.fb_argb "
 
@@ -148,15 +147,15 @@
 	"fdt_addr="__stringify(ENV_FDT_ADDR) "\0" \
 	"fdt_file="__stringify(ENV_KERNEL_DTB) "\0" \
 	"load_args=setenv bootargs \"" \
-		ENV_ROOTFS_ARGS \
+		ENV_BOOT_ARGS \
 		"${console} ${log_msg} ${opts}" \
 		"\"\0" \
-	ENV_LOAD_KERNEL_COMMAND "\0"\
+	ENV_LOAD_KERNEL_FILE "\0"\
 	ENV_LOAD_KERNEL_FDT "\0"\
 	"log_msg="ENV_LOG_MSG "\0" \
 	"opts="ENV_OPTS ENV_DAUDIO_OPTS "\0" \
 	"kernel_addr="__stringify(CONFIG_SYS_LOAD_ADDR) "\0" \
-	"kernel_file="ENV_LOAD_KERNEL_IMAGE" \0" \
+	"kernel_file="ENV_KERNEL_FILE" \0" \
 	"splashfile="SPLASH_STORAGE_FILE "\0" \
 	"splashimage="__stringify(SPLASH_STORAGE_LOAD) "\0" \
 	"fb_addr=\0" \
