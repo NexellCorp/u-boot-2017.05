@@ -18,25 +18,25 @@ DECLARE_GLOBAL_DATA_PTR;
 
 struct nx_timer_priv {
 	void __iomem *base;
-	unsigned long timestamp;
 	unsigned long lastdec;
+	u64 timestamp;
 };
 
 #define	TIMER_FREQ	1000000
 #define	TIMER_COUNT	0xFFFFFFFF
 
-#define	REG_TCFG0			(0x00)
-#define	REG_TCFG1			(0x04)
-#define	REG_TCON			(0x08)
-#define	REG_TCNTB0			(0x0C)
-#define	REG_TCMPB0			(0x10)
-#define	REG_TCNT0			(0x14)
-#define	REG_CSTAT			(0x18)
+#define	REG_TCFG0	(0x00)
+#define	REG_TCFG1	(0x04)
+#define	REG_TCON	(0x08)
+#define	REG_TCNTB0	(0x0C)
+#define	REG_TCMPB0	(0x10)
+#define	REG_TCNT0	(0x14)
+#define	REG_CSTAT	(0x18)
 
-#define	TCON_BIT_AUTO			(1<<3)
-#define	TCON_BIT_INVT			(1<<2)
-#define	TCON_BIT_UP			(1<<1)
-#define	TCON_BIT_RUN			(1<<0)
+#define	TCON_BIT_AUTO	BIT(3)
+#define	TCON_BIT_INVT	BIT(2)
+#define	TCON_BIT_UP	BIT(1)
+#define	TCON_BIT_RUN	BIT(0)
 
 /*
  * Timer HW
@@ -45,8 +45,8 @@ static inline void timer_clock(void __iomem *base, int mux, int scl)
 {
 	u32 val = readl(base + REG_TCFG0);
 
-	writel(val | (scl-1) , base + REG_TCFG0);
-	writel(mux , base + REG_TCFG1);
+	writel(val | (scl - 1), base + REG_TCFG0);
+	writel(mux, base + REG_TCFG1);
 }
 
 static inline void timer_count(void __iomem *base, unsigned int cnt)
@@ -57,7 +57,7 @@ static inline void timer_count(void __iomem *base, unsigned int cnt)
 
 static inline void timer_start(void __iomem *base)
 {
-	writel(1 , base + REG_CSTAT);
+	writel(1, base + REG_CSTAT);
 	writel(TCON_BIT_UP, base + REG_TCON);
 	writel(TCON_BIT_AUTO | TCON_BIT_RUN, base + REG_TCON);
 
@@ -77,7 +77,7 @@ static inline unsigned long timer_read(void __iomem *base)
 	return ret;
 }
 
-static void _reset_timer_masked(struct udevice *dev)
+static void timer_reset_count(struct udevice *dev)
 {
 	struct nx_timer_priv *priv = dev_get_priv(dev);
 	void __iomem *base = priv->base;
@@ -89,18 +89,16 @@ static void _reset_timer_masked(struct udevice *dev)
 	priv->timestamp = 0;
 }
 
-static unsigned long _get_timer_masked(struct udevice *dev)
+static int nx_timer_get_count(struct udevice *dev, u64 *count)
 {
-	unsigned long now;
 	struct nx_timer_priv *priv = dev_get_priv(dev);
 	void __iomem *base = priv->base;
+	u64 timestamp = priv->timestamp;
 	unsigned long lastdec = priv->lastdec;
-	unsigned long timestamp = priv->timestamp;
+	unsigned long now = timer_read(base);	/* current tick value */
 
-	now = timer_read(base);	/* current tick value */
-
-	if (now >= lastdec) {			/* normal mode (non roll) */
-		/* move stamp fordward with absoulte diff ticks */
+	if (now >= lastdec) { /* normal mode (non roll) */
+		/* move stamp fordward with absolute diff ticks */
 		timestamp += now - lastdec;
 	} else {
 		/* we have overflow of the count down timer */
@@ -112,20 +110,16 @@ static unsigned long _get_timer_masked(struct udevice *dev)
 		 */
 		timestamp += now + TIMER_COUNT - lastdec;
 	}
+
+	debug("now:%lu, last:%lu, ts:%llu->%llu\n", now, lastdec,
+	      priv->timestamp, timestamp);
+
 	/* save last */
 	lastdec = now;
 	priv->lastdec = lastdec;
-
-	debug("now=%lu, last=%lu, timestamp=%lu\n", now, lastdec, timestamp);
 	priv->timestamp = timestamp;
 
-	return timestamp;
-}
-
-static int nx_timer_get_count(struct udevice *dev, u64 *count)
-{
-	*count = (u64)_get_timer_masked(dev);
-	debug("%s: %lld\n", __func__, *count);
+	*count = timestamp;
 
 	return 0;
 }
@@ -161,7 +155,7 @@ static int nx_timer_probe(struct udevice *dev)
 	rate = clk_get_rate(&clk);
 	clk_enable(&clk);
 
-	for (mux = 0; 5 > mux; mux++) {
+	for (mux = 0; mux < 5; mux++) {
 		mout = rate / (1 << mux);
 		scl = mout / TIMER_FREQ;
 		thz = mout / scl;
@@ -172,7 +166,7 @@ static int nx_timer_probe(struct udevice *dev)
 		}
 		if (scl > 256)
 			continue;
-		if (abs(thz-TIMER_FREQ) >= cmp)
+		if (abs(thz - TIMER_FREQ) >= cmp)
 			continue;
 		tclk = thz, tmux = mux, tscl = scl;
 		cmp = abs(thz - TIMER_FREQ);
@@ -185,7 +179,7 @@ static int nx_timer_probe(struct udevice *dev)
 	timer_count(base, TIMER_COUNT);
 	timer_start(base);
 
-	_reset_timer_masked(dev);
+	timer_reset_count(dev);
 
 	uc_priv->clock_rate = TIMER_FREQ;
 
