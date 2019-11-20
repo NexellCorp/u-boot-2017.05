@@ -392,6 +392,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	const char *quiet_str = env_get("quiet");
 	int dev = nand_curr_device;
 	int repeat = flag & CMD_FLAG_REPEAT;
+	unsigned long time = 0;
 
 	/* at least two arguments please */
 	if (argc < 2)
@@ -584,6 +585,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		set_nand_chip_ecc_manage_bld();
 
+		time = get_timer(0);
 		if (read)
 			ret = nand_read_skip_bad(mtd, off, &rwsize,
 						 NULL, maxsize,
@@ -595,9 +597,18 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		set_nand_chip_ecc_manage_off();
 
-		printf(" %zu bytes %s: %s\n", rwsize,
-		       read ? "read" : "written", ret ? "ERROR" : "OK");
+		time = get_timer(time);
 
+#ifndef CONFIG_QUICKBOOT_QUIET
+		printf(" %zu bytes %s: %s in %lums", rwsize,
+		       read ? "read" : "written", ret ? "ERROR" : "OK", time);
+	       if (time > 0) {
+			puts(" (");
+			print_size((rwsize/time) * 1000, "/s");
+			puts(")");
+		}
+	        puts("\n");
+#endif
 		return ret == 0 ? 0 : 1;
 	}
 #endif /* CONFIG_NAND_NXP3220 */
@@ -675,6 +686,7 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				set_nand_chip_ecc_manage_bld();
 			}
 #endif /* !CONFIG_NAND_NXP3220 */
+			time = get_timer(0);
 			if (read)
 				ret = nand_read_skip_bad(mtd, off, &rwsize,
 							 NULL, maxsize,
@@ -688,15 +700,21 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			if (!strcmp(s, ".rsv"))
 				set_nand_chip_ecc_manage_off();
 #endif /* CONFIG_NAND_NXP3220 */
+			time = get_timer(time);
+
 #ifdef CONFIG_CMD_NAND_TRIMFFS
 		} else if (!strcmp(s, ".trimffs")) {
 			if (read) {
 				printf("Unknown nand command suffix '%s'\n", s);
 				return 1;
 			}
+			time = get_timer(0);
+
 			ret = nand_write_skip_bad(mtd, off, &rwsize, NULL,
 						maxsize, (u_char *)addr,
 						WITH_DROP_FFS | WITH_WR_VERIFY);
+
+			time = get_timer(time);
 #endif
 		} else if (!strcmp(s, ".oob")) {
 			/* out-of-band data */
@@ -706,10 +724,14 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				.mode = MTD_OPS_RAW
 			};
 
+			time = get_timer(0);
+
 			if (read)
 				ret = mtd_read_oob(mtd, off, &ops);
 			else
 				ret = mtd_write_oob(mtd, off, &ops);
+
+			time = get_timer(time);
 		} else if (raw) {
 			ret = raw_access(mtd, addr, off, pagecount, read,
 					 no_verify);
@@ -717,10 +739,16 @@ static int do_nand(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			printf("Unknown nand command suffix '%s'.\n", s);
 			return 1;
 		}
-
-		printf(" %zu bytes %s: %s\n", rwsize,
-		       read ? "read" : "written", ret ? "ERROR" : "OK");
-
+#ifndef CONFIG_QUICKBOOT_QUIET
+		printf(" %zu bytes %s: %s in %lums", rwsize,
+		       read ? "read" : "written", ret ? "ERROR" : "OK", time);
+	       if (time > 0) {
+			puts(" (");
+			print_size((rwsize/time) * 1000, "/s");
+			puts(")");
+		}
+	        puts("\n");
+#endif
 		return ret == 0 ? 0 : 1;
 	}
 
