@@ -15,6 +15,8 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#define IH_INITRD_ARCH IH_ARCH_DEFAULT
+
 static bootm_headers_t linux_images;
 
 static void boot_go_set_os(cmd_tbl_t *cmdtp, int flag, int argc,
@@ -87,10 +89,18 @@ int do_boot_linux(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	boot_start_lmb(images);
 
-	flags  = BOOTM_STATE_START;
+	flags = BOOTM_STATE_START;
 
 	argc--; argv++;
 	boot_go_set_os(cmdtp, flag, argc, argv, images);
+
+        /* find ramdisk */
+        ret = boot_get_ramdisk(argc, argv, images, IH_INITRD_ARCH,
+                               &images->rd_start, &images->rd_end);
+        if (ret) {
+                puts("Ramdisk image is corrupt or invalid\n");
+                return 1;
+        }
 
 #if defined(CONFIG_OF_LIBFDT)
 	/* find flattened device tree */
@@ -104,6 +114,19 @@ int do_boot_linux(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 #if !defined(CONFIG_OF_LIBFDT)
 	flags |= BOOTM_STATE_OS_GO;
+#endif
+
+#ifdef CONFIG_SYS_BOOT_RAMDISK_HIGH
+	if (!ret && images->rd_start) {
+		ulong rd_len = images->rd_end - images->rd_start;
+
+		ret = boot_ramdisk_high(&images->lmb, images->rd_start,
+			rd_len, &images->initrd_start, &images->initrd_end);
+		if (!ret) {
+			env_set_hex("initrd_start", images->initrd_start);
+			env_set_hex("initrd_end", images->initrd_end);
+		}
+	}
 #endif
 
 	boot_fn = do_bootm_linux;
@@ -120,6 +143,7 @@ int do_boot_linux(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 U_BOOT_CMD(
 	bootl,	CONFIG_SYS_MAXARGS,	1,	do_boot_linux,
 	"boot linux Image from memory",
-	"[addr [arg ...]]\n    - boot linux image stored in memory\n"
-	"\tuse a '-' for the DTB address\n"
+	"[addr [initrd[:size]] [fdt]]\n"
+	"    - boot linux image stored in memory\n"
+	"\trefer to 'bootz' command\n"
 );
