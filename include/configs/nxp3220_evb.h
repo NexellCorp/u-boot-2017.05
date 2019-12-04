@@ -84,6 +84,7 @@
 				"mmc_root_dev="__stringify(ENV_MMC_ROOT_DEV) "\0" \
 				"mmc_rootfs_part="__stringify(ENV_MMC_ROOTFS_PART) "\0" \
 				"mmc_rootfs_part_type="ENV_MMC_ROOTFS_PART_TYPE "\0"
+#define ENV_LOAD_INITRD_FILE	"load_initrd=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrd_addr} ${initrd_file}"
 
 /* For NAND Environment */
 #elif defined(CONFIG_ENV_IS_IN_NAND)
@@ -95,25 +96,40 @@
 #error "NO TARGET !!!"
 #endif
 
-#define ENV_NAND_ROOTFS_PART	2
-#define ENV_NAND_RESV_PART_SIZE	"6m"	/* Check reserve partition size */
-#define ENV_NAND_BOOT_PART_SIZE	"16m"	/* Check boot partition size */
-#define	ENV_MTDPARTS		"mtdparts=mtd-nand:"ENV_NAND_RESV_PART_SIZE"(reserved),"ENV_NAND_BOOT_PART_SIZE"(boot),-(rootfs)"
+#define ENV_NAND_RESV_PART_SIZE	"6m"	/* reserve partition size */
+#define ENV_NAND_BOOT_PART_SIZE	"32m"	/* boot partition size */
+#define ENV_NAND_MISC_PART_SIZE	"8m"	/* misc partition size */
+#define ENV_NAND_BOOT_PART	1	/* boot partition */
+#define ENV_NAND_MISC_PART	2	/* misc partition */
+#define ENV_NAND_ROOT_PART	3	/* root partition */
+
+#define	ENV_MTDPARTS		"mtdparts=mtd-nand:"ENV_NAND_RESV_PART_SIZE"(reserved),"\
+					""ENV_NAND_BOOT_PART_SIZE"(boot),"\
+					""ENV_NAND_MISC_PART_SIZE"(misc),"\
+					"-(rootfs)"
 #define ENV_BOOT_PRECOMMNAD	"ubifsmount ubi0:boot; " /* ubi part boot;ubifsmount ubi0:boot; */
-#define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
-#define ENV_BOOT_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOTFS_PART)" rootfstype=ubifs " \
+#define ENV_BOOT_POSTCOMMAND	"bootl ${kernel_addr} - ${fdt_addr}"
+#define ENV_BOOT_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOT_PART)" " \
+				"ubi.mtd="__stringify(ENV_NAND_BOOT_PART)" " \
+				"ubi.mtd="__stringify(ENV_NAND_MISC_PART)" " \
+				"rootfstype=ubifs " \
 				"root=${ubiroot} ${root_rw} "
 #define ENV_LOAD_KERNEL_FILE	"load_kernel=ubifsload ${kernel_addr} ${kernel_file}"
 #define ENV_LOAD_KERNEL_FDT	"load_fdt=ubifsload ${fdt_addr} ${fdt_file}"
 #define ENV_EXTRA_SETTINGS 	"mtdids=" CONFIG_MTDIDS_DEFAULT "\0" \
 				"mtdparts="ENV_MTDPARTS "\0" \
 				"ubiroot=ubi0:rootfs\0"
+#define ENV_LOAD_INITRD_FILE	"load_initrd=ubifsload ${initrd_addr} ${initrd_file}"
 
 #endif /* CONFIG_ENV_IS_IN_NAND */
 
 #define ENV_KERNEL_FILE		"zImage"
 #define ENV_LOG_MSG		"loglevel=7 printk.time=1"
 #define ENV_OPTS		"nexell_drm.fb_argb"
+
+#define	ENV_RECOVERY_BOOT_ARGS		"rdinit=/init "
+#define	ENV_RECOVERY_POSTCOMMAND	"bootz ${kernel_addr} ${initrd_addr} ${fdt_addr}"
+#define ENV_INIRTD_IMAGE		"recovery.uinitrd"
 
 /* For Environments */
 #define CONFIG_EXTRA_ENV_SETTINGS \
@@ -144,6 +160,20 @@
 	"fb_addr=\0" \
 	"root_rw=rw\0" \
 	"mem_resv="ENV_SPLASH_MEM_RESERVE "\0" \
-	ENV_EXTRA_SETTINGS
+	ENV_EXTRA_SETTINGS \
+	"recovery-boot=" \
+		ENV_BOOT_PRECOMMNAD \
+		"run load_kernel;" \
+		"run load_fdt;" \
+		"run load_initrd;" \
+		"run load_recovery_args;" \
+		"run mem_resv;" \
+		ENV_RECOVERY_POSTCOMMAND "\0" \
+	"initrd_addr="__stringify(ENV_INITRD_ADDR) "\0" \
+	"initrd_file="ENV_INIRTD_IMAGE" \0" \
+	"load_recovery_args=setenv bootargs \"" \
+		ENV_RECOVERY_BOOT_ARGS \
+		"${console} ${log_msg} quiet" "\0" \
+	ENV_LOAD_INITRD_FILE "\0"\
 
 #endif
