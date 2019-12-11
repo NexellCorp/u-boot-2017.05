@@ -54,8 +54,10 @@
 #define	CONFIG_SF_DEFAULT_MODE		0
 #define	CONFIG_ENV_SECT_SIZE		0x4000
 
-/* For SD/MMC Environment */
 #if defined(CONFIG_ENV_IS_IN_MMC)
+/*
+ * For SD/MMC Environment
+ */
 #if defined(CONFIG_TARGET_NXP3220_EVB)
 #define ENV_KERNEL_DTB		"nxp3220-evb.dtb"
 #elif defined(CONFIG_TARGET_NXP3220_EVB2)
@@ -72,7 +74,7 @@
 #define ENV_MMC_ROOTFS_PART		3
 #define ENV_MMC_BOOT_PART_TYPE		"ext4"
 #define ENV_MMC_ROOTFS_PART_TYPE	"ext4"
-#define ENV_BOOT_PRECOMMNAD		""
+#define ENV_BOOT_PRECOMMAND		""
 #define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
 #define ENV_BOOT_ARGS		"root=/dev/mmcblk${mmc_root_dev}p${mmc_rootfs_part} " \
 				"rootfstype=${mmc_rootfs_part_type} ${root_rw} "
@@ -86,8 +88,10 @@
 				"mmc_rootfs_part_type="ENV_MMC_ROOTFS_PART_TYPE "\0"
 #define ENV_LOAD_INITRD_FILE	"load_initrd=ext4load mmc ${mmc_boot_dev}:${mmc_boot_part} ${initrd_addr} ${initrd_file}"
 
-/* For NAND Environment */
 #elif defined(CONFIG_ENV_IS_IN_NAND)
+/*
+ * For NAND Environment
+ */
 #if defined(CONFIG_TARGET_NXP3220_EVB)
 #define ENV_KERNEL_DTB		"nxp3220-evb-nand.dtb"
 #elif defined(CONFIG_TARGET_NXP3220_EVB2)
@@ -107,7 +111,7 @@
 					""ENV_NAND_BOOT_PART_SIZE"(boot),"\
 					""ENV_NAND_MISC_PART_SIZE"(misc),"\
 					"-(rootfs)"
-#define ENV_BOOT_PRECOMMNAD	"ubifsmount ubi0:boot; " /* ubi part boot;ubifsmount ubi0:boot; */
+#define ENV_BOOT_PRECOMMAND	"ubifsmount ubi0:boot; " /* ubi part boot;ubifsmount ubi0:boot; */
 #define ENV_BOOT_POSTCOMMAND	"bootl ${kernel_addr} - ${fdt_addr}"
 #define ENV_BOOT_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOT_PART)" " \
 				"ubi.mtd="__stringify(ENV_NAND_BOOT_PART)" " \
@@ -121,7 +125,18 @@
 				"ubiroot=ubi0:rootfs\0"
 #define ENV_LOAD_INITRD_FILE	"load_initrd=ubifsload ${initrd_addr} ${initrd_file}"
 
-#endif /* CONFIG_ENV_IS_IN_NAND */
+#else /* CONFIG_ENV_IS_IN_NAND */
+/*
+ * Environment is not stored
+ */
+#define ENV_BOOT_PRECOMMAND	""
+#define ENV_BOOT_POSTCOMMAND	""
+#define ENV_BOOT_ARGS		""
+#define ENV_LOAD_KERNEL_FILE	""
+#define ENV_LOAD_KERNEL_FDT	""
+#define ENV_EXTRA_SETTINGS	""
+#define ENV_LOAD_INITRD_FILE	""
+#endif /* CONFIG_ENV_IS_NOWHERE */
 
 #define ENV_KERNEL_FILE		"zImage"
 #define ENV_LOG_MSG		"loglevel=7 printk.time=1"
@@ -136,7 +151,7 @@
 	"autoboot=run boot_rootfs\0" \
 	"bootdelay="__stringify(CONFIG_BOOTDELAY) "\0" \
 	"boot_rootfs=" \
-		ENV_BOOT_PRECOMMNAD \
+		ENV_BOOT_PRECOMMAND \
 		"run load_kernel;" \
 		"run load_fdt;" \
 		"run load_args;" \
@@ -162,7 +177,7 @@
 	"mem_resv="ENV_SPLASH_MEM_RESERVE "\0" \
 	ENV_EXTRA_SETTINGS \
 	"recovery-boot=" \
-		ENV_BOOT_PRECOMMNAD \
+		ENV_BOOT_PRECOMMAND \
 		"run load_kernel;" \
 		"run load_fdt;" \
 		"run load_initrd;" \
