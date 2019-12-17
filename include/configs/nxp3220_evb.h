@@ -142,7 +142,10 @@
 #define ENV_LOG_MSG		"loglevel=7 printk.time=1"
 #define ENV_OPTS		"nexell_drm.fb_argb"
 
-#define	ENV_RECOVERY_BOOT_ARGS		"rdinit=/init "
+#define	ENV_RECOVERY_BOOT_ARGS		"rdinit=/init " \
+					"ubi.mtd="__stringify(ENV_NAND_ROOT_PART)" " \
+					"ubi.mtd="__stringify(ENV_NAND_BOOT_PART)" " \
+					"ubi.mtd="__stringify(ENV_NAND_MISC_PART)" "
 #define	ENV_RECOVERY_POSTCOMMAND	"bootz ${kernel_addr} ${initrd_addr} ${fdt_addr}"
 #define ENV_INIRTD_IMAGE		"recovery.uinitrd"
 
