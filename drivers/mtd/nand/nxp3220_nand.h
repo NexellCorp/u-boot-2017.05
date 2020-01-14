@@ -61,9 +61,10 @@ struct nxp3220_nfc {
 	int timing_mode;		/* onfi timing mode */
 	struct clk core_clk;
 	struct gpio_desc wp_gpio;
-	int datasize;			/* boot image */
-	int eccbyte;			/* boot image */
-	int steps;			/* boot image */
+	int boot_sectsize;		/* boot image */
+	int boot_datasize;		/* boot image */
+	int boot_eccbyte;			/* boot image */
+	int boot_steps;			/* boot image */
 
 	struct nfc_cmd_time time;	/* calculated values */
 };
@@ -113,16 +114,17 @@ enum NX_NANDC_BCH {
 
 enum NX_ECC_MANAGE {
 	ECC_MANAGE_OFF = 0,
-	ECC_MANAGE_BLD = 1, /* boot loader */
+	ECC_MANAGE_BOOT_PAGE = 1, /* boot sector */
 	ECC_MANAGE_RAW = 2
 };
 
 /* inband ecc, not use oob : data + ecc - data+ ecc .... */
-int nand_hw_ecc_write_bloader(struct mtd_info *mtd, struct nand_chip *chip,
-			      const u8 *buf, int page);
-int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
-			     u8 *buf, int page);
+int nand_hw_ecc_write_boot_page(struct mtd_info *mtd, struct nand_chip *chip,
+				const u8 *buf, int page);
+int nand_hw_ecc_read_boot_page(struct mtd_info *mtd, struct nand_chip *chip,
+			       u8 *buf, int page);
 
+int get_nand_chip_sectsize(struct nand_chip *chip);
 int get_nand_chip_datasize(struct nand_chip *chip);
 int get_nand_chip_eccbyte(struct nand_chip *chip);
 int get_nand_chip_eccsteps(struct nand_chip *chip);
