@@ -581,8 +581,8 @@ int nand_write_skip_bad(struct mtd_info *mtd, loff_t offset, size_t *length,
 	u_char *p_buffer = buffer;
 	int need_skip;
 
-#ifdef CONFIG_SYS_NAND_VERIFY
-	if (get_nand_chip_ecc_manage() != ECC_MANAGE_BLD)
+#if defined(CONFIG_NAND_NXP3220) && defined(CONFIG_SYS_NAND_VERIFY)
+	if (get_nand_chip_ecc_manage() != ECC_MANAGE_BOOT_PAGE)
 		flags |= WITH_WR_VERIFY;
 #endif
 
@@ -673,7 +673,12 @@ int nand_write_skip_bad(struct mtd_info *mtd, loff_t offset, size_t *length,
 				truncated_write_size, p_buffer);
 
 		offset += write_size;
-		p_buffer += write_size;
+#ifdef CONFIG_CMD_NAND_TRIMFFS
+		if (flags & WITH_DROP_FFS)
+			p_buffer += write_size;
+		else
+#endif
+			p_buffer += truncated_write_size;
 
 		if (rval != 0) {
 			printf("NAND write to offset %llx failed %d\n",
@@ -682,7 +687,12 @@ int nand_write_skip_bad(struct mtd_info *mtd, loff_t offset, size_t *length,
 			return rval;
 		}
 
-		left_to_write -= write_size;
+#ifdef CONFIG_CMD_NAND_TRIMFFS
+		if (flags & WITH_DROP_FFS)
+			left_to_write -= write_size;
+		else
+#endif
+			left_to_write -= truncated_write_size;
 	}
 
 	return 0;
