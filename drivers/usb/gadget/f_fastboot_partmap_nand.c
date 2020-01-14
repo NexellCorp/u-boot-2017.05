@@ -36,59 +36,21 @@ static char *print_part_type(int fb_part_type)
 	return s;
 }
 
-static uint32_t get_nand_bld_block_size(struct mtd_info *mtd,
-					struct fb_part_par *f_part,
-					loff_t bytes)
+static uint32_t get_nand_boot_block_size(struct mtd_info *mtd,
+					 struct fb_part_par *f_part,
+					 loff_t bytes)
 {
 	struct nand_chip *chip = mtd_to_nand(mtd);
-	int dmasize = get_nand_chip_datasize(chip);
+	int datasize = get_nand_chip_datasize(chip);
 	int eccbyte = get_nand_chip_eccbyte(chip);
 	int count;
 
-	count = lldiv(bytes, dmasize);
+	count = lldiv(bytes, datasize);
 
-	if (bytes > ((loff_t)count * (loff_t)dmasize))
+	if (bytes > ((loff_t)count * (loff_t)datasize))
 		count += 1;
 
-	return roundup((count * (dmasize + eccbyte)), mtd->erasesize);
-}
-
-static loff_t get_nand_bld_start_offset(struct mtd_info *mtd,
-					struct fb_part_par *f_part,
-					loff_t bytes)
-{
-	loff_t erasesize = mtd->erasesize;
-	loff_t start = f_part->start;
-	loff_t offset;
-	int count, size, offs;
-	int total, i;
-
-	count = lldiv(start, erasesize);
-	size = nand_size() * 1024;
-	total = lldiv(size, erasesize);
-
-	if (start > ((loff_t)count * (loff_t)erasesize)) {
-		printf("Error: %s start 0x%llx not alinged erase size 0x%llx\n",
-		       f_part->name, start, erasesize);
-		return -1;
-	}
-
-	for (i = 0, offs = -1; i < total ; i++) {
-		if (!nand_block_isbad(mtd, (loff_t)erasesize * (loff_t)i))
-			offs++;
-
-		if (offs == count)
-			break;
-	}
-
-	offset = (loff_t)erasesize * (loff_t)i;
-	if ((offset + bytes) > size) {
-		printf("Error: %s start 0x%llx -> 0x%llx, size 0x%llx over chip size 0x%x\n",
-		       f_part->name, start, offset, bytes, size);
-		return -1;
-	}
-
-	return offset;
+	return roundup((count * (datasize + eccbyte)), mtd->erasesize);
 }
 
 static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
@@ -107,8 +69,7 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 					    mtd->erasesize);
 
 	if (f_part->type & FASTBOOT_PART_BOOT) {
-		start = get_nand_bld_start_offset(mtd, f_part, bytes);
-		erasesize = get_nand_bld_block_size(mtd, f_part, bytes);
+		erasesize = get_nand_boot_block_size(mtd, f_part, bytes);
 	} else {
 		erasesize = f_part->length;
 	}
@@ -135,7 +96,12 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 
 	/* set command */
 	p = sprintf(cmd, "nand ");
-	l = sprintf(&cmd[p], "%s", "erase");
+
+	if (f_part->type & FASTBOOT_PART_BOOT)
+		l = sprintf(&cmd[p], "%s", "erase.spread");
+	else
+		l = sprintf(&cmd[p], "%s", "erase");
+
 	p += l;
 	l = sprintf(&cmd[p], " 0x%llx 0x%llx", start, erasesize);
 	p += l;
