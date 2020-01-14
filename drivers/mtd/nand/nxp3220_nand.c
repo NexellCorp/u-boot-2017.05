@@ -676,6 +676,41 @@ static int nand_hw_ecc_read_oob(struct mtd_info *mtd, struct nand_chip *chip,
 	return 0;
 }
 
+static bool check_is_badmark(struct mtd_info *mtd, struct nand_chip *chip)
+{
+	const u8 *bufpoi = chip->oob_poi;
+	struct mtd_oob_ops ops;
+	bool badmark = true;
+	int i;
+
+	if (chip->options & NAND_BUSWIDTH_16) {
+		ops.ooboffs &= ~0x01;
+		ops.ooblen = 2;
+		ops.len = ops.ooblen;
+	} else {
+		ops.ooblen = 1;
+		ops.len = ops.ooblen;
+	}
+
+	for (i = 0; i < ops.ooblen; i++) {
+		if (bufpoi[i] != 0x00) {
+			badmark = false;
+			break;
+		}
+	}
+
+	if (badmark) {
+		for (; i < mtd->oobsize; i++) {
+			if (bufpoi[i] != 0xff) {
+				badmark = false;
+				break;
+			}
+		}
+	}
+
+	return badmark;
+}
+
 /**
  * nand_hw_ecc_write_oob - OOB data write function for HW ECC with syndrome
  * @mtd: mtd info structure
@@ -689,6 +724,9 @@ static int nand_hw_ecc_write_oob(struct mtd_info *mtd,
 	int eccsize = chip->ecc.size, length = mtd->oobsize;
 	int i, len, pos, status = 0, sndcmd = 0, steps = chip->ecc.steps;
 	const u8 *bufpoi = chip->oob_poi;
+	bool badmark;
+
+	badmark = check_is_badmark(mtd, chip);
 
 	/*
 	 * data-ecc-data-ecc ... ecc-oob
@@ -707,12 +745,24 @@ static int nand_hw_ecc_write_oob(struct mtd_info *mtd,
 				while (len > 0) {
 					int num = min_t(int, len, 4);
 
-					chip->write_buf(mtd, (u8 *)&fill,
-							num);
+					chip->write_buf(mtd, (u8 *)&fill, num);
 					len -= num;
 				}
 			} else {
 				pos = eccsize + i * (eccsize + chunk);
+				/* badmark for boot sector:  pagesize-oob[BAD] */
+				if (badmark && pos >= mtd->writesize) {
+					pos = mtd->writesize;
+					/* set badmark for boot sector */
+					chip->oob_poi[0] = 0x00;
+					chip->oob_poi[1] = 0xff;
+					chip->cmdfunc(mtd, NAND_CMD_RNDIN,
+						      pos, -1);
+					chip->write_buf(mtd, chip->oob_poi,
+							mtd->oobsize);
+					break;
+				}
+
 				chip->cmdfunc(mtd, NAND_CMD_RNDIN, pos, -1);
 			}
 		} else {
@@ -753,6 +803,10 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 		chip->read_buf(mtd, buf, mtd->writesize);
 		return 0;
 	}
+
+	pr_debug("read page:0x%x sect:%d steps:%d eccbytes:%d, pad:%d/%d\n",
+		 page * mtd->writesize, sectsize, eccsteps, eccbytes,
+		 chip->ecc.prepad, chip->ecc.postpad);
 
 	/* ecc setting */
 	nx_nandc_set_bchmode(regs, nfc->bchmode);
@@ -803,7 +857,7 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 			}
 		}
 
-		pr_debug("read step=%d/%d page=%d, page size=%d\n",
+		pr_debug("read step:%d/%d page:%d, page size:%d\n",
 			 subp + 1, eccsteps, page, mtd->writesize);
 	}
 
@@ -843,8 +897,7 @@ static int nand_hw_ecc_read_page(struct mtd_info *mtd, struct nand_chip *chip,
 	}
 
 out:
-	pr_debug("hw ecc read page=0x%x return %d\n",
-		 page * mtd->writesize, ret);
+	pr_debug("read page:0x%x return %d\n", page * mtd->writesize, ret);
 
 	return ret;
 }
@@ -878,6 +931,10 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 		buf += eccsize;
 	}
 
+	pr_debug("write page:0x%x sect:%d steps:%d eccbytes:%d, pad:%d/%d\n",
+		 page * mtd->writesize, sectsize, eccsteps, eccbytes,
+		 chip->ecc.prepad, chip->ecc.postpad);
+
 	/* ecc setting */
 	nx_nandc_set_bchmode(regs, nfc->bchmode);
 	nx_nandc_set_encmode(regs, 1);
@@ -894,14 +951,13 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	if (ret < 0)
 		ret = -EIO;
 
-	pr_debug("hw ecc write page=0x%x return %d\n",
-		 page * mtd->writesize, ret);
+	pr_debug("write page:0x%x return %d\n", page * mtd->writesize, ret);
 
 	return ret;
 }
 
-int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
-			     u8 *buf, int page)
+int nand_hw_ecc_read_boot_page(struct mtd_info *mtd, struct nand_chip *chip,
+			       u8 *buf, int page)
 {
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
 	void __iomem *regs = nfc->regs;
@@ -912,7 +968,7 @@ int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 	int eccsize = chip->ecc.size;
 	int spare, subp;
 	int bchmode;
-	int datasize = nfc->datasize;
+	int datasize = nfc->boot_datasize;
 	int pagesize = eccsize * eccsteps;
 	int steps;
 	u8 *dst = buf;
@@ -920,9 +976,6 @@ int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 
 	sectsize = (pagesize == 512) ? 512 : 1024;
 	steps = pagesize / sectsize;
-
-	pr_debug("sectsize: %d eccsteps: %d pagesize: %d\n",
-		 sectsize, eccsteps, pagesize);
 
 	if (sectsize == 512) {
 		bchmode = NX_NANDC_BCH_512_24;
@@ -932,8 +985,8 @@ int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 		eccbytes = NX_NANDC_ECC_SZ_1024_60;
 	}
 
-	pr_debug("eccsize: %d, eccbytes: %d datasize: %d\n",
-		 eccsize, eccbytes, datasize);
+	pr_debug("read boot:0x%x sect:%d steps:%d eccbytes:%d datasize:%d\n",
+		 page * mtd->writesize, sectsize, steps, eccbytes, datasize);
 
 	/* ecc setting */
 	nx_nandc_set_bchmode(regs, bchmode);
@@ -1014,14 +1067,16 @@ int nand_hw_ecc_read_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 	}
 
 out:
-	pr_debug("hw ecc read bld page=0x%x return %d\n",
-		 page * mtd->writesize, ret);
+	nx_nandc_set_randseed(regs, 0);
+
+	pr_debug("read boot:0x%x len:%d return %d\n",
+		 page * mtd->writesize, dst - buf, ret);
 
 	return ret;
 }
 
-int nand_hw_ecc_write_bloader(struct mtd_info *mtd, struct nand_chip *chip,
-			      const u8 *buf, int page)
+int nand_hw_ecc_write_boot_page(struct mtd_info *mtd, struct nand_chip *chip,
+				const u8 *buf, int page)
 {
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
 	void __iomem *regs = nfc->regs;
@@ -1033,16 +1088,13 @@ int nand_hw_ecc_write_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 	int eccsize = chip->ecc.size; /* 512, 1024 */
 	int subp;
 	int bchmode;
-	int datasize = nfc->datasize;
+	int datasize = nfc->boot_datasize;
 	int pagesize = eccsize * eccsteps;
 	int steps;
 	int ret = 0;
 
 	sectsize = (pagesize == 512) ? 512 : 1024;
 	steps = pagesize / sectsize;
-
-	pr_debug("sectsize: %d steps: %d pagesize: %d\n",
-		 sectsize, steps, pagesize);
 
 	if (pagesize == 512) {
 		bchmode = NX_NANDC_BCH_512_24;
@@ -1051,7 +1103,9 @@ int nand_hw_ecc_write_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 		bchmode = NX_NANDC_BCH_1024_60;
 		eccbytes = NX_NANDC_ECC_SZ_1024_60;
 	}
-	pr_debug("eccbytes: %d datasize: %d\n", eccbytes, datasize);
+
+	pr_debug("write boot:0x%x sect:%d steps:%d eccbytes:%d datasize:%d\n",
+		 page * mtd->writesize, sectsize, steps, eccbytes, datasize);
 
 	memset(p, 0xff, nfc->databuf_size);
 
@@ -1078,8 +1132,9 @@ int nand_hw_ecc_write_bloader(struct mtd_info *mtd, struct nand_chip *chip,
 		dmabase += sectsize;
 	}
 
-	pr_debug("hw ecc write bld page=0x%x return %d\n",
-		 page * mtd->writesize, ret);
+	nx_nandc_set_randseed(regs, 0);
+
+	pr_debug("write boot:0x%x return %d\n", page * mtd->writesize, ret);
 
 	return ret;
 }
@@ -1145,7 +1200,7 @@ static int nand_ecc_layout_hwecc(struct mtd_info *mtd)
 		layout->oobavail = oobfree->length;
 
 		mtd->oobavail = oobfree->length;
-		pr_info("hw ecc %2d bit, oob %3d, bad '5', ecc 0~4,6~%d (%d), free %d~%d (%d) ",
+		printf("HW ecc %dbit, oob %d [bad '5', ecc 0~4,6~%d(%d), free %d~%d(%d)] ",
 			eccbits, oobsize, ecctotal, ecctotal, oobfree->offset,
 			oobfree->offset + oobfree->length - 1, oobfree->length);
 	} else {
@@ -1158,9 +1213,9 @@ static int nand_ecc_layout_hwecc(struct mtd_info *mtd)
 			eccpos[i] = n;
 
 		mtd->oobavail = oobfree->length;
-		pr_info("hw ecc %2d bit, oob %3d, bad '0,1', ecc %d~%d (%d), free 2~%d (%d) ",
-			eccbits, oobsize, oobfree->offset + oobfree->length,
-			n - 1, ecctotal, oobfree->length + 1, oobfree->length);
+		printf("HW ecc %dbit, oob %d [bad '0,1', free 2~%d(%d)] ",
+			eccbits, oobsize, oobfree->length + 1,
+			oobfree->length);
 	}
 
 	mtd->ecclayout = chip->ecc.layout;
@@ -1168,25 +1223,32 @@ static int nand_ecc_layout_hwecc(struct mtd_info *mtd)
 	return ret;
 }
 
+int get_nand_chip_sectsize(struct nand_chip *chip)
+{
+	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
+
+	return nfc->boot_sectsize;
+}
+
 int get_nand_chip_datasize(struct nand_chip *chip)
 {
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
 
-	return nfc->datasize;
+	return nfc->boot_datasize;
 }
 
 int get_nand_chip_eccbyte(struct nand_chip *chip)
 {
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
 
-	return nfc->eccbyte;
+	return nfc->boot_eccbyte;
 }
 
 int get_nand_chip_eccsteps(struct nand_chip *chip)
 {
 	struct nxp3220_nfc *nfc = nand_get_controller_data(chip);
 
-	return nfc->steps;
+	return nfc->boot_steps;
 }
 
 int get_nand_chip_ecc_manage(void)
@@ -1196,7 +1258,7 @@ int get_nand_chip_ecc_manage(void)
 
 void set_nand_chip_ecc_manage_bld(void)
 {
-	nand_chip_ecc_manage = ECC_MANAGE_BLD;
+	nand_chip_ecc_manage = ECC_MANAGE_BOOT_PAGE;
 }
 
 void set_nand_chip_ecc_manage_raw(void)
@@ -1262,7 +1324,7 @@ static int nand_hw_ecc_init_device(struct mtd_info *mtd)
 	sectsize = eccsize + eccbyte;
 	if (sectsize % 2) {
 		sectsize = sectsize + 1;
-		chip->ecc.postpad = 1;
+		chip->ecc.prepad = 1; /* postpad */
 	}
 	nfc->sectsize = sectsize;
 	nfc->bchmode = bchmode;
@@ -1276,8 +1338,7 @@ static int nand_hw_ecc_init_device(struct mtd_info *mtd)
 
 	/* reserved(boot) area */
 	do {
-		int datasize;
-		int sectsize;
+		int datasize, sectsize;
 
 		if (mtd->writesize == 512) {
 			sectsize = 512;
@@ -1290,10 +1351,12 @@ static int nand_hw_ecc_init_device(struct mtd_info *mtd)
 		datasize = sectsize - eccbyte;
 		datasize &= ~(1);
 
-		nfc->datasize = datasize;
-		nfc->eccbyte = eccbyte;
-		nfc->steps = mtd->writesize / sectsize;
-		pr_debug("datasize: %d steps: %d\n", datasize, nfc->steps);
+		nfc->boot_sectsize = sectsize;
+		nfc->boot_datasize = datasize;
+		nfc->boot_eccbyte = eccbyte;
+		nfc->boot_steps = mtd->writesize / sectsize;
+
+		pr_debug("datasize: %d steps: %d\n", datasize, nfc->boot_steps);
 	} while (0);
 
 	return 0;
