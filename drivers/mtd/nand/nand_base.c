@@ -1704,13 +1704,23 @@ static int nand_do_read_ops(struct mtd_info *mtd, loff_t from,
 	int retry_mode = 0;
 	bool ecc_fail = false;
 #ifdef CONFIG_NAND_NXP3220
+	int bootsector_size = mtd->erasesize;
+	bool is_bootsector = false, fit_erasesize = false;
 	int page_size;
 
-	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BLD)
-		page_size = get_nand_chip_datasize(chip) *
-			    get_nand_chip_eccsteps(chip);
-	else
+
+	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BOOT_PAGE) {
+		int sectsize = get_nand_chip_sectsize(chip);
+		int datasize = get_nand_chip_datasize(chip);
+
+		page_size = datasize * get_nand_chip_eccsteps(chip);
+		bootsector_size = datasize * (mtd->writesize / sectsize) *
+				(mtd->erasesize / mtd->writesize);
+		fit_erasesize = readlen == mtd->erasesize ? true : false;
+		is_bootsector = true;
+	} else {
 		page_size = mtd->writesize;
+	}
 #endif
 
 	chipnr = (int)(from >> chip->chip_shift);
@@ -1766,8 +1776,9 @@ read_retry:
 			 * the read methods return max bitflips per ecc step.
 			 */
 #ifdef CONFIG_NAND_NXP3220
-			if (unlikely(get_nand_chip_ecc_manage() == ECC_MANAGE_BLD))
-				ret = nand_hw_ecc_read_bloader(mtd, chip, bufpoi, page);
+			if (unlikely(get_nand_chip_ecc_manage() == ECC_MANAGE_BOOT_PAGE))
+				ret = nand_hw_ecc_read_boot_page(mtd, chip,
+								 bufpoi, page);
 
 			else if (unlikely(ops->mode == MTD_OPS_RAW))
 #else
@@ -1863,6 +1874,11 @@ read_retry:
 		if (!readlen)
 			break;
 
+#ifdef CONFIG_NAND_NXP3220
+		if (is_bootsector && fit_erasesize &&
+		    readlen <= (mtd->erasesize - bootsector_size))
+			break;
+#endif
 		/* For subsequent reads align to page boundary */
 		col = 0;
 		/* Increment page address */
@@ -2460,8 +2476,8 @@ static int nand_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 		chip->cmdfunc(mtd, NAND_CMD_SEQIN, 0x00, page);
 
 #ifdef CONFIG_NAND_NXP3220
-	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BLD)
-		status = nand_hw_ecc_write_bloader(mtd, chip, buf, page);
+	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BOOT_PAGE)
+		status = nand_hw_ecc_write_boot_page(mtd, chip, buf, page);
 
 	else if (unlikely(raw))
 #else
@@ -2571,13 +2587,22 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 	int ret;
 	int oob_required = oob ? 1 : 0;
 #ifdef CONFIG_NAND_NXP3220
+	int bootsector_size = mtd->erasesize;
 	int page_size;
+	bool is_bootsector = false, fit_erasesize = false;
 
-	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BLD)
-		page_size = get_nand_chip_datasize(chip) *
-			    get_nand_chip_eccsteps(chip);
-	else
+	if (get_nand_chip_ecc_manage() == ECC_MANAGE_BOOT_PAGE) {
+		int sectsize = get_nand_chip_sectsize(chip);
+		int datasize = get_nand_chip_datasize(chip);
+
+		page_size = datasize * get_nand_chip_eccsteps(chip);
+		bootsector_size = datasize * (mtd->writesize / sectsize) *
+				(mtd->erasesize / mtd->writesize);
+		is_bootsector = true;
+		fit_erasesize = writelen == mtd->erasesize ? true : false;
+	} else {
 		page_size = mtd->writesize;
+	}
 #endif
 
 	ops->retlen = 0;
@@ -2673,6 +2698,11 @@ static int nand_do_write_ops(struct mtd_info *mtd, loff_t to,
 		if (!writelen)
 			break;
 
+#ifdef CONFIG_NAND_NXP3220
+		if (is_bootsector && fit_erasesize &&
+		    writelen <= (mtd->erasesize - bootsector_size))
+			break;
+#endif
 		column = 0;
 		buf += bytes;
 		realpage++;
