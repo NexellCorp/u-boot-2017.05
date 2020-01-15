@@ -109,14 +109,17 @@
 #error "NO TARGET !!!"
 #endif
 
-#define ENV_NAND_RESV_PART_SIZE	"6m"	/* reserve partition size */
-#define ENV_NAND_BOOT_PART_SIZE	"32m"	/* boot partition size */
-#define ENV_NAND_MISC_PART_SIZE	"8m"	/* misc partition size */
-#define ENV_NAND_BOOT_PART	1	/* boot partition */
-#define ENV_NAND_MISC_PART	2	/* misc partition */
-#define ENV_NAND_ROOT_PART	3	/* root partition */
+#define ENV_NAND_BOOTSECTOR_PART_SIZE	"5m"	/* reserve partition size */
+#define ENV_NAND_ENV_PART_SIZE		"1m"	/* environment partition size */
+#define ENV_NAND_BOOT_PART_SIZE		"32m"	/* boot partition size */
+#define ENV_NAND_MISC_PART_SIZE		"8m"	/* misc partition size */
+#define ENV_NAND_ENV_PART		1	/* environment partition */
+#define ENV_NAND_BOOT_PART		2	/* boot partition */
+#define ENV_NAND_MISC_PART		3	/* misc partition */
+#define ENV_NAND_ROOT_PART		4	/* root partition */
 
-#define	ENV_MTDPARTS		"mtdparts=mtd-nand:"ENV_NAND_RESV_PART_SIZE"(reserved),"\
+#define	ENV_MTDPARTS		"mtdparts=mtd-nand:"ENV_NAND_BOOTSECTOR_PART_SIZE"(bootsector),"\
+					""ENV_NAND_ENV_PART_SIZE"(env),"\
 					""ENV_NAND_BOOT_PART_SIZE"(boot),"\
 					""ENV_NAND_MISC_PART_SIZE"(misc),"\
 					"-(rootfs)"
