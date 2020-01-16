@@ -356,6 +356,11 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int size, int dir)
 		flush_dcache_range((ulong)nfc->databuf,
 			(ulong)(nfc->databuf +
 			ROUND(nfc->databuf_size, CONFIG_SYS_CACHELINE_SIZE)));
+	else
+		invalidate_dcache_range((ulong)nfc->databuf,
+			(ulong)(nfc->databuf +
+			ROUND(nfc->databuf_size, CONFIG_SYS_CACHELINE_SIZE)));
+
 #endif
 	/* clear DMA interrupt pending */
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
@@ -370,13 +375,6 @@ static int nx_nandc_run_dma(struct nxp3220_nfc *nfc, int size, int dir)
 	nx_nandc_clear_irq_pending(regs, NX_NANDC_INT_DMA);
 
 	nx_nandc_set_dmamode(regs, NX_NANDC_CPU_MODE);
-
-#ifndef CONFIG_SYS_DCACHE_OFF
-	if (dir == DRM_DIR_READ)
-		invalidate_dcache_range((ulong)nfc->databuf,
-			(ulong)(nfc->databuf +
-			ROUND(nfc->databuf_size, CONFIG_SYS_CACHELINE_SIZE)));
-#endif
 
 	return 0;
 }
@@ -948,8 +946,12 @@ static int nand_hw_ecc_write_page(struct mtd_info *mtd, struct nand_chip *chip,
 	nx_nandc_set_randseed(regs, 0);
 
 	ret = nx_nandc_run_dma(nfc, (sectsize * eccsteps), DRM_DIR_WRITE);
-	if (ret < 0)
+	if (ret < 0) {
+		pr_err("write page:0x%x steps:%d eccbytes:%d, pad:%d/%d failed\n",
+		       page * mtd->writesize, eccsteps, eccbytes,
+		       chip->ecc.prepad, chip->ecc.postpad);
 		ret = -EIO;
+	}
 
 	pr_debug("write page:0x%x return %d\n", page * mtd->writesize, ret);
 
