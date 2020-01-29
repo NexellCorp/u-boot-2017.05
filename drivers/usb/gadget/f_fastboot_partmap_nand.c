@@ -140,10 +140,10 @@ static int fb_nand_write(struct fb_part_par *f_part, void *buffer, u64 bytes)
 	/* set command */
 	p = sprintf(cmd, "nand ");
 
-	if (f_part->type & FASTBOOT_PART_BOOT)
-		l = sprintf(&cmd[p], "%s", "erase.spread");
-	else
+	if (f_part->type & PART_TYPE_PARTITION)
 		l = sprintf(&cmd[p], "%s", "erase");
+	else
+		l = sprintf(&cmd[p], "%s", "erase.spread");
 
 	p += l;
 	l = sprintf(&cmd[p], " 0x%llx 0x%llx", start, erasesize);
