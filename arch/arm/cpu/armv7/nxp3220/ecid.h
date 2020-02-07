@@ -17,9 +17,8 @@ struct nx_guid {
 	u8 guid3[8];
 };
 
-int nx_ecid_get_key_ready(void);
-void nx_ecid_get_chip_name(u8 *chip_name);
-void nx_ecid_get_ecid(u32 ecid[4]);
-void nx_ecid_get_guid(struct nx_guid *guid);
+int nx_ecid_get_chip_name(u8 *chip_name);
+int nx_ecid_get_ecid(u32 ecid[4]);
+int nx_ecid_get_guid(struct nx_guid *guid);
 
 #endif /* _NEXELL_ECID_H */
