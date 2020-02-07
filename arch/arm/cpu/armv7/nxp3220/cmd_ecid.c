@@ -10,30 +10,6 @@
 #include <mach/usb.h>
 #include "ecid.h"
 
-static int nx_cpu_id_guid(u32 guid[4])
-{
-	if (nx_ecid_get_key_ready() < 0)
-		return -EBUSY;
-	nx_ecid_get_guid((struct nx_guid *)guid);
-	return 0;
-}
-
-static int nx_cpu_id_ecid(u32 ecid[4])
-{
-	if (nx_ecid_get_key_ready() < 0)
-		return -EBUSY;
-	nx_ecid_get_ecid(ecid);
-	return 0;
-}
-
-static int nx_cpu_id_string(u8 *chipname)
-{
-	if (nx_ecid_get_key_ready() < 0)
-		return -EBUSY;
-	nx_ecid_get_chip_name(chipname);
-	return 0;
-}
-
 static int ecid_show(char *entry)
 {
 	char buf[128] = { 0, };
@@ -44,11 +20,11 @@ static int ecid_show(char *entry)
 	int ret = 0;
 
 	if (!strncmp(entry, "ecid", 4)) {
-		ret = nx_cpu_id_ecid(uid);
+		ret = nx_ecid_get_ecid(uid);
 	} else if (!strncmp(entry, "guid", 4)) {
-		ret = nx_cpu_id_guid(uid);
+		ret = nx_ecid_get_guid((struct nx_guid *)uid);
 	} else if (!strncmp(entry, "name", 4)) {
-		ret = nx_cpu_id_string(chipname);
+		ret = nx_ecid_get_chip_name(chipname);
 		string = 1;
 	} else {
 		return -EINVAL;
@@ -111,7 +87,7 @@ int nx_cpu_id_usbid(u16 *vid, u16 *pid)
 	u32 id, uid[4] = { 0, };
 	int ret;
 
-	ret = nx_cpu_id_ecid(uid);
+	ret = nx_ecid_get_ecid(uid);
 	if (ret)
 		return ret;
 

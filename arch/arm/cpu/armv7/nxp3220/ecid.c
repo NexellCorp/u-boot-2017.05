@@ -27,7 +27,7 @@ struct nx_ecid_regs {
 
 static struct nx_ecid_regs *reg = (struct nx_ecid_regs *)PHY_BASEADDR_ECID;
 
-int nx_ecid_get_key_ready(void)
+static int nx_ecid_key_ready(void)
 {
 	const u32 ready_pos = 16; /* sense done */
 	const u32 ready_mask = 1ul << ready_pos;
@@ -37,10 +37,13 @@ int nx_ecid_get_key_ready(void)
 	return (int)((regval & ready_mask) >> ready_pos);
 }
 
-void nx_ecid_get_chip_name(u8 *chip_name)
+int nx_ecid_get_chip_name(u8 *chip_name)
 {
 	int i;
 	u8 *c = chip_name;
+
+	if (nx_ecid_key_ready() < 0)
+		return -EBUSY;
 
 	for (i = 0; i < CHIPNAME_LEN; i++)
 		c[i] = readb(&reg->chipname[i]);
@@ -50,18 +53,28 @@ void nx_ecid_get_chip_name(u8 *chip_name)
 			break;
 		c[i] = 0;
 	}
+
+	return 0;
 }
 
-void nx_ecid_get_ecid(u32 ecid[4])
+int nx_ecid_get_ecid(u32 ecid[4])
 {
+	if (nx_ecid_key_ready() < 0)
+		return -EBUSY;
+
 	ecid[0] = readl(&reg->ecid[0]);
 	ecid[1] = readl(&reg->ecid[1]);
 	ecid[2] = readl(&reg->ecid[2]);
 	ecid[3] = readl(&reg->ecid[3]);
+
+	return 0;
 }
 
-void nx_ecid_get_guid(struct nx_guid *guid)
+int nx_ecid_get_guid(struct nx_guid *guid)
 {
+	if (nx_ecid_key_ready() < 0)
+		return -EBUSY;
+
 	guid->guid0 = readl(&reg->guid0);
 	guid->guid1 = readw(&reg->guid1);
 	guid->guid2 = readw(&reg->guid2);
@@ -73,4 +86,6 @@ void nx_ecid_get_guid(struct nx_guid *guid)
 	guid->guid3[5] = readb(&reg->guid3[5]);
 	guid->guid3[6] = readb(&reg->guid3[6]);
 	guid->guid3[7] = readb(&reg->guid3[7]);
+
+	return 0;
 }
