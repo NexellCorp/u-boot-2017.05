@@ -568,18 +568,20 @@ static int nand_hw_init_timings(struct nand_chip *chip)
 	int mode;
 
 	mode = onfi_get_async_timing_mode(chip);
+#ifndef CONFIG_QUICKBOOT_QUIET
+	printf("timing: %s(mode.%d) ",
+	       mode == ONFI_TIMING_MODE_UNKNOWN ? "user" : "onfi",
+	       mode == ONFI_TIMING_MODE_UNKNOWN ?
+	       chip->onfi_timing_mode_default : mode);
+	if (mode != ONFI_TIMING_MODE_UNKNOWN)
+		printf("[ver:%d] ", chip->onfi_version);
+#endif
 
 	if (mode == ONFI_TIMING_MODE_UNKNOWN)
 		mode = chip->onfi_timing_mode_default;
 	else
 		mode = fls(mode) - 1;
 
-#ifndef CONFIG_QUICKBOOT_QUIET
-	printf("timing: %s(%d) ",
-	       mode == ONFI_TIMING_MODE_UNKNOWN ? "user" : "onfi", mode);
-	if (mode != ONFI_TIMING_MODE_UNKNOWN)
-		printf("[ver:%d] ", chip->onfi_version);
-#endif
 	if (mode < 0)
 		mode = 0;
 
