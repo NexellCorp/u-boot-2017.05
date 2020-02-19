@@ -9,9 +9,16 @@
 
 #include "nxp3220-vtk-common.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+
 / {
 	model = "Nexell nxp3220 validation test board";
 	compatible = "nexell,nxp3220";
+};
+
+&efuse {
+	status = "okay";
+	power-supply = <&ldo3>;
+	status-gpio = <&gpio_alv 3 GPIO_ACTIVE_LOW>;
 };
 
 &i2c_0 {
