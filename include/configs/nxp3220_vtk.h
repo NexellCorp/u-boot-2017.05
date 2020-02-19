@@ -49,7 +49,7 @@
 		"run load_args;" \
 		"bootz ${kernel_addr} - ${fdt_addr}\0" \
 	"console=" CONFIG_DEFAULT_CONSOLE \
-	"fdt_addr=" __stringify(FDT_ADDR) "\0" \
+	"fdt_addr=" __stringify(ENV_FDT_ADDR) "\0" \
 	"fdt_file="__stringify(KERNEL_DTB) "\0" \
 	"load_args=setenv bootargs \"" \
 		"ubi.mtd=3 rootfstype=ubifs " \
@@ -81,7 +81,7 @@
 		"run load_args;" \
 		"bootz ${kernel_addr} - ${fdt_addr}\0" \
 	"console=" CONFIG_DEFAULT_CONSOLE \
-	"fdt_addr=" __stringify(FDT_ADDR) "\0" \
+	"fdt_addr=" __stringify(ENV_FDT_ADDR) "\0" \
 	"fdt_file="__stringify(KERNEL_DTB) "\0" \
 	"load_args=setenv bootargs \"" \
 		"root=/dev/mmcblk${mmc_boot_dev}p${mmc_rootfs_part} " \
