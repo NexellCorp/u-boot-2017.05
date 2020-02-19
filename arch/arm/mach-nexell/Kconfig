@@ -33,6 +33,10 @@ config REBOOT_MODE
 	help
 	  Support for nexell reboot mode (reboot bootloader, reboot recovery)
 
+config NEXELL_SECURE_IO
+	bool
+	select ARM_PSCI_FW
+
 source "board/nexell/Kconfig"
 
 endif
