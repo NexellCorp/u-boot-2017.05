@@ -1,0 +1,28 @@
+Nexell nxp3320 EFUSE controller
+=============================
+
+The device node for a EFUSE device is as follows:
+
+Required properties :
+  - compatible: Must be "nexell,nxp3220-efuse"
+  - reg: physical base address and length of the controller's registers
+Optional properties :
+  - power-gpio : Gpio to enable all the efuse fsource power.
+  - power-gpio-fsource0 : Gpio to enable only the efuse fsource0 power.
+  - power-gpio-fsource1 : Gpio to enable only the efuse fsource1 power.
+  - power-gpio-fsource2 : Gpio to enable only the efuse fsource2 power.
+  - power-gpio-fsource3 : Gpio to enable only the efuse fsource3 power.
+  - power-supply : regulator to supply all the efuse fsource power.
+  - power-supply-fsource0 : regulator to supply only the efuse fsource0 power.
+  - power-supply-fsource1 : regulator to supply only the efuse fsource1 power.
+  - power-supply-fsource2 : regulator to supply only the efuse fsource2 power.
+  - power-supply-fsource3 : regulator to supply only the efuse fsource3 power.
+  - status-gpio : Gpio to check if update is ready 
+
+Example :
+	efuse: efuse@20070000 {
+		compatible = "nexell,nxp3220-efuse";
+		reg = <0x20070000 0x1000>;
+		power-supply = <&ldo3>;
+		status-gpio = <&gpio_alv 3 Gpio_ACTIVE_LOW>;
+	};
