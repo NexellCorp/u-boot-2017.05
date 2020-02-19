@@ -9,7 +9,7 @@
 
 enum fb_part_type {
 	FASTBOOT_PART_BOOT = (1 << 0),	/* bootable partition */
-	FASTBOOT_PART_RAW = (1 << 1),	/* raw write */
+	FASTBOOT_PART_RAW = (1 << 1),	/* raw binary data or 'ASCII text' */
 	FASTBOOT_PART_FS = (1 << 2),	/* set partition table: ex) ext4,fat, ubi */
 };
 
@@ -21,7 +21,7 @@ enum fb_part_type {
 #define	FASTBOOT_DEV_PART_MAX		(16)
 
 struct fb_part_par {
-	char name[32];	/* partition name: ex> boot, env, ... */
+	char name[64];	/* partition name: ex> boot, env, ... */
 	int dev_no;
 	u64 start;
 	u64 length;
@@ -42,8 +42,23 @@ struct fb_part_dev {
 	int dev_max;
 	struct list_head list;		/* next devices */
 	struct list_head part_list;	/* partition lists */
-	unsigned int part_support;
+	unsigned int mask;
 	struct fb_part_ops *ops;
 };
+
+const char *print_part_type(int fb_part_type);
+
+#define FB_PARTMAP_BIND_WEAK(name) \
+	void __weak fb_partmap_bind_##name(struct list_head *head) { }
+
+#define FB_PARTMAP_BIND_INIT(name, pdev) \
+	void fb_partmap_bind_##name(struct list_head *head) { \
+		struct fb_part_dev *fd = pdev; \
+		INIT_LIST_HEAD(&fd->list); \
+		INIT_LIST_HEAD(&fd->part_list); \
+		list_add_tail(&fd->list, head); \
+	}
+
+#define FB_PARTMAP_BIND(name, list) fb_partmap_bind_##name(list)
 
 #endif

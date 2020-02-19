@@ -30,6 +30,7 @@ obj-$(CONFIG_DFU_OVER_USB) += f_dfu.o
 obj-$(CONFIG_USB_FUNCTION_MASS_STORAGE) += f_mass_storage.o
 obj-$(CONFIG_USB_FUNCTION_FASTBOOT) += f_fastboot.o
 obj-$(CONFIG_USB_FUNCTION_FASTBOOT_PARTMAP) += f_fastboot_partmap.o
+obj-$(CONFIG_FASTBOOT_PARTMAP_FLASH_EFUSE) += f_fastboot_partmap_efuse.o
 obj-$(CONFIG_FASTBOOT_PARTMAP_FLASH_MMC) += f_fastboot_partmap_mmc.o
 obj-$(CONFIG_FASTBOOT_PARTMAP_FLASH_SPI) += f_fastboot_partmap_spi.o
 obj-$(CONFIG_FASTBOOT_PARTMAP_FLASH_NAND) += f_fastboot_partmap_nand.o

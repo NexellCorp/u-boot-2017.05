@@ -168,8 +168,8 @@ static lbaint_t fb_mmc_sparse_reserve(struct sparse_storage *info,
 
 /* refer to image-sparse.c */
 static void fb_mmc_write_block(struct blk_desc *dev_desc,
-			    disk_partition_t *info, const char *part_name,
-			    void *buffer, u64 sz)
+			       disk_partition_t *info, const char *part_name,
+			       void *buffer, u64 sz)
 {
 	if (is_sparse_image(buffer)) {
 		struct sparse_storage sparse;
@@ -345,17 +345,9 @@ static struct fb_part_ops fb_partmap_ops_mmc = {
 static struct fb_part_dev fb_partmap_dev_mmc = {
 	.device	= "mmc",
 	.dev_max = 4,
-	.part_support = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
+	.mask = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
 		FASTBOOT_PART_FS | FASTBOOT_PART_GPT | FASTBOOT_PART_DOS,
 	.ops = &fb_partmap_ops_mmc,
 };
 
-void fb_partmap_add_dev_mmc(struct list_head *head)
-{
-	struct fb_part_dev *fd = &fb_partmap_dev_mmc;
-
-	INIT_LIST_HEAD(&fd->list);
-	INIT_LIST_HEAD(&fd->part_list);
-
-	list_add_tail(&fd->list, head);
-}
+FB_PARTMAP_BIND_INIT(mmc, &fb_partmap_dev_mmc)

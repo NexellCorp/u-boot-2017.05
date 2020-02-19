@@ -212,17 +212,8 @@ static struct fb_part_ops fb_partmap_ops_spi = {
 static struct fb_part_dev fb_partmap_dev_spi = {
 	.device	= "spi",
 	.dev_max = 4,
-	.part_support = FASTBOOT_PART_RAW,
+	.mask = FASTBOOT_PART_RAW,
 	.ops = &fb_partmap_ops_spi,
 };
 
-void fb_partmap_add_dev_spi(struct list_head *head)
-{
-	struct fb_part_dev *fd = &fb_partmap_dev_spi;
-
-	INIT_LIST_HEAD(&fd->list);
-	INIT_LIST_HEAD(&fd->part_list);
-
-	list_add_tail(&fd->list, head);
-}
-
+FB_PARTMAP_BIND_INIT(spi, &fb_partmap_dev_spi)
