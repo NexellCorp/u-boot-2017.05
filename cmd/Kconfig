@@ -655,6 +655,12 @@ config CMD_DM
 	  can be useful to see the state of driver model for debugging or
 	  interest.
 
+config CMD_NEXELL_EFUSE
+	bool "efuse - support for Nexell efuse access"
+	depends on NXP3220_EFUSE
+	help
+	  This allows programming efuses.
+
 config CMD_FDC
 	bool "fdcboot - Boot from floppy device"
 	help
