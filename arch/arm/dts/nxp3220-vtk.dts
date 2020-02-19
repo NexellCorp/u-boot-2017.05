@@ -18,7 +18,9 @@
 &efuse {
 	status = "okay";
 	power-supply = <&ldo3>;
+/*
 	status-gpio = <&gpio_alv 3 GPIO_ACTIVE_LOW>;
+*/
 };
 
 &i2c_0 {
