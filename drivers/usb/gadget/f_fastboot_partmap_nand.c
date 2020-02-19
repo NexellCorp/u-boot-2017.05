@@ -20,22 +20,6 @@ extern int get_nand_chip_eccbyte(struct nand_chip *chip);
 
 static struct list_head *fd_dev_head;
 
-static char *print_part_type(int fb_part_type)
-{
-	char *s;
-
-	if (fb_part_type == FASTBOOT_PART_BOOT)
-		s = "boot";
-	else if (fb_part_type == FASTBOOT_PART_RAW)
-		s = "raw";
-	else if (fb_part_type == PART_TYPE_PARTITION)
-		s = "ubi";
-	else
-		s = "unknown";
-
-	return s;
-}
-
 /*
  * Check the bad block count from the previous bootloader
  * and get the current start offset.
@@ -218,19 +202,9 @@ static struct fb_part_ops fb_partmap_ops_nand = {
 static struct fb_part_dev fb_partmap_dev_nand = {
 	.device	= "nand",
 	.dev_max = 1,
-	.part_support = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
+	.mask = FASTBOOT_PART_BOOT | FASTBOOT_PART_RAW |
 		FASTBOOT_PART_FS,
 	.ops = &fb_partmap_ops_nand,
 };
 
-void fb_partmap_add_dev_nand(struct list_head *head)
-{
-	struct fb_part_dev *fd = &fb_partmap_dev_nand;
-
-	INIT_LIST_HEAD(&fd->list);
-	INIT_LIST_HEAD(&fd->part_list);
-
-	list_add_tail(&fd->list, head);
-
-	fd_dev_head = head;
-}
+FB_PARTMAP_BIND_INIT(nand, &fb_partmap_dev_nand)

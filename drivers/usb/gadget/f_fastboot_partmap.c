@@ -17,7 +17,7 @@
 
 /* support fs type */
 static struct fastboot_part_name {
-	char *name;
+	const char *name;
 	enum fb_part_type type;
 } f_part_names[] = {
 	{ "bootsector", FASTBOOT_PART_BOOT },
@@ -25,7 +25,7 @@ static struct fastboot_part_name {
 	/* partition type */
 #if defined(CONFIG_FASTBOOT_PARTMAP_PARTITION_MBR)
 	{ "partition", FASTBOOT_PART_DOS },
-#elif defined (CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
+#elif defined(CONFIG_FASTBOOT_PARTMAP_PARTITION_GPT)
 	{ "partition", FASTBOOT_PART_GPT },
 #else
 	{ "partition", FASTBOOT_PART_FS },
@@ -44,6 +44,18 @@ static int saveenv(void)
 #else
 	return run_command("saveenv", 0);
 #endif
+}
+
+const char *print_part_type(int fb_part_type)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(f_part_names); i++) {
+		if (fb_part_type == f_part_names[i].type)
+			return f_part_names[i].name;
+	}
+
+	return "unknown";
 }
 
 static void parse_comment(const char *str, int len)
@@ -165,9 +177,8 @@ static int parse_seq_device(const char *parts, const char **ret,
 	}
 
 	strcpy(fp->name, "unknown");
-	list_add_tail(&fp->link, &fd->part_list);
-
 	printf("** Can't device parse : %s **\n", parts);
+
 	return -EINVAL;
 }
 
@@ -231,7 +242,7 @@ static int parse_seq_fs(const char *parts, const char **ret,
 
 	for (i = 0; i < ARRAY_SIZE(f_part_names); i++, fs++) {
 		if (!strcmp(fs->name, str)) {
-			if (!(fd->part_support & fs->type)) {
+			if (!(fd->mask & fs->type)) {
 				printf("** '%s' not support '%s' fs **\n",
 				       fd->device, fs->name);
 				return -EINVAL;
@@ -807,20 +818,14 @@ int cb_flash_ext(char *cmd, char *response, unsigned int download_bytes)
 	return part_write(cmd, p, download_bytes, response);
 }
 
-void __weak fb_partmap_add_dev_mmc(struct list_head *head)
-{
-}
-
-void __weak fb_partmap_add_dev_spi(struct list_head *head)
-{
-}
-
-void __weak fb_partmap_add_dev_nand(struct list_head *head)
-{
-}
+FB_PARTMAP_BIND_WEAK(efuse);
+FB_PARTMAP_BIND_WEAK(mmc);
+FB_PARTMAP_BIND_WEAK(spi);
+FB_PARTMAP_BIND_WEAK(nand);
 
 void fastboot_bind_ext(void)
 {
+	struct list_head *head = &f_dev_head;
 	char *env;
 
 	debug("%s : %s\n", __func__, f_dev_binded ? "binded" : "bind");
@@ -828,14 +833,16 @@ void fastboot_bind_ext(void)
 	if (f_dev_binded)
 		return;
 
-	f_dev_binded = true;
+	FB_PARTMAP_BIND(efuse, head);
+	FB_PARTMAP_BIND(mmc, head);
+	FB_PARTMAP_BIND(spi, head);
+	FB_PARTMAP_BIND(nand, head);
 
-	fb_partmap_add_dev_mmc(&f_dev_head);
-	fb_partmap_add_dev_spi(&f_dev_head);
-	fb_partmap_add_dev_nand(&f_dev_head);
 	part_lists_init_all();
 
 	env = env_get("partmap");
 	if (env)
 		part_lists_make(env, strlen(env), false);
+
+	f_dev_binded = true;
 }
