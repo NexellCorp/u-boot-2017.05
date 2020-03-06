@@ -115,7 +115,7 @@
 					""ENV_NAND_MISC_PART_SIZE"(misc),"\
 					"-(rootfs)"
 #define ENV_BOOT_PRECOMMAND	"ubifsmount ubi0:boot; " /* ubi part boot;ubifsmount ubi0:boot; */
-#define ENV_BOOT_POSTCOMMAND	"bootl ${kernel_addr} - ${fdt_addr}"
+#define ENV_BOOT_POSTCOMMAND	"bootz ${kernel_addr} - ${fdt_addr}"
 #define ENV_BOOT_ARGS		"ubi.mtd="__stringify(ENV_NAND_ROOT_PART)" " \
 				"ubi.mtd="__stringify(ENV_NAND_BOOT_PART)" " \
 				"ubi.mtd="__stringify(ENV_NAND_MISC_PART)" " \
