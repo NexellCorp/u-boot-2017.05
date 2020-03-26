@@ -397,6 +397,7 @@ static void nx_display_parse_layer(ofnode node, struct nx_display *dp,
 {
 	struct display_timing *timing = &dp->dpi.timing;
 	struct nx_overlay *ovl = screen_overlay(dp, id);
+	char *s, buff[32];
 
 	ovl->width = timing->hactive.typ;
 	ovl->height = timing->vactive.typ;
@@ -417,6 +418,15 @@ static void nx_display_parse_layer(ofnode node, struct nx_display *dp,
 
 	if (ovl->primary)
 		dp->primary = ovl->id;
+
+	/* set environment for kernel */
+	s = env_get("fb_addr");
+	if (s) {
+		ovl->fb = simple_strtoul(s, NULL, 16);
+	} else {
+		sprintf(buff, "0x%x", ovl->fb);
+		env_set("fb_addr", buff);
+	}
 }
 
 static void nx_display_parse_overlays(ofnode parent, struct nx_display *dp)

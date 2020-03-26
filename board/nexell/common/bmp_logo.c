@@ -31,19 +31,16 @@ static struct splash_location splash_loc[] = {
 void draw_logo(void)
 {
 	int x = BMP_ALIGN_CENTER, y = BMP_ALIGN_CENTER;
-	ulong addr = 0;
+	ulong load;
 #ifdef CONFIG_SPLASH_SOURCE
-	char *s, buff[64];
+	char *s;
 	int ret;
 
 	s = env_get("splashimage");
 	if (!s)
 		return;
 
-	if (!gd->video_bottom)
-		return;
-
-	addr = simple_strtoul(s, NULL, 16);
+	load = simple_strtoul(s, NULL, 16);
 
 	/* load env_get("splashfile") */
 	ret = splash_source_load(splash_loc,
@@ -51,17 +48,14 @@ void draw_logo(void)
 	if (ret)
 		return;
 
-	sprintf(buff, "0x%lx", gd->video_bottom);
-	env_set("fb_addr", buff);
-
 #ifndef CONFIG_QUICKBOOT_QUIET
-	printf("splashimage: 0x%lx -> 0x%lx\n", addr, gd->video_bottom);
+	printf("splashimage: 0x%lx\n", load);
 #endif
 #endif
-	if (!addr)
+	if (!load)
 		return;
 
-	bmp_display(addr, x, y);
+	bmp_display(load, x, y);
 }
 #endif
 
