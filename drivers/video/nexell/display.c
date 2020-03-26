@@ -588,6 +588,8 @@ static int nx_display_probe(struct udevice *dev)
 	struct nx_display_priv *priv = dev_get_priv(dev);
 	struct nx_display *dp = &priv->dp;
 	struct nx_overlay *ovl;
+	char *s, buff[32];
+	long fbaddr = 0;
 	int ret;
 
 	ret = nx_display_parse_dt(dev);
@@ -615,6 +617,14 @@ static int nx_display_probe(struct udevice *dev)
 		break;
 	}
 
+	/* set environment for kernel */
+	s = env_get("fb_addr");
+	if (s) {
+		fbaddr = simple_strtoul(s, NULL, 16);
+		if (fbaddr)
+			ovl->fb = fbaddr;
+	}
+
 	if (ovl->fb) {
 		plat->base = ovl->fb;
 		gd->video_bottom = ovl->fb;
@@ -622,6 +632,11 @@ static int nx_display_probe(struct udevice *dev)
 			(ovl->width * ovl->height * ovl->bit_per_pixel / 8);
 	} else {
 		ovl->fb = plat->base;
+	}
+
+	if (!fbaddr) {
+		sprintf(buff, "0x%x", ovl->fb);
+		env_set("fb_addr", buff);
 	}
 
 #ifndef CONFIG_QUICKBOOT_QUIET
