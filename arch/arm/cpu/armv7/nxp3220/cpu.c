@@ -18,6 +18,13 @@ void s_init(void)
 {
 }
 
+#ifndef CONFIG_SYS_DCACHE_OFF
+void enable_caches(void)
+{
+	dcache_enable();
+}
+#endif
+
 #if defined(CONFIG_DISPLAY_CPUINFO)
 int print_cpuinfo(void)
 {
