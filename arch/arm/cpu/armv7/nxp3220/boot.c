@@ -21,6 +21,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define VDDPWR_BASE	(0x20080000 + 0xc800)
 #define SCRATCH_BASE(x) (VDDPWR_BASE + 0x100 + (4 * (x)))
 #define SCRATCH_OFFSET	7
+#define SCRATCH_BOOTMODE_OFFSET	15
+
 #define BL2_NSIH_DEV_BASE_ADDR	0x18000
 
 struct boot_mode {
@@ -57,11 +59,15 @@ int boot_check_bootup_mode(void)
 	if (current_bootmode)
 		return 0;
 
-	mode = readl(BOOT_OPTION) & 0x7;
+	mode = readl(SCRATCH_BASE(SCRATCH_BOOTMODE_OFFSET));
+/*		mode = readl(BOOT_OPTION);	*/
 	main = mode & 0x7;
 	sub = (mode >> 3) & 0xFF;
 
-	debug("Boot mode option:0x%x\n", mode);
+	if (main == BOOT_DEV_USB)
+		printf("Boot mode main:0x%x, sub=0x%x\n", main, sub);
+	else
+		debug("Boot mode main:0x%x, sub=0x%x\n", main, sub);
 
 	for (i = 0; i < ARRAY_SIZE(boot_main_mode); i++) {
 		if (boot_main_mode[i].mask == main) {
