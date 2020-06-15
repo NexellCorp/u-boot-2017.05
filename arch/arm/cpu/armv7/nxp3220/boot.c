@@ -16,11 +16,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define	ALIVE_BASE	(0x20080000)
-#define	BOOT_OPTION	(ALIVE_BASE + 0xC86C)
-#define VDDPWR_BASE	(0x20080000 + 0xc800)
-#define SCRATCH_BASE(x) (VDDPWR_BASE + 0x100 + (4 * (x)))
-#define SCRATCH_OFFSET	7
+#define	ALIVE_BASE		(0x20080000)
+#define	BOOT_OPTION		(ALIVE_BASE + 0xC86C)
+#define VDDPWR_BASE		(0x20080000 + 0xc800)
+
+#define SCRATCH_BASE(x)		(VDDPWR_BASE + 0x100 + (4 * (x)))
+#define SCRATCH_DDRCAL_OFFSET	7
 #define SCRATCH_BOOTMODE_OFFSET	15
 
 #define BL2_NSIH_DEV_BASE_ADDR	0x18000
@@ -60,14 +61,10 @@ int boot_check_bootup_mode(void)
 		return 0;
 
 	mode = readl(SCRATCH_BASE(SCRATCH_BOOTMODE_OFFSET));
-/*		mode = readl(BOOT_OPTION);	*/
 	main = mode & 0x7;
 	sub = (mode >> 3) & 0xFF;
 
-	if (main == BOOT_DEV_USB)
-		printf("Boot mode main:0x%x, sub=0x%x\n", main, sub);
-	else
-		debug("Boot mode main:0x%x, sub=0x%x\n", main, sub);
+	debug("Boot mode:0x%x, main:0x%x, sub:0x%x\n", mode, main, sub);
 
 	for (i = 0; i < ARRAY_SIZE(boot_main_mode); i++) {
 		if (boot_main_mode[i].mask == main) {
@@ -220,7 +217,7 @@ static int ddr_cal_save(void)
 	if (bmode->dev != BOOT_DEV_EMMC && bmode->dev != BOOT_DEV_SD)
 		return 0;
 
-	if (readl(SCRATCH_BASE(SCRATCH_OFFSET - 1)) != 0x4d656d43) {
+	if (readl(SCRATCH_BASE(SCRATCH_DDRCAL_OFFSET - 1)) != 0x4d656d43) {
 #ifndef CONFIG_QUICKBOOT_QUIET
 		printf("MEM: DONE calibration: %s.%d\n",
 		       bmode->name, bmode->port);
@@ -241,17 +238,17 @@ static int ddr_cal_save(void)
 	debug("%s: %s.%d\n", __func__, bmode->name, bmode->port);
 
 	for (p = (u32 *)psh->R_cal, i = 0; i < 4; i++)
-		p[i] = readl(SCRATCH_BASE(i + SCRATCH_OFFSET));
+		p[i] = readl(SCRATCH_BASE(i + SCRATCH_DDRCAL_OFFSET));
 
 	for (p = (u32 *)psh->W_cal, i = 0; i < 4; i++)
-		p[i] = readl(SCRATCH_BASE(i + 4 + SCRATCH_OFFSET));
+		p[i] = readl(SCRATCH_BASE(i + 4 + SCRATCH_DDRCAL_OFFSET));
 
 	/* update */
 	ret = ddr_cal_update("mmc", bmode->port, psh);
 
 	/* clear scratch signature */
 	if (!ret)
-		writel(0, SCRATCH_BASE(SCRATCH_OFFSET - 1));
+		writel(0, SCRATCH_BASE(SCRATCH_DDRCAL_OFFSET - 1));
 
 exit:
 	if (psh)
